@@ -1,5 +1,6 @@
 /** Public package entry — intentional re-export surface for @dma/cli. */
 
+export { analyze } from "./core/analyze";
 export { DmaEnvironmentError } from "./core/errors";
 export { DEFAULT_THRESHOLDS } from "./core/thresholds";
 export type {
