@@ -132,6 +132,26 @@ export { x } from "./reexport";
     expect(specs.some((s) => s.specifier === "./reexport")).toBe(true);
   });
 
+  test("parseImports captures next/dynamic and react.lazy targets", () => {
+    const next = parseImports(
+      "page.tsx",
+      `import dynamic from "next/dynamic";
+const Widget = dynamic(() => import("./Widget"), { ssr: false });
+const Nested = dynamic(() => import("./Nested").then((m) => m.default));
+`
+    );
+    expect(next.some((s) => s.specifier === "./Widget")).toBe(true);
+    expect(next.some((s) => s.specifier === "./Nested")).toBe(true);
+
+    const react = parseImports(
+      "app.tsx",
+      `import { lazy } from "react";
+const Panel = lazy(() => import("./Panel"));
+`
+    );
+    expect(react.some((s) => s.specifier === "./Panel")).toBe(true);
+  });
+
   test("parseImports extracts imports from md and mdx", () => {
     const md = parseImports(
       "guide.md",
