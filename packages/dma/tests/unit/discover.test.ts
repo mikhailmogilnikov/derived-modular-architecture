@@ -52,4 +52,24 @@ describe("discover", () => {
       true
     );
   });
+
+  test("discovers mdx md mjs cjs source files", () => {
+    const root = mkdtempSync(join(tmpdir(), "dma-md-discover-"));
+    mkdirSync(join(root, "src/features"), { recursive: true });
+    writeFileSync(join(root, "src/features/docs.mdx"), "export const x = 1;\n");
+    writeFileSync(join(root, "src/features/notes.md"), "# notes\n");
+    writeFileSync(join(root, "src/features/util.mjs"), "export {};\n");
+    writeFileSync(
+      join(root, "src/features/legacy.cjs"),
+      "module.exports={};\n"
+    );
+
+    const project = discover(root);
+    expect(project.modules.some((m) => m.name === "docs")).toBe(true);
+    expect(project.modules.some((m) => m.name === "notes")).toBe(true);
+    expect(project.modules.some((m) => m.name === "util")).toBe(true);
+    expect(project.modules.some((m) => m.name === "legacy")).toBe(true);
+    expect(project.sourceFiles.some((f) => f.endsWith(".mdx"))).toBe(true);
+    expect(project.sourceFiles.some((f) => f.endsWith(".mjs"))).toBe(true);
+  });
 });

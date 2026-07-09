@@ -117,4 +117,67 @@ import { Profile } from "@/features/profile";
     expect(resolveImport(fromFile, "./Card", [], root)).toBe(svelteFile);
     expect(resolveImport(fromFile, "./Page", [], root)).toBe(astroFile);
   });
+
+  test("parseImports captures dynamic import and require", () => {
+    const specs = parseImports(
+      "x.ts",
+      `
+const a = import("./lazy");
+const b = require("./cjs-mod");
+export { x } from "./reexport";
+`
+    );
+    expect(specs.some((s) => s.specifier === "./lazy")).toBe(true);
+    expect(specs.some((s) => s.specifier === "./cjs-mod")).toBe(true);
+    expect(specs.some((s) => s.specifier === "./reexport")).toBe(true);
+  });
+
+  test("parseImports extracts imports from md and mdx", () => {
+    const md = parseImports(
+      "guide.md",
+      `---
+title: Guide
+---
+
+import Callout from "./Callout.mdx";
+
+# Hello
+
+Some text.
+`
+    );
+    expect(md.some((s) => s.specifier === "./Callout.mdx")).toBe(true);
+
+    const mdx = parseImports(
+      "page.mdx",
+      `import { Chart } from "./Chart";
+import Layout from "../Layout.astro";
+
+export const meta = { title: "Page" };
+
+# Title
+`
+    );
+    expect(mdx.some((s) => s.specifier === "./Chart")).toBe(true);
+    expect(mdx.some((s) => s.specifier === "../Layout.astro")).toBe(true);
+  });
+
+  test("resolves mjs cjs md mdx extensions", () => {
+    const root = mkdtempSync(join(tmpdir(), "dma-ext-resolve-"));
+    const fromFile = join(root, "app.ts");
+    writeFileSync(fromFile, "export {};\n");
+    const mjsFile = join(root, "util.mjs");
+    const cjsFile = join(root, "legacy.cjs");
+    const mdFile = join(root, "doc.md");
+    const mdxFile = join(root, "page.mdx");
+    writeFileSync(mjsFile, "export {};\n");
+    writeFileSync(cjsFile, "module.exports = {};\n");
+    writeFileSync(mdFile, "# hi\n");
+    writeFileSync(mdxFile, "export const x = 1;\n");
+
+    expect(resolveImport(fromFile, "./util", [], root)).toBe(mjsFile);
+    expect(resolveImport(fromFile, "./legacy", [], root)).toBe(cjsFile);
+    expect(resolveImport(fromFile, "./doc", [], root)).toBe(mdFile);
+    expect(resolveImport(fromFile, "./page", [], root)).toBe(mdxFile);
+  });
 });
