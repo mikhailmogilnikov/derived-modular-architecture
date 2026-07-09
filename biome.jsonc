@@ -7,7 +7,7 @@
     "ultracite/biome/react"
   ],
   "files": {
-    "includes": ["!packages/dma/tests/fixtures"]
+    "includes": ["**", "!packages/dma/tests/fixtures"]
   },
   "overrides": [
     {
