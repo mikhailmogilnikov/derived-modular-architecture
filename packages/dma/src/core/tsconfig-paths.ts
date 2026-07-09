@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import ts from "typescript";
 import { DmaEnvironmentError } from "./errors";
 
 export interface PathAlias {
@@ -15,13 +16,24 @@ interface TsconfigJson {
 }
 
 const readJson = (filePath: string): unknown => {
+  let text: string;
   try {
-    return JSON.parse(readFileSync(filePath, "utf8"));
-  } catch (error) {
+    text = readFileSync(filePath, "utf8");
+  } catch (readError) {
     throw new DmaEnvironmentError(`Invalid tsconfig JSON: ${filePath}`, {
-      cause: error,
+      cause: readError,
     });
   }
+  const { config, error: parseError } = ts.parseConfigFileTextToJson(
+    filePath,
+    text
+  );
+  if (parseError) {
+    throw new DmaEnvironmentError(`Invalid tsconfig JSON: ${filePath}`, {
+      cause: parseError,
+    });
+  }
+  return config;
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>

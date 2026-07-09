@@ -44,4 +44,24 @@ describe("resolve", () => {
     expect(specs.find((s) => s.specifier === "./foo")?.isTypeOnly).toBe(true);
     expect(specs.find((s) => s.specifier === "./bar")?.isTypeOnly).toBe(false);
   });
+
+  test("loadPathAliases accepts tsconfig with comments", () => {
+    const root = mkdtempSync(join(tmpdir(), "dma-tsconfig-"));
+    writeFileSync(
+      join(root, "tsconfig.json"),
+      `{
+  // path aliases
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"], // app root
+    },
+  },
+}
+`
+    );
+    const aliases = loadPathAliases(root);
+    expect(aliases).toHaveLength(1);
+    expect(aliases[0]?.prefix).toBe("@");
+    expect(aliases[0]?.baseDir).toBe(join(root, "src"));
+  });
 });
