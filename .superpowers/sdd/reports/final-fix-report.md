@@ -24,4 +24,4 @@
 
 ## Commits
 
-- (see git log after commit)
+- `28a3751` — `fix(dma): SARIF relative URIs and tsconfig comment parse`
