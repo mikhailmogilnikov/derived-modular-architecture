@@ -25,3 +25,4 @@
 ## Commits
 
 - `28a3751` — `fix(dma): SARIF relative URIs and tsconfig comment parse`
+- `9be8418` — `docs(sdd): record final-fix commit hash`
