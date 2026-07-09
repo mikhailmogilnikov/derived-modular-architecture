@@ -19,7 +19,8 @@
     "prepare": "lefthook install"
   },
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "private": true,
   "engines": {

@@ -1,0 +1,22 @@
+{
+  "name": "@dma/cli",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "dma": "./src/cli/main.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "bun test",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "typescript": "7.0.2"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
