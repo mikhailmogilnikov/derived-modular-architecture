@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseImports } from "../../src/core/parse-imports";
 import { resolveImport } from "../../src/core/resolve";
@@ -20,6 +21,19 @@ describe("resolve", () => {
       fixture
     );
     expect(resolved?.endsWith("features/profile.tsx")).toBe(true);
+  });
+
+  test("resolves directory specifier to index.ts", () => {
+    const root = mkdtempSync(join(tmpdir(), "dma-resolve-"));
+    const fromFile = join(root, "app.ts");
+    const dir = join(root, "mod");
+    mkdirSync(dir);
+    const indexFile = join(dir, "index.ts");
+    writeFileSync(fromFile, 'import "./mod";\n');
+    writeFileSync(indexFile, "export {};\n");
+
+    const resolved = resolveImport(fromFile, "./mod", [], root);
+    expect(resolved).toBe(indexFile);
   });
 
   test("parseImports treats import type as type-only", () => {
