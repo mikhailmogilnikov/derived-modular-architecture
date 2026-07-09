@@ -1,17 +1,116 @@
 import ts from "typescript";
+import { isSfcFilePath } from "./source-files";
 import type { ImportSpec } from "./types";
 
-export const parseImports = (
+interface ScriptRegion {
+  content: string;
+  /** 0-based column of the first content character on startLine */
+  startColumn: number;
+  /** 0-based line of the first content character in the original file */
+  startLine: number;
+}
+
+const SCRIPT_TAG_RE = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+const ASTRO_FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---/;
+const SCRIPT_SRC_ATTR_RE = /\bsrc\s*=/;
+const SCRIPT_TYPE_ATTR_RE = /\btype\s*=\s*["']([^"']+)["']/;
+
+const shouldSkipScriptAttrs = (attrs: string): boolean => {
+  const lower = attrs.toLowerCase();
+  if (SCRIPT_SRC_ATTR_RE.test(lower)) {
+    return true;
+  }
+  const typeMatch = lower.match(SCRIPT_TYPE_ATTR_RE);
+  if (!typeMatch) {
+    return false;
+  }
+  const type = typeMatch[1] ?? "";
+  return !(
+    type === "" ||
+    type.includes("javascript") ||
+    type.includes("typescript") ||
+    type === "module" ||
+    type === "text/jsx" ||
+    type === "text/tsx"
+  );
+};
+
+const offsetOf = (
+  text: string,
+  index: number
+): { line: number; column: number } => {
+  let line = 0;
+  let column = 0;
+  for (let i = 0; i < index; i += 1) {
+    if (text[i] === "\n") {
+      line += 1;
+      column = 0;
+    } else {
+      column += 1;
+    }
+  }
+  return { column, line };
+};
+
+const extractSfcScriptRegions = (
   filePath: string,
   sourceText: string
-): ImportSpec[] => {
+): ScriptRegion[] => {
+  const regions: ScriptRegion[] = [];
+  const lowerPath = filePath.toLowerCase();
+
+  if (lowerPath.endsWith(".astro")) {
+    const frontmatter = ASTRO_FRONTMATTER_RE.exec(sourceText);
+    if (frontmatter?.[1] !== undefined) {
+      const contentStart =
+        frontmatter.index + frontmatter[0].indexOf(frontmatter[1]);
+      const { column, line } = offsetOf(sourceText, contentStart);
+      regions.push({
+        content: frontmatter[1],
+        startColumn: column,
+        startLine: line,
+      });
+    }
+  }
+
+  for (const match of sourceText.matchAll(SCRIPT_TAG_RE)) {
+    const attrs = match[1] ?? "";
+    const content = match[2] ?? "";
+    if (shouldSkipScriptAttrs(attrs)) {
+      continue;
+    }
+    const full = match[0] ?? "";
+    const openEnd = full.indexOf(">") + 1;
+    const contentStart = (match.index ?? 0) + openEnd;
+    const { column, line } = offsetOf(sourceText, contentStart);
+    regions.push({
+      content,
+      startColumn: column,
+      startLine: line,
+    });
+  }
+
+  return regions;
+};
+
+const collectFromTsAst = (
+  filePath: string,
+  sourceText: string,
+  virtualPath: string,
+  lineOffset: number,
+  columnOffsetOnFirstLine: number,
+  specs: ImportSpec[]
+): void => {
+  if (sourceText.trim() === "") {
+    return;
+  }
+
   const sourceFile = ts.createSourceFile(
-    filePath,
+    virtualPath,
     sourceText,
     ts.ScriptTarget.Latest,
     true
   );
-  const specs: ImportSpec[] = [];
 
   const visit = (node: ts.Node): void => {
     if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) {
@@ -23,11 +122,16 @@ export const parseImports = (
         const isTypeOnly = ts.isImportDeclaration(node)
           ? (node.importClause?.isTypeOnly ?? false)
           : (node.isTypeOnly ?? false);
+
+        const absoluteLine = lineOffset + line;
+        const absoluteColumn =
+          line === 0 ? columnOffsetOnFirstLine + character : character;
+
         specs.push({
-          column: character + 1,
+          column: absoluteColumn + 1,
           fromFile: filePath,
           isTypeOnly,
-          line: line + 1,
+          line: absoluteLine + 1,
           specifier: moduleSpecifier.text,
         });
       }
@@ -36,5 +140,30 @@ export const parseImports = (
   };
 
   visit(sourceFile);
+};
+
+export const parseImports = (
+  filePath: string,
+  sourceText: string
+): ImportSpec[] => {
+  const specs: ImportSpec[] = [];
+
+  if (!isSfcFilePath(filePath)) {
+    collectFromTsAst(filePath, sourceText, filePath, 0, 0, specs);
+    return specs;
+  }
+
+  for (const region of extractSfcScriptRegions(filePath, sourceText)) {
+    const lang = filePath.toLowerCase().endsWith(".vue") ? "tsx" : "ts";
+    collectFromTsAst(
+      filePath,
+      region.content,
+      `${filePath}.script.${lang}`,
+      region.startLine,
+      region.startColumn,
+      specs
+    );
+  }
+
   return specs;
 };

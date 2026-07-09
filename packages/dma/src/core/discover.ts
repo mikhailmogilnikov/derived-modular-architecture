@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { basename, extname, join, resolve } from "node:path";
 import { DmaEnvironmentError } from "./errors";
+import { isSourceFileName } from "./source-files";
 import type { Layer, ModuleRef } from "./types";
 
 const LAYER_NAMES = [
@@ -19,13 +20,6 @@ export interface DiscoveredProject {
   sourceFiles: string[];
   srcRoot: string;
 }
-
-const isSourceFileName = (name: string): boolean => {
-  if (name.endsWith(".d.ts")) {
-    return false;
-  }
-  return name.endsWith(".ts") || name.endsWith(".tsx");
-};
 
 const moduleNameFromFile = (filename: string): string => {
   const extension = extname(filename);

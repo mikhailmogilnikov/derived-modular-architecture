@@ -2,6 +2,7 @@ import { basename, dirname, extname, join, relative, sep } from "node:path";
 import type { ClassifiedProject } from "./classify";
 import type { DiscoveredProject } from "./discover";
 import type { ProjectGraph } from "./graph";
+import { isSourceFileName } from "./source-files";
 import { DEFAULT_THRESHOLDS, type Thresholds } from "./thresholds";
 import type { Diagnostic, ModuleRef } from "./types";
 
@@ -18,13 +19,6 @@ interface SignalContext {
 const isUnderDir = (filePath: string, dirPath: string): boolean => {
   const rel = relative(dirPath, filePath);
   return rel !== "" && !rel.startsWith(`..${sep}`) && !rel.startsWith("..");
-};
-
-const isSourceFileName = (name: string): boolean => {
-  if (name.endsWith(".d.ts")) {
-    return false;
-  }
-  return name.endsWith(".ts") || name.endsWith(".tsx");
 };
 
 const basenamePrefix = (filename: string): string => {

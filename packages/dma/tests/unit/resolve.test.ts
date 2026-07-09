@@ -64,4 +64,57 @@ describe("resolve", () => {
     expect(aliases[0]?.prefix).toBe("@");
     expect(aliases[0]?.baseDir).toBe(join(root, "src"));
   });
+
+  test("parseImports extracts script imports from vue/svelte/astro", () => {
+    const vue = parseImports(
+      "Widget.vue",
+      `<script setup lang="ts">
+import type { Foo } from "./foo";
+import { bar } from "./bar";
+</script>
+<template><div /></template>
+`
+    );
+    expect(vue.find((s) => s.specifier === "./foo")?.isTypeOnly).toBe(true);
+    expect(vue.find((s) => s.specifier === "./bar")?.isTypeOnly).toBe(false);
+
+    const svelte = parseImports(
+      "Widget.svelte",
+      `<script lang="ts">
+import { cart } from "../services/cart";
+</script>
+`
+    );
+    expect(svelte.some((s) => s.specifier === "../services/cart")).toBe(true);
+
+    const astro = parseImports(
+      "page.astro",
+      `---
+import Layout from "../layouts/Layout.astro";
+import { Profile } from "@/features/profile";
+---
+<Layout />
+`
+    );
+    expect(astro.some((s) => s.specifier === "../layouts/Layout.astro")).toBe(
+      true
+    );
+    expect(astro.some((s) => s.specifier === "@/features/profile")).toBe(true);
+  });
+
+  test("resolves to .vue .svelte .astro extensions", () => {
+    const root = mkdtempSync(join(tmpdir(), "dma-sfc-resolve-"));
+    const fromFile = join(root, "app.ts");
+    writeFileSync(fromFile, 'import "./Widget.vue";\n');
+    const vueFile = join(root, "Widget.vue");
+    writeFileSync(vueFile, "<script></script>\n");
+    const svelteFile = join(root, "Card.svelte");
+    writeFileSync(svelteFile, "<script></script>\n");
+    const astroFile = join(root, "Page.astro");
+    writeFileSync(astroFile, "---\n---\n");
+
+    expect(resolveImport(fromFile, "./Widget", [], root)).toBe(vueFile);
+    expect(resolveImport(fromFile, "./Card", [], root)).toBe(svelteFile);
+    expect(resolveImport(fromFile, "./Page", [], root)).toBe(astroFile);
+  });
 });

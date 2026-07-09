@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { discover } from "../../src/core/discover";
 
@@ -23,5 +25,31 @@ describe("discover", () => {
 
   test("throws when src missing", () => {
     expect(() => discover(import.meta.dir)).toThrow();
+  });
+
+  test("discovers vue svelte and astro as stage-0 modules", () => {
+    const root = mkdtempSync(join(tmpdir(), "dma-sfc-discover-"));
+    mkdirSync(join(root, "src/features"), { recursive: true });
+    writeFileSync(
+      join(root, "src/features/profile.vue"),
+      "<script></script>\n"
+    );
+    writeFileSync(
+      join(root, "src/features/cart.svelte"),
+      "<script></script>\n"
+    );
+    writeFileSync(join(root, "src/features/home.astro"), "---\n---\n");
+
+    const project = discover(root);
+    expect(
+      project.modules.some(
+        (m) => m.name === "profile" && m.kind === "file" && m.stage === 0
+      )
+    ).toBe(true);
+    expect(project.modules.some((m) => m.name === "cart")).toBe(true);
+    expect(project.modules.some((m) => m.name === "home")).toBe(true);
+    expect(project.sourceFiles.some((f) => f.endsWith("profile.vue"))).toBe(
+      true
+    );
   });
 });

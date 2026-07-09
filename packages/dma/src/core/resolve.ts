@@ -1,9 +1,7 @@
 import { existsSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { INDEX_FILES, SOURCE_EXTENSIONS } from "./source-files";
 import type { PathAlias } from "./tsconfig-paths";
-
-const EXTENSIONS = [".ts", ".tsx", ".js", ".jsx"] as const;
-const INDEX_FILES = ["index.ts", "index.tsx", "index.js", "index.jsx"] as const;
 
 const isExistingFile = (path: string): boolean => {
   try {
@@ -14,7 +12,7 @@ const isExistingFile = (path: string): boolean => {
 };
 
 const tryResolvePath = (absoluteBase: string): string | null => {
-  for (const ext of EXTENSIONS) {
+  for (const ext of SOURCE_EXTENSIONS) {
     const withExt = `${absoluteBase}${ext}`;
     if (isExistingFile(withExt)) {
       return withExt;
