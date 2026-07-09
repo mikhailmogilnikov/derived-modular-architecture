@@ -20,6 +20,13 @@ const formatReport = (
   return formatHuman(command, diagnostics);
 };
 
+const formatCliError = (message: string): string => {
+  const useColor =
+    process.env.NO_COLOR === undefined && Boolean(process.stderr.isTTY);
+  const prefix = useColor ? "\u001B[1m\u001B[31merror\u001B[0m" : "error";
+  return `${prefix} ${message}\n`;
+};
+
 export const runCli = (argv: string[]): number => {
   try {
     const args = parseCliArgs(argv);
@@ -36,10 +43,10 @@ export const runCli = (argv: string[]): number => {
     return 0;
   } catch (error) {
     if (error instanceof DmaEnvironmentError || error instanceof Error) {
-      process.stderr.write(`${error.message}\n`);
+      process.stderr.write(formatCliError(error.message));
       return 2;
     }
-    process.stderr.write("Unexpected CLI failure\n");
+    process.stderr.write(formatCliError("Unexpected CLI failure"));
     return 2;
   }
 };

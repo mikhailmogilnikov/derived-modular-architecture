@@ -1,42 +1,81 @@
 import { relative } from "node:path";
-import type { AnalyzeMode, Diagnostic } from "../core/types";
+import type { AnalyzeMode, Diagnostic, Severity } from "../core/types";
+
+const ESC = "\u001B[";
+const RESET = `${ESC}0m`;
+const BOLD = `${ESC}1m`;
+const DIM = `${ESC}2m`;
+const RED = `${ESC}31m`;
+const GREEN = `${ESC}32m`;
+const YELLOW = `${ESC}33m`;
+const BLUE = `${ESC}34m`;
+const CYAN = `${ESC}36m`;
+const GRAY = `${ESC}90m`;
+
+const useColor = (): boolean => {
+  if (process.env.NO_COLOR !== undefined) {
+    return false;
+  }
+  if (process.env.FORCE_COLOR !== undefined) {
+    return true;
+  }
+  return Boolean(process.stdout.isTTY);
+};
+
+const paint = (enabled: boolean, code: string, text: string): string =>
+  enabled ? `${code}${text}${RESET}` : text;
+
+const severityStyle = (
+  severity: Severity
+): { color: string; label: string } => {
+  if (severity === "error") {
+    return { color: RED, label: "error" };
+  }
+  if (severity === "warning") {
+    return { color: YELLOW, label: "warn" };
+  }
+  return { color: BLUE, label: "info" };
+};
 
 const displayPath = (file: string): string => {
   const rel = relative(process.cwd(), file);
   return rel === "" ? file : rel;
 };
 
-const formatLocation = (diagnostic: Diagnostic): string => {
+const formatLocation = (diagnostic: Diagnostic, color: boolean): string => {
   if (!diagnostic.file) {
     return "";
   }
   const path = displayPath(diagnostic.file);
   if (!diagnostic.range) {
-    return ` ${path}`;
+    return paint(color, CYAN, path);
   }
-  return ` ${path}:${diagnostic.range.line}:${diagnostic.range.column}`;
+  const loc = `${path}:${diagnostic.range.line}:${diagnostic.range.column}`;
+  return paint(color, CYAN, loc);
 };
 
-const formatDiagnostic = (diagnostic: Diagnostic): string => {
-  const location = formatLocation(diagnostic);
-  const lines = [
-    `${diagnostic.severity} ${diagnostic.ruleId}${location} — ${diagnostic.message}`,
-  ];
+const formatDiagnostic = (diagnostic: Diagnostic, color: boolean): string => {
+  const { color: sevColor, label } = severityStyle(diagnostic.severity);
+  const severity = paint(color, `${BOLD}${sevColor}`, label);
+  const rule = paint(color, GRAY, diagnostic.ruleId);
+  const location = formatLocation(diagnostic, color);
+  const header = location
+    ? `${severity} ${rule}  ${location}`
+    : `${severity} ${rule}`;
+
+  const lines = [header, `  ${diagnostic.message}`];
   if (diagnostic.help) {
-    lines.push(`  help: ${diagnostic.help}`);
+    lines.push(paint(color, DIM, `  → ${diagnostic.help}`));
   }
   return lines.join("\n");
 };
 
-export const formatHuman = (
-  _command: AnalyzeMode,
+const countBySeverity = (
   diagnostics: Diagnostic[]
-): string => {
+): { errors: number; infos: number; warnings: number } => {
   let errors = 0;
   let warnings = 0;
   let infos = 0;
-  const blocks: string[] = [];
-
   for (const diagnostic of diagnostics) {
     if (diagnostic.severity === "error") {
       errors += 1;
@@ -45,12 +84,80 @@ export const formatHuman = (
     } else {
       infos += 1;
     }
-    blocks.push(formatDiagnostic(diagnostic));
+  }
+  return { errors, infos, warnings };
+};
+
+const formatSummary = (
+  command: AnalyzeMode,
+  errors: number,
+  warnings: number,
+  infos: number,
+  color: boolean
+): string => {
+  if (errors === 0 && warnings === 0 && infos === 0) {
+    const ok = paint(color, `${BOLD}${GREEN}`, "✔");
+    const verb = command === "check" ? "check passed" : "doctor found nothing";
+    return `${ok} ${verb}`;
   }
 
-  const summary = `summary: ${errors} errors, ${warnings} warnings, ${infos} infos`;
-  if (blocks.length === 0) {
+  const parts: string[] = [];
+  if (errors > 0) {
+    parts.push(paint(color, RED, `${errors} error${errors === 1 ? "" : "s"}`));
+  }
+  if (warnings > 0) {
+    parts.push(
+      paint(color, YELLOW, `${warnings} warning${warnings === 1 ? "" : "s"}`)
+    );
+  }
+  if (infos > 0) {
+    parts.push(paint(color, BLUE, `${infos} info${infos === 1 ? "" : "s"}`));
+  }
+
+  const mark =
+    errors > 0
+      ? paint(color, `${BOLD}${RED}`, "✖")
+      : paint(color, `${BOLD}${YELLOW}`, "⚠");
+  return `${mark} ${parts.join(", ")}`;
+};
+
+const severityRank = (severity: Severity): number => {
+  if (severity === "error") {
+    return 0;
+  }
+  if (severity === "warning") {
+    return 1;
+  }
+  return 2;
+};
+
+export const formatHuman = (
+  command: AnalyzeMode,
+  diagnostics: Diagnostic[]
+): string => {
+  const color = useColor();
+  const { errors, infos, warnings } = countBySeverity(diagnostics);
+  const summary = formatSummary(command, errors, warnings, infos, color);
+
+  if (diagnostics.length === 0) {
     return summary;
   }
-  return `${blocks.join("\n")}\n${summary}`;
+
+  const ordered = [...diagnostics].sort((a, b) => {
+    const bySeverity = severityRank(a.severity) - severityRank(b.severity);
+    if (bySeverity !== 0) {
+      return bySeverity;
+    }
+    const fileA = a.file ?? "";
+    const fileB = b.file ?? "";
+    if (fileA !== fileB) {
+      return fileA.localeCompare(fileB);
+    }
+    return a.ruleId.localeCompare(b.ruleId);
+  });
+
+  const blocks = ordered.map((diagnostic) =>
+    formatDiagnostic(diagnostic, color)
+  );
+  return `${blocks.join("\n\n")}\n\n${summary}`;
 };
