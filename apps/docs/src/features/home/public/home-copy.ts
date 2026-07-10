@@ -10,9 +10,93 @@ export const homeCopy = {
 
     ctaTitle: "Start here",
     explorerTitle: "Explorer",
+    footerGitHubAria: "View on GitHub",
+    footerNav: [
+      {
+        links: [
+          { href: "/docs/start/what-is-dma", label: "What is DMA" },
+          { href: "/docs/start/quick-start", label: "Quick start" },
+          { href: "/docs/start/project-layout", label: "Project layout" },
+        ],
+        title: "Getting started",
+      },
+      {
+        links: [
+          { href: "/docs/concepts/layers", label: "Layers" },
+          { href: "/docs/concepts/placement", label: "Placement" },
+          { href: "/docs/concepts/modules", label: "Modules" },
+        ],
+        title: "Concepts",
+      },
+      {
+        links: [
+          { href: "/docs/tooling/overview", label: "Overview" },
+          { href: "/docs/tooling/cli/check", label: "Check" },
+          { href: "/docs/tooling/ci", label: "CI" },
+        ],
+        title: "Tooling",
+      },
+      {
+        links: [
+          { href: "/docs/guides/migration", label: "Migration" },
+          { href: "/docs/guides/vite-react", label: "Vite + React" },
+          { href: "/docs/guides/nextjs", label: "Next.js" },
+          { href: "/docs/guides/monorepo", label: "Monorepo" },
+        ],
+        title: "Guides",
+      },
+      {
+        links: [
+          { href: "/docs/tooling/ai-agents", label: "AI agents" },
+          { href: "/docs/guides", label: "All guides" },
+          { href: "/docs/deep-dive", label: "Deep dive" },
+        ],
+        title: "More",
+      },
+    ],
     heroLead:
       "DMA tells you where frontend code lives — and stops features from quietly importing each other.",
     heroTitle: "A modular architecture for",
+    heroTree: [
+      {
+        kind: "folder",
+        name: "app",
+        open: true,
+      },
+      {
+        children: [
+          { kind: "folder", name: "cart" },
+          { kind: "folder", name: "payment" },
+          { kind: "folder", name: "shipping" },
+        ],
+        kind: "folder",
+        name: "features",
+        open: true,
+      },
+      {
+        children: [
+          {
+            comment: "cart + shipping + payment",
+            highlight: "good",
+            kind: "folder",
+            name: "checkout",
+          },
+        ],
+        kind: "folder",
+        name: "services",
+        open: true,
+      },
+      {
+        children: [
+          { kind: "folder", name: "api" },
+          { kind: "folder", name: "lib" },
+          { kind: "folder", name: "ui" },
+        ],
+        kind: "folder",
+        name: "shared",
+        open: true,
+      },
+    ],
     problemsTitle: "Problems",
     structureLead:
       "Screens on top. User flows in features. Shared pieces only when needed. That’s the whole idea.",
@@ -52,9 +136,93 @@ export const homeCopy = {
 
     ctaTitle: "Начните здесь",
     explorerTitle: "Explorer",
+    footerGitHubAria: "Открыть на GitHub",
+    footerNav: [
+      {
+        links: [
+          { href: "/docs/start/what-is-dma", label: "Что такое DMA" },
+          { href: "/docs/start/quick-start", label: "Быстрый старт" },
+          { href: "/docs/start/project-layout", label: "Структура проекта" },
+        ],
+        title: "Начало",
+      },
+      {
+        links: [
+          { href: "/docs/concepts/layers", label: "Слои" },
+          { href: "/docs/concepts/placement", label: "Куда положить файл" },
+          { href: "/docs/concepts/modules", label: "Модули" },
+        ],
+        title: "Концепции",
+      },
+      {
+        links: [
+          { href: "/docs/tooling/overview", label: "Обзор" },
+          { href: "/docs/tooling/cli/check", label: "Check" },
+          { href: "/docs/tooling/ci", label: "CI" },
+        ],
+        title: "Инструменты",
+      },
+      {
+        links: [
+          { href: "/docs/guides/migration", label: "Миграция" },
+          { href: "/docs/guides/vite-react", label: "Vite + React" },
+          { href: "/docs/guides/nextjs", label: "Next.js" },
+          { href: "/docs/guides/monorepo", label: "Монорепо" },
+        ],
+        title: "Гайды",
+      },
+      {
+        links: [
+          { href: "/docs/tooling/ai-agents", label: "AI-агенты" },
+          { href: "/docs/guides", label: "Все гайды" },
+          { href: "/docs/deep-dive", label: "Deep dive" },
+        ],
+        title: "Ещё",
+      },
+    ],
     heroLead:
       "DMA говорит, где живёт фронтенд-код — и не даёт фичам тихо импортировать друг друга.",
     heroTitle: "Модульная архитектура для",
+    heroTree: [
+      {
+        kind: "folder",
+        name: "app",
+        open: true,
+      },
+      {
+        children: [
+          { kind: "folder", name: "cart" },
+          { kind: "folder", name: "payment" },
+          { kind: "folder", name: "shipping" },
+        ],
+        kind: "folder",
+        name: "features",
+        open: true,
+      },
+      {
+        children: [
+          {
+            comment: "cart + shipping + payment",
+            highlight: "good",
+            kind: "folder",
+            name: "checkout",
+          },
+        ],
+        kind: "folder",
+        name: "services",
+        open: true,
+      },
+      {
+        children: [
+          { kind: "folder", name: "api" },
+          { kind: "folder", name: "lib" },
+          { kind: "folder", name: "ui" },
+        ],
+        kind: "folder",
+        name: "shared",
+        open: true,
+      },
+    ],
     problemsTitle: "Problems",
     structureLead:
       "Экраны сверху. Пользовательские потоки в features. Общее — только когда нужно. Вся идея в этом.",
@@ -92,71 +260,6 @@ export type HomeLocale = keyof typeof homeCopy;
 export function getHomeLocale(lang: string): HomeLocale {
   return lang in homeCopy ? (lang as HomeLocale) : "en";
 }
-
-export const heroTree: FileTreeNode[] = [
-  {
-    children: [
-      {
-        children: [{ kind: "file", name: "page.tsx" }],
-        comment: "screens",
-        kind: "folder",
-        name: "app",
-        open: true,
-      },
-      {
-        children: [
-          {
-            children: [
-              {
-                children: [{ kind: "file", name: "catalog-page.tsx" }],
-                kind: "folder",
-                name: "public",
-              },
-            ],
-            kind: "folder",
-            name: "catalog",
-            open: true,
-          },
-          {
-            children: [
-              {
-                children: [{ kind: "file", name: "checkout-page.tsx" }],
-                kind: "folder",
-                name: "public",
-              },
-            ],
-            kind: "folder",
-            name: "checkout",
-            open: true,
-          },
-        ],
-        kind: "folder",
-        name: "features",
-        open: true,
-      },
-      {
-        children: [
-          {
-            children: [{ kind: "file", name: "button.tsx" }],
-            kind: "folder",
-            name: "ui",
-          },
-          {
-            children: [{ kind: "file", name: "format-price.ts" }],
-            kind: "folder",
-            name: "lib",
-          },
-        ],
-        kind: "folder",
-        name: "shared",
-        open: true,
-      },
-    ],
-    kind: "folder",
-    name: "src",
-    open: true,
-  },
-];
 
 export const teamTree: FileTreeNode[] = [
   {

@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight, File, Folder } from "lucide-react";
 export type TreeHighlight = "selected" | "bad" | "good" | "dim";
 
 export interface FileTreeNode {
-  children?: FileTreeNode[];
+  children?: readonly FileTreeNode[];
   comment?: string;
   highlight?: TreeHighlight;
   kind: "folder" | "file";
@@ -13,7 +13,7 @@ export interface FileTreeNode {
 
 interface HomeFileTreeProps {
   className?: string;
-  nodes: FileTreeNode[];
+  nodes: readonly FileTreeNode[];
 }
 
 const highlightClass: Record<TreeHighlight, string> = {

@@ -3,11 +3,11 @@ import Link from "next/link";
 import { HomeCodeTabs } from "@/features/home/public/home-code-tabs";
 import {
   getHomeLocale,
-  heroTree,
   homeCopy,
   teamTree,
 } from "@/features/home/public/home-copy";
 import { HomeExplorer } from "@/features/home/public/home-explorer";
+import { HomeFooter } from "@/features/home/public/home-footer";
 import { HomeFrameworkIcons } from "@/features/home/public/home-framework-icons";
 
 const ctaPrimaryClass =
@@ -55,8 +55,8 @@ export function HomePage({ lang }: { lang: string }) {
           </div>
 
           <HomeExplorer
-            className="w-full max-w-xl text-left"
-            nodes={heroTree}
+            className="w-full max-w-sm text-left"
+            nodes={content.heroTree}
             title={content.explorerTitle}
           />
         </div>
@@ -144,6 +144,8 @@ export function HomePage({ lang }: { lang: string }) {
           </div>
         </div>
       </section>
+
+      <HomeFooter lang={lang} />
     </div>
   );
 }

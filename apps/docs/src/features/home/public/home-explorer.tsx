@@ -6,7 +6,7 @@ import { HomePanel } from "@/features/home/public/home-panel";
 interface HomeExplorerProps {
   className?: string;
   footer?: ReactNode;
-  nodes: FileTreeNode[];
+  nodes: readonly FileTreeNode[];
   title: string;
 }
 
