@@ -1,4 +1,4 @@
-import type { Layer } from "./types.ts";
+import type { Layer } from "./types.js";
 
 /** Framework / DMA dirs treated as composition root (same rules as DMA `app/`). */
 export const DEFAULT_COMPOSITION_ROOT_DIRNAMES = [

@@ -4,16 +4,16 @@ export {
   isPublicImportTarget,
   layerOfPath,
   moduleRefOfPath,
-} from "./classify-path.ts";
+} from "./classify-path.js";
 export {
   DEFAULT_COMPOSITION_ROOT_DIRNAMES,
   LAYER_RANK,
   MODULE_LAYERS,
-} from "./constants.ts";
-export { isUnderDir, relativeSegments } from "./path-utils.ts";
+} from "./constants.js";
+export { isUnderDir, relativeSegments } from "./path-utils.js";
 export type {
   Layer,
   ModuleLayer,
   PathContext,
   PathModuleRef,
-} from "./types.ts";
+} from "./types.js";

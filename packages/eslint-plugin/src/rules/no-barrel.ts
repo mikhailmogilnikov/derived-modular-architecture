@@ -3,7 +3,7 @@ import {
   moduleRefOfPath,
 } from "@derived-modular/boundaries";
 import type { Rule } from "eslint";
-import { getPathContext } from "../settings.ts";
+import { getPathContext } from "../settings.js";
 
 const FILENAME_SEPARATOR = /[/\\]/;
 

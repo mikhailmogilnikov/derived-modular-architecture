@@ -32,13 +32,13 @@ jobs:
         run: bun test --cwd packages/cli
 
       - name: Test eslint-plugin
-        run: bun test --cwd packages/eslint-plugin
+        run: bun run --cwd packages/eslint-plugin test
 
       - name: Test biome-plugin
         run: bun test --cwd packages/biome-plugin
 
-      - name: Test oxlint-plugin
-        run: bun test --cwd packages/oxlint-plugin
-
-      - name: Build cli
+      - name: Build packages
         run: bun run dma:build
+
+      - name: Test oxlint-plugin
+        run: bun run --cwd packages/oxlint-plugin test

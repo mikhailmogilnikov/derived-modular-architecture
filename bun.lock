@@ -17,7 +17,7 @@
     },
     "packages/biome-plugin": {
       "name": "@derived-modular/biome-plugin",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "devDependencies": {
         "@biomejs/biome": "2.5.2",
         "@types/bun": "latest",
@@ -25,9 +25,10 @@
     },
     "packages/boundaries": {
       "name": "@derived-modular/boundaries",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "devDependencies": {
         "@types/bun": "latest",
+        "@types/node": "latest",
         "typescript": "5.9.3",
       },
     },
@@ -48,12 +49,13 @@
     },
     "packages/eslint-plugin": {
       "name": "@derived-modular/eslint-plugin",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "dependencies": {
         "@derived-modular/boundaries": "workspace:*",
       },
       "devDependencies": {
         "@types/bun": "latest",
+        "@types/node": "latest",
         "eslint": "^9.39.0",
         "typescript": "5.9.3",
       },
@@ -63,7 +65,7 @@
     },
     "packages/oxlint-plugin": {
       "name": "@derived-modular/oxlint-plugin",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "dependencies": {
         "@derived-modular/eslint-plugin": "workspace:*",
       },

@@ -4,8 +4,8 @@ import {
   isUnderDir,
   relativeSegments,
   stripSourceExtension,
-} from "./path-utils.ts";
-import type { Layer, PathContext, PathModuleRef } from "./types.ts";
+} from "./path-utils.js";
+import type { Layer, PathContext, PathModuleRef } from "./types.js";
 
 export const isBarrelIndexFilename = (filename: string): boolean =>
   filename === "index.ts" || filename === "index.tsx";

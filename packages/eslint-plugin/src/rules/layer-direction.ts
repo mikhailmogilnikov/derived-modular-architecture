@@ -1,7 +1,7 @@
 import { LAYER_RANK, layerOfPath } from "@derived-modular/boundaries";
 import type { Rule } from "eslint";
-import { resolveImportTarget } from "../resolve-import.ts";
-import { getPathContext } from "../settings.ts";
+import { resolveImportTarget } from "../resolve-import.js";
+import { getPathContext } from "../settings.js";
 
 const checkImport = (
   context: Rule.RuleContext,

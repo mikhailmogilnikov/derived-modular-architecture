@@ -1,8 +1,8 @@
 import type { ESLint, Linter } from "eslint";
-import { featureToFeature } from "./rules/feature-to-feature.ts";
-import { layerDirection } from "./rules/layer-direction.ts";
-import { noBarrel } from "./rules/no-barrel.ts";
-import { publicApi } from "./rules/public-api.ts";
+import { featureToFeature } from "./rules/feature-to-feature.js";
+import { layerDirection } from "./rules/layer-direction.js";
+import { noBarrel } from "./rules/no-barrel.js";
+import { publicApi } from "./rules/public-api.js";
 
 const plugin = {
   meta: {
@@ -24,7 +24,7 @@ const recommendedRules: Linter.RulesRecord = {
   "@derived-modular/public-api": "error",
 };
 
-const configs = {
+const configs: { recommended: Linter.Config[] } = {
   recommended: [
     {
       plugins: {
@@ -32,7 +32,7 @@ const configs = {
       },
       rules: recommendedRules,
     },
-  ] satisfies Linter.Config[],
+  ],
 };
 
 Object.assign(plugin, { configs });
