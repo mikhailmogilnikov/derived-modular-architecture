@@ -1,97 +1,89 @@
+import type { FileTreeNode } from "@/features/home/public/home-file-tree";
+
 export const homeCopy = {
   en: {
-    aiFeatures: [
+    badge: "Frontend architecture with CI checks",
+    ctaDocs: "What is DMA",
+    ctaLead:
+      "Two minutes to understand the idea. Then wire the check when you’re ready.",
+    ctaStart: "Quick start",
+
+    ctaTitle: "Start here",
+    explorerTitle: "Explorer",
+    heroLead:
+      "DMA tells you where frontend code lives — and stops features from quietly importing each other.",
+    heroTitle: "A modular architecture for",
+    problemsTitle: "Problems",
+    structureLead:
+      "Screens on top. User flows in features. Shared pieces only when needed. That’s the whole idea.",
+    structureTabs: {
+      check: "Check",
+      import: "Imports",
+      tree: "Folders",
+    },
+
+    structureTitle: "One clear layout",
+    teamLead:
+      "If checkout imports catalog, you see it in the editor — and CI fails before merge.",
+    teamPoints: [
       {
         description:
-          "Placement algorithm and prohibitions for Cursor, Claude Code, and 40+ agents.",
-        title: "Agent skill",
+          "Boundaries come from folders, not from a wiki nobody reads.",
+        title: "Structure first",
       },
       {
-        description:
-          "ESLint, Oxlint, and Biome catch obvious imports while you type.",
-        title: "Editor plugins",
+        description: "Linter plugins catch bad imports while you type.",
+        title: "Fast feedback",
       },
       {
-        description:
-          "Cycles, inbound predicates, and layer direction — only in dma check.",
-        title: "CI gate",
+        description: "dma check runs the full graph in CI.",
+        title: "Hard gate",
       },
     ],
-    aiLead:
-      "Consistent placement rules for the team and for agents — editor plugins for speed, CLI for the full graph in CI.",
-    aiTitle: "Designed for humans and AI",
-    badge: "Architecture you can verify in CI",
-    ctaDocs: "What is DMA",
-    ctaLead: "One install. Run check locally, gate merges in CI.",
-    ctaStart: "Quick start",
-    ctaTitle: "Try it in your terminal",
-    frameworksLead:
-      "Same invariants, different composition roots — guides and runnable examples for every framework below.",
-    frameworksTitle: "Works with your stack",
-    heroLead:
-      "DMA keeps frontend boundaries honest as the project grows — with a graph check you run in CI and fast feedback in the editor.",
-    heroTitle: "A production-grade modular architecture for",
-    problems: "Problems",
-    structureLead:
-      "Layers, public APIs, and import rules follow from the folder tree — not from verbal agreements that fade after six months.",
-    structureTabs: {
-      check: "dma check",
-      imports: "Composition root",
-      layout: "Project layout",
-    },
-    structureTitle: "Structure by design",
-    toolingLead:
-      "Heavy graph audit in the CLI. Lightweight per-file hints in linters. Not one or the other — both.",
-    toolingTitle: "Hybrid enforcement",
-    violation:
-      "feature-to-feature: features/checkout must not import features/catalog",
+
+    teamTitle: "Same rules for the team and the pipeline",
+    violation: "feature-to-feature: checkout must not import catalog",
   },
   ru: {
-    aiFeatures: [
+    badge: "Фронтенд-архитектура с проверкой в CI",
+    ctaDocs: "Что такое DMA",
+    ctaLead: "Две минуты на идею. Проверку подключите, когда будете готовы.",
+    ctaStart: "Быстрый старт",
+
+    ctaTitle: "Начните здесь",
+    explorerTitle: "Explorer",
+    heroLead:
+      "DMA говорит, где живёт фронтенд-код — и не даёт фичам тихо импортировать друг друга.",
+    heroTitle: "Модульная архитектура для",
+    problemsTitle: "Problems",
+    structureLead:
+      "Экраны сверху. Пользовательские потоки в features. Общее — только когда нужно. Вся идея в этом.",
+    structureTabs: {
+      check: "Проверка",
+      import: "Импорты",
+      tree: "Папки",
+    },
+
+    structureTitle: "Одна понятная раскладка",
+    teamLead:
+      "Если checkout импортирует catalog — это видно в редакторе, а CI падает до merge.",
+    teamPoints: [
       {
-        description:
-          "Алгоритм размещения и запреты для Cursor, Claude Code и 40+ агентов.",
-        title: "Agent skill",
+        description: "Границы из папок, а не из вики, которую никто не читает.",
+        title: "Сначала структура",
       },
       {
-        description:
-          "ESLint, Oxlint и Biome ловят очевидные импорты прямо при наборе.",
-        title: "Плагины редактора",
+        description: "Плагины ловят плохие импорты прямо при наборе.",
+        title: "Быстрый фидбек",
       },
       {
-        description:
-          "Циклы, inbound-предикаты и направление слоёв — только в dma check.",
-        title: "Ворота CI",
+        description: "dma check гоняет полный граф в CI.",
+        title: "Жёсткий gate",
       },
     ],
-    aiLead:
-      "Единые правила размещения для команды и агентов — плагины в редакторе для скорости, CLI для полного графа в CI.",
-    aiTitle: "Для людей и для AI",
-    badge: "Архитектура, которую можно проверить в CI",
-    ctaDocs: "Что такое DMA",
-    ctaLead: "Одна установка. Проверка локально, ворота в CI перед merge.",
-    ctaStart: "Быстрый старт",
-    ctaTitle: "Попробуйте в терминале",
-    frameworksLead:
-      "Те же инварианты, разные корни композиции — гайды и runnable-примеры для каждого фреймворка ниже.",
-    frameworksTitle: "Работает с вашим стеком",
-    heroLead:
-      "DMA не даёт границам фронтенда размываться по мере роста проекта — граф проверяется в CI, быстрый фидбек в редакторе.",
-    heroTitle: "Продакшен-модульная архитектура для",
-    problems: "Проблемы",
-    structureLead:
-      "Слои, public API и правила импортов вытекают из дерева папок — а не из устных договорённостей, которые забываются через полгода.",
-    structureTabs: {
-      check: "dma check",
-      imports: "Корень композиции",
-      layout: "Дерево проекта",
-    },
-    structureTitle: "Структура по замыслу",
-    toolingLead:
-      "Тяжёлый аудит графа в CLI. Лёгкие подсказки по файлам в линтерах. Не или-или — оба слоя.",
-    toolingTitle: "Гибридное enforcement",
-    violation:
-      "feature-to-feature: features/checkout не должен импортировать features/catalog",
+
+    teamTitle: "Одни правила для команды и пайплайна",
+    violation: "feature-to-feature: checkout не должен импортировать catalog",
   },
 } as const;
 
@@ -100,3 +92,96 @@ export type HomeLocale = keyof typeof homeCopy;
 export function getHomeLocale(lang: string): HomeLocale {
   return lang in homeCopy ? (lang as HomeLocale) : "en";
 }
+
+export const heroTree: FileTreeNode[] = [
+  {
+    children: [
+      {
+        children: [{ kind: "file", name: "page.tsx" }],
+        comment: "screens",
+        kind: "folder",
+        name: "app",
+        open: true,
+      },
+      {
+        children: [
+          {
+            children: [
+              {
+                children: [{ kind: "file", name: "catalog-page.tsx" }],
+                kind: "folder",
+                name: "public",
+              },
+            ],
+            kind: "folder",
+            name: "catalog",
+            open: true,
+          },
+          {
+            children: [
+              {
+                children: [{ kind: "file", name: "checkout-page.tsx" }],
+                kind: "folder",
+                name: "public",
+              },
+            ],
+            kind: "folder",
+            name: "checkout",
+            open: true,
+          },
+        ],
+        kind: "folder",
+        name: "features",
+        open: true,
+      },
+      {
+        children: [
+          {
+            children: [{ kind: "file", name: "button.tsx" }],
+            kind: "folder",
+            name: "ui",
+          },
+          {
+            children: [{ kind: "file", name: "format-price.ts" }],
+            kind: "folder",
+            name: "lib",
+          },
+        ],
+        kind: "folder",
+        name: "shared",
+        open: true,
+      },
+    ],
+    kind: "folder",
+    name: "src",
+    open: true,
+  },
+];
+
+export const teamTree: FileTreeNode[] = [
+  {
+    children: [
+      {
+        children: [
+          {
+            children: [{ highlight: "bad", kind: "file", name: "api.ts" }],
+            kind: "folder",
+            name: "public",
+          },
+        ],
+        kind: "folder",
+        name: "catalog",
+        open: true,
+      },
+      {
+        children: [{ highlight: "selected", kind: "file", name: "model.ts" }],
+        kind: "folder",
+        name: "checkout",
+        open: true,
+      },
+    ],
+    kind: "folder",
+    name: "src/features",
+    open: true,
+  },
+];

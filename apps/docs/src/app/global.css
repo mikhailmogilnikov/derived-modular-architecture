@@ -5,6 +5,8 @@
 @theme {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-fd-primary: oklch(0.68 0.19 45);
+  --color-fd-primary-foreground: oklch(0.99 0.01 95);
 }
 
 .dark {
@@ -14,6 +16,8 @@
   --color-fd-muted: hsl(0, 0%, 6%);
   --color-fd-popover: hsl(0, 0%, 4%);
   --color-fd-border: hsla(0, 0%, 40%, 15%);
+  --color-fd-primary: oklch(0.86 0.19 130);
+  --color-fd-primary-foreground: oklch(0.2 0.04 130);
 }
 
 html {
@@ -36,4 +40,8 @@ html > body[data-scroll-locked] {
 .landing-page {
   width: calc(100% + 2 * var(--fd-layout-offset, 0px));
   margin-inline: calc(-1 * var(--fd-layout-offset, 0px));
+}
+
+#nd-home-layout nav {
+  border-bottom: none;
 }
