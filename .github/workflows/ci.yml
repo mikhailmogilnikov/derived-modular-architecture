@@ -35,10 +35,10 @@ jobs:
         run: bun run dma-check:examples
 
       - name: Lint examples
-        run: turbo run lint --filter="./examples/*"
+        run: bun run lint:examples
 
       - name: Test examples
-        run: turbo run test --filter="./examples/*"
+        run: bun run test:examples
 
       - name: Build runnable examples
-        run: turbo run build --filter="./examples/vite-react" --filter="./examples/vue-vite" --filter="./examples/sveltekit-routes" --filter="./examples/astro-pages"
+        run: bun run build:examples
