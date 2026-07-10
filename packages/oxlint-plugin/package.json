@@ -1,6 +1,6 @@
 {
   "name": "@derived-modular/oxlint-plugin",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Oxlint config for Derived Modular Architecture (wraps @derived-modular/eslint-plugin)",
   "type": "module",
   "files": [
@@ -26,6 +26,17 @@
     "oxlint": ">=1.0.0"
   },
   "license": "MIT",
+  "author": "Mikhail Mogilnikov",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikhailmogilnikov/derived-modular-architecture.git",
+    "directory": "packages/oxlint-plugin"
+  },
+  "homepage": "https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/oxlint-plugin#readme",
+  "bugs": "https://github.com/mikhailmogilnikov/derived-modular-architecture/issues",
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
     "dma",
     "oxlint",

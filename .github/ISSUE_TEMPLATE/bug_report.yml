@@ -1,0 +1,41 @@
+name: Bug report
+description: Something is broken in DMA tooling or docs
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      options:
+        - "@derived-modular/cli"
+        - "@derived-modular/eslint-plugin"
+        - "@derived-modular/biome-plugin"
+        - "@derived-modular/oxlint-plugin"
+        - "@derived-modular/boundaries"
+        - other / unsure
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      placeholder: Expected vs actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      placeholder: Commands, minimal src/ tree, or snippet
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: e.g. @derived-modular/cli@1.0.0
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: OS, Node/Bun version, framework

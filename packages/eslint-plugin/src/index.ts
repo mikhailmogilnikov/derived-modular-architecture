@@ -7,7 +7,7 @@ import { publicApi } from "./rules/public-api.ts";
 const plugin = {
   meta: {
     name: "@derived-modular/eslint-plugin",
-    version: "0.1.0",
+    version: "1.0.0",
   },
   rules: {
     "feature-to-feature": featureToFeature,

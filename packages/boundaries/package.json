@@ -1,6 +1,6 @@
 {
   "name": "@derived-modular/boundaries",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Pure path classifiers for Derived Modular Architecture",
   "type": "module",
   "exports": {
@@ -17,5 +17,16 @@
     "@types/bun": "latest",
     "typescript": "5.9.3"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "author": "Mikhail Mogilnikov",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikhailmogilnikov/derived-modular-architecture.git",
+    "directory": "packages/boundaries"
+  },
+  "homepage": "https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/boundaries#readme",
+  "bugs": "https://github.com/mikhailmogilnikov/derived-modular-architecture/issues",
+  "publishConfig": {
+    "access": "public"
+  }
 }

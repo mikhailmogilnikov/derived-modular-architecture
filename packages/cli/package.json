@@ -39,5 +39,16 @@
     "modules",
     "cli"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "author": "Mikhail Mogilnikov",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikhailmogilnikov/derived-modular-architecture.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/cli#readme",
+  "bugs": "https://github.com/mikhailmogilnikov/derived-modular-architecture/issues",
+  "publishConfig": {
+    "access": "public"
+  }
 }

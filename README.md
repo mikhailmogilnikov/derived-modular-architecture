@@ -125,4 +125,8 @@ Source: [skills/dma](./skills/dma) · [skills/README.md](./skills/README.md)
 
 ## License
 
-MIT
+MIT — see [LICENSE](./LICENSE).
+
+## Contributing
+
+[CONTRIBUTING.md](./CONTRIBUTING.md) · [Code of Conduct](./CODE_OF_CONDUCT.md) · [Security](./SECURITY.md)
