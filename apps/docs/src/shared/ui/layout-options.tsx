@@ -1,7 +1,8 @@
 import { i18nProvider, uiTranslations } from "fumadocs-ui/i18n";
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
-import { appName, gitConfig } from "@/shared/model/app-config";
+import { gitConfig, navBrandName } from "@/shared/model/app-config";
 import { i18n } from "@/shared/model/i18n";
+import { NavBrand } from "@/shared/ui/nav-brand";
 
 export const translations = i18n
   .translations()
@@ -20,7 +21,7 @@ export function baseOptions(locale: string): BaseLayoutProps {
     githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
     i18n: true,
     nav: {
-      title: appName,
+      title: <NavBrand name={navBrandName} />,
       url: `/${locale}`,
     },
     themeSwitch: {

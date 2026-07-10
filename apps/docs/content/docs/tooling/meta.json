@@ -2,6 +2,7 @@
   "title": "Инструменты",
   "pages": [
     "overview",
+    "ai-agents",
     "cli/check",
     "cli/doctor",
     "eslint",
