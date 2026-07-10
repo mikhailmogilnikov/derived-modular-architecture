@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "dma-check": "dma check .",
+    "dma-check": "bun ../../packages/cli/dist/cli.js check .",
     "lint": "eslint .",
     "test": "vitest run"
   },
