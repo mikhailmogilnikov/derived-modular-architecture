@@ -32,3 +32,8 @@ html > body[data-scroll-locked] {
   --removed-body-scroll-bar-size: 0px !important;
   margin-right: 0px !important;
 }
+
+.landing-page {
+  width: calc(100% + 2 * var(--fd-layout-offset, 0px));
+  margin-inline: calc(-1 * var(--fd-layout-offset, 0px));
+}

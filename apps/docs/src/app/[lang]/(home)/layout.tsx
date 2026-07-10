@@ -7,5 +7,9 @@ export default async function Layout({
 }: LayoutProps<"/[lang]">) {
   const { lang } = await params;
 
-  return <HomeLayout {...baseOptions(lang)}>{children}</HomeLayout>;
+  return (
+    <HomeLayout {...baseOptions(lang)} className="[&>main]:max-w-none">
+      {children}
+    </HomeLayout>
+  );
 }
