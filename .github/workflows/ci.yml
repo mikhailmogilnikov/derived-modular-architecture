@@ -25,6 +25,9 @@ jobs:
       - name: Lint
         run: bun x ultracite check
 
+      - name: Build packages
+        run: bun run dma:build
+
       - name: Test boundaries
         run: bun test --cwd packages/boundaries
 
@@ -36,9 +39,6 @@ jobs:
 
       - name: Test biome-plugin
         run: bun test --cwd packages/biome-plugin
-
-      - name: Build packages
-        run: bun run dma:build
 
       - name: Test oxlint-plugin
         run: bun run --cwd packages/oxlint-plugin test
