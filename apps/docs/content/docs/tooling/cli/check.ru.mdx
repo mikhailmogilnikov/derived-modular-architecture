@@ -58,7 +58,7 @@ npx @derived-modular/cli check .
 
 | Правило | Смысл |
 | --- | --- |
-| `layer-direction` | Импорты только вниз: `app → features → services → shared` |
+| `layer-direction` | Импорты только вниз: `app/pages/routes → features → services → shared` |
 | `feature-to-feature` | Feature не импортирует другой feature |
 | `public-api` | Межмодульные импорты идут в `*/public/*` |
 | `no-barrel` | Нет barrel `index` с реэкспортами внутри модулей |
@@ -100,7 +100,7 @@ npx @derived-modular/cli check .
 
 - `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs`
 - `.vue`, `.svelte`, `.astro`
-- `.md`, `.mdx` (для doc-компонентов)
+- `.md`, `.mdx` — импорты в контенте тоже попадают в граф (актуально для doc-apps и MDX-компонентов)
 
 Учитываются `import`, `export … from`, `import type`, динамический `import()` и `require()` — в том числе цели `next/dynamic` и `React.lazy`.
 

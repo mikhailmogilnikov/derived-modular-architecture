@@ -13,7 +13,7 @@ icon: "Shield"
 Модули импортируют только из слоёв ниже по рангу:
 
 ```text
-app → features → services → shared
+app/pages/routes → features → services → shared
 ```
 
 Composition root (`app/`, `pages/`, `routes/`) собирает приложение. Features не знают друг о друге. Services могут зависеть от других services, но граф остаётся ацикличным. Shared — только внутри shared.
@@ -50,7 +50,7 @@ import { CartPanel } from "@/features/cart/public";
 
 **Зачем:** преждевременное обобщение раздувает `shared/` и размывает границы модулей. Колокация держит код там, где его проще понять и удалить.
 
-**Что проверяет tooling:** частично — сигнал `shared-candidate` в `dma doctor` подскажет, что файл импортируют из двух модулей.
+**Что проверяет tooling:** частично — `shared-candidate` в `dma doctor`, когда **один и тот же файл** уже легально импортируют 2+ модуля (часто после lift в `shared/` или на surface `services/*/public/*`).
 
 ## 4. Правило второго использования
 
@@ -58,9 +58,10 @@ import { CartPanel } from "@/features/cart/public";
 
 Типичный путь:
 
-1. Хелпер лежит внутри feature A.
-2. Feature B тоже его импортирует → `dma doctor` показывает `shared-candidate`.
-3. Вы поднимаете код в `shared/` или, если это продуктовый сценарий, промоутите модуль в `services/`.
+1. Хелпер colocate внутри feature A — один потребитель.
+2. Тот же код нужен feature B → **сначала** выносите (в `shared/` или promotion в `services/`), не deep-import из internal A.
+3. Если B импортировал internal A напрямую — `check` упадёт на `public-api` / `feature-to-feature` раньше, чем doctor покажет `shared-candidate`.
+4. После легального второго потребителя `dma doctor` может подсказать `shared-candidate` на общем файле.
 
 **Зачем:** архитектура растёт по факту использования, а не по ожиданиям.
 

@@ -41,23 +41,22 @@ Doctor **не дублирует** ошибки `check`. Если `check` кра
 
 Структура модуля отстаёт от размера:
 
-- file-модуль (stage 0) оброс соседними файлами → заведите папку и `public/`
+- file-модуль (stage 0) оброс **соседними файлами с тем же basename-префиксом** (например `checkout.tsx` + `checkout.store.ts`) → заведите папку и `public/`
 - много файлов без сегментов → добавьте `ui/`, `model/`, `api/`
 
 Порог по умолчанию — около 8 файлов (`stage1FileCount`).
 
 ### Пример: stage-growth на checkout
 
-**До** — stage 0, один файл, но рядом появились store и хелперы:
+**До** — stage 0, один UI-файл, но рядом появился store с тем же префиксом:
 
 ```text
 features/
 ├── checkout.tsx
-├── checkout.store.ts
-└── use-shipping.ts
+└── checkout.store.ts
 ```
 
-`dma doctor` → `stage-growth`: file-модуль оброс соседями.
+`dma doctor` → `stage-growth`: file-модуль `checkout` оброс sibling с префиксом `checkout`.
 
 **После** — стадия 1:
 
@@ -66,7 +65,7 @@ features/checkout/
 ├── public/
 │   └── checkout-page.tsx
 ├── checkout.store.ts
-└── use-shipping.ts
+└── checkout.shipping.ts
 ```
 
 1. Создайте папку `features/checkout/`

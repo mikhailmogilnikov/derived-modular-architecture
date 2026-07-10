@@ -30,7 +30,7 @@ ESLint делает это точно — через `@derived-modular/boundarie
 | `service-no-inbound` | Service без потребителей — свойство subgraph |
 | `dma doctor` | Сигналы эволюции по всему проекту |
 
-Пример: `features/catalog` импортирует `features/checkout/internal.ts` через третий файл в `shared/`. ESLint в каждом файле может быть зелёным. `dma check` найдёт цикл или feature-to-feature.
+Пример: цикл `services/billing` → `services/cart` → `services/inventory` → `services/billing` — в каждом файле один импорт выглядит законным, а `no-cycle` видит только полный граф. Или catalog импортирует checkout напрямую — ESLint поймает `feature-to-feature` в файле, но inbound-предикат `feature-has-inbound` и цепочки через несколько модулей — только `check`.
 
 ## Гибридная модель DMA
 
