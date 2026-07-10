@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dma-check": "dma check .",
+    "dma-check": "bun x dma check .",
     "lint": "eslint .",
     "test": "bun test"
   },

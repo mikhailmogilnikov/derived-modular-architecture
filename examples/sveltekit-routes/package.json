@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "svelte-kit sync && vite build",
-    "dma-check": "dma check .",
+    "dma-check": "bun x dma check .",
     "lint": "oxlint .",
     "test": "vitest run"
   },

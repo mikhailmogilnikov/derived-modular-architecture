@@ -5,7 +5,7 @@
 	"scripts": {
 		"build": "astro build",
 		"dev": "astro dev",
-		"dma-check": "dma check .",
+		"dma-check": "bun x dma check .",
 		"lint": "biome check .",
 		"test": "bun test"
 	},
