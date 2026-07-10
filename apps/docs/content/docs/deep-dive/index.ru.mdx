@@ -1,0 +1,50 @@
+---
+title: "Оглавление"
+description: "Когда читать deep dive и с чего начать."
+icon: "BookOpen"
+---
+
+Deep Dive — для тех, кто уже понял базу и хочет ответ на «почему именно так». Не обязательно читать подряд. Выбирайте вопрос, который у вас возник на ревью или в споре с коллегой.
+
+<Callout type="info">
+  Если DMA впервые — начните с [Что такое DMA](/start/what-is-dma) и [Четыре инварианта](/concepts/invariants). Сюда можно вернуться позже.
+</Callout>
+
+## Вопрос → статья
+
+| Вопрос | Статья |
+| --- | --- |
+| Зачем запрещать `index.ts` с реэкспортами? | [Почему нет barrel-файлов](/deep-dive/why-no-barrels) |
+| Почему не widgets/entities как в FSD? | [Почему два слоя модулей](/deep-dive/why-two-layers) |
+| Куда класть корзину — services или shared? | [Services vs Shared](/deep-dive/services-vs-shared) |
+| Чем DMA отличается от FSD? | [DMA vs FSD](/deep-dive/dma-vs-fsd) |
+| Зачем CLI, если есть ESLint? | [Почему CLI, а не только линтеры](/deep-dive/why-cli-not-only-linters) |
+| Что DMA **не** решает? | [Чего DMA не решает](/deep-dive/what-dma-does-not-do) |
+| Куда положить новый файл? | [Куда положить файл](/concepts/placement) |
+
+## Рекомендуемый порядок
+
+Если читаете всё же подряд:
+
+1. [Почему два слоя модулей](/deep-dive/why-two-layers) — философия слоёв
+2. [Почему нет barrel-файлов](/deep-dive/why-no-barrels) — прозрачность графа
+3. [Services vs Shared](/deep-dive/services-vs-shared) — единственная «серая» граница
+4. [Почему CLI, а не только линтеры](/deep-dive/why-cli-not-only-linters) — enforcement
+5. [DMA vs FSD](/deep-dive/dma-vs-fsd) — сравнение с альтернативой
+
+## Связь с концепциями
+
+| Deep Dive | Базовая статья |
+| --- | --- |
+| Barrel-файлы | [Модули и public API](/concepts/modules) |
+| Два слоя | [Слои](/concepts/layers) |
+| Services vs Shared | [Shared](/concepts/shared), [Эволюция кода](/concepts/evolution) |
+| CLI vs линтеры | [Обзор инструментов](/tooling/overview) |
+
+## Что дальше
+
+<Cards>
+  <Card title="Концепции" description="Инварианты, слои, модули" href="/concepts/invariants" />
+  <Card title="Инструменты" description="CLI и плагины" href="/tooling/overview" />
+  <Card title="Быстрый старт" description="Первый dma check" href="/start/quick-start" />
+</Cards>

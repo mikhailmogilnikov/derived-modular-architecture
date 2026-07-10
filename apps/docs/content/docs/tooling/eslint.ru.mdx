@@ -1,0 +1,89 @@
+---
+title: "ESLint"
+description: "Плагин @derived-modular/eslint-plugin — четыре архитектурных правила в редакторе."
+icon: "ShieldCheck"
+---
+
+`@derived-modular/eslint-plugin` даёт быструю обратную связь прямо в редакторе: неправильный импорт подсвечивается при сохранении, без ожидания CI.
+
+Это **не замена** `dma check`. Плагин смотрит на один файл за раз и не видит циклы в графе. В CI всё равно нужен CLI.
+
+## Установка
+
+```bash
+npm install -D @derived-modular/eslint-plugin eslint
+```
+
+Нужен ESLint 9+ с flat config.
+
+## Минимальная настройка
+
+```js
+// eslint.config.js
+import dma from "@derived-modular/eslint-plugin";
+
+export default [
+  ...dma.configs.recommended,
+  {
+    settings: {
+      dma: {
+        srcRoot: "src",
+        compositionRoots: ["app", "pages", "routes"],
+      },
+    },
+  },
+];
+```
+
+Пресет `recommended` включает все четыре правила с уровнем `error`.
+
+## Правила
+
+| Правило | Что ловит |
+| --- | --- |
+| `@derived-modular/layer-direction` | Импорт не вниз по слоям |
+| `@derived-modular/feature-to-feature` | Feature импортирует другой feature |
+| `@derived-modular/public-api` | Межмодульный импорт мимо `*/public/*` |
+| `@derived-modular/no-barrel` | Barrel `index` с реэкспортами внутри модуля |
+
+## Настройки `settings.dma`
+
+| Ключ | По умолчанию | Описание |
+| --- | --- | --- |
+| `srcRoot` | `"src"` | Корень исходников |
+| `compositionRoots` | `["app", "pages", "routes"]` | Папки composition root |
+
+Плагин разрешает относительные импорты и `@/` → `srcRoot`. Сложные алиасы из tsconfig, которые ESLint сам не резолвит, могут потребовать дополнительной настройки хоста. Импорты npm-пакетов игнорируются.
+
+`pages/` и `routes/` обрабатываются как `app/` — для Next.js App Router, Astro, TanStack Router, SvelteKit.
+
+## Что ESLint не покрывает
+
+| Concern | ESLint | dma check |
+| --- | --- | --- |
+| `no-cycle` | — | ✓ |
+| `feature-has-inbound` | — | ✓ |
+| `service-no-inbound` | — | ✓ |
+| `dma doctor` сигналы | — | ✓ |
+
+Если ESLint молчит, а `dma check` падает — это нормально. Запускайте оба.
+
+## Oxlint
+
+Те же правила доступны через [`@derived-modular/oxlint-plugin`](/tooling/oxlint) — JS-плагины для Oxlint. Статус alpha.
+
+## Biome
+
+Если в проекте Biome вместо ESLint — см. [Biome](/tooling/biome). Покрытие слабее (GritQL-эвристики), но `dma check` в CI обязателен в любом случае.
+
+## Пример из репозитория
+
+Живой конфиг — [examples/next-app/eslint.config.js](https://github.com/mikhailmogilnikov/derived-modular-architecture/blob/main/examples/next-app/eslint.config.js).
+
+## Что дальше
+
+<Cards>
+  <Card title="dma check" description="Полный аудит графа" href="/tooling/cli/check" />
+  <Card title="Обзор инструментов" description="Как всё связано" href="/tooling/overview" />
+  <Card title="CI" description="dma check в пайплайне" href="/tooling/ci" />
+</Cards>

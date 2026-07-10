@@ -1,0 +1,99 @@
+---
+title: "Эволюция кода"
+description: "Как архитектура растёт без переписывания: second-use, promotion, сигналы doctor."
+icon: "TrendingUp"
+---
+
+DMA не масштабируется заменой архитектуры на другую. Проект **уплотняется на месте**: папки появляются, когда предикаты начинают нести информацию.
+
+Вы не создаёте пустой `services/` «на вырост». Вы не выносите в `shared/` «вдруг пригодится». Рост — ответ на факт второго потребителя или на сигнал tooling.
+
+## Три фазы проекта
+
+### 1. Старт
+
+```text
+src/
+├── app/          # или pages/, routes/
+├── features/
+└── shared/       # почти пустой
+```
+
+Нет `services/`. Все модули — leaf features.
+
+### 2. Первый promotion
+
+Модуль стал нужен **другому модулю** → создаёте `services/`, переносите модуль, пересматриваете public API. С этого момента полезны проверки циклов внутри services.
+
+Пример: catalog вызывает `addToCart`, checkout тоже — cart переезжает из feature в `services/cart/`.
+
+### 3. Домены (когда services разросся)
+
+Плотный subgraph services или несколько команд → **горизонтальный** split (`domains/billing/`, отдельные пакеты). Новые вертикальные слои не добавляются.
+
+## Правило второго использования
+
+| Что произошло | Действие |
+| --- | --- |
+| Feature нужен другому модулю | Promotion в `services/` |
+| Переносимый хелпер/UI нужен 2+ модулям | Lift в `shared/` (нужная группа) |
+| Тип из `public/` нужен 2+ модулям | Перенос в `shared/domain` |
+
+`import type` — тоже ребро графа. Обход через типы не сработает.
+
+Mount из composition root **не считается** inbound и promotion не вызывает.
+
+## Promotion — момент дизайна
+
+Когда feature получает inbound от другого модуля, API, выросшее для одного потребителя, становится контрактом для многих. Это осознанный шаг:
+
+1. Перенести в `services/<name>/`
+2. Пересмотреть `public/` — что действительно нужно снаружи
+3. Убедиться, что `dma check` зелёный (`feature-has-inbound` больше не ругается)
+
+## Триггеры роста модуля
+
+| Сигнал | Действие | Tooling |
+| --- | --- | --- |
+| Второй файл в file-модуле | Стадия 1: папка + `public/` | `stage-growth` |
+| ~8+ внутренних файлов | Стадия 2: сегменты ui/model/api | `stage-growth` |
+| Раздутый `public/` | Стадия 3: split модуля | Ревью (doctor пока нет) |
+| Feature нужен модулю | Promotion → `services/` | `feature-has-inbound` |
+| Цикл между модулями | Порт + wiring в `app`, или extract в shared | `no-cycle` |
+| Плотный services subgraph | Горизонтальный split | `dense-services` |
+
+Пороги — дефолты CLI. В v1 нет user config для их изменения.
+
+## Сигналы `dma doctor`
+
+Мягкие подсказки. Exit code 0 — CI не ломают.
+
+### shared-candidate
+
+Файл модуля импортируют 2+ других модуля. Часто это здоровая поверхность `services/*/public/*`. Перед lift в `shared/` спросите: это продукт или переносимый хелпер?
+
+### stage-growth
+
+Структура модуля отстаёт от размера: file-модуль оброс соседями, нет сегментов при большом количестве файлов.
+
+### dense-services
+
+Subgraph `services/` выглядит плотным — пора делить по доменам.
+
+### orphan-public
+
+Файл в `public/` никто не импортирует — мёртвый контракт. Удалите или сделайте внутренним.
+
+Подробнее о команде — [dma doctor](/tooling/cli/doctor).
+
+При внедрении в существующий проект promotion и doctor-сигналы идут в связке с поэтапным планом — [Миграция](/guides/migration).
+
+## Что дальше
+
+<Cards>
+  <Card title="Куда положить файл" description="Алгоритм при promotion" href="/concepts/placement" />
+  <Card title="Модули и public API" description="Стадии 0–4" href="/concepts/modules" />
+  <Card title="Миграция" description="Поэтапное внедрение" href="/guides/migration" />
+  <Card title="Слои" description="Promotion и предикаты" href="/concepts/layers" />
+  <Card title="Shared" description="Когда lift в shared" href="/concepts/shared" />
+</Cards>

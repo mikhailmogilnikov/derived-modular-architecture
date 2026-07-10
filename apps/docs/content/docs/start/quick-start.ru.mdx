@@ -1,0 +1,122 @@
+---
+title: "Быстрый старт"
+description: "Разложите src/, подключите dma check и убедитесь, что архитектура держится."
+icon: "Rocket"
+---
+
+Этот гайд — минимальный путь от пустого `src/` до работающей проверки. Предполагаем TypeScript-проект с `src/` в корне.
+
+## 1. Разложите дерево
+
+Создайте базовую структуру:
+
+```text
+src/
+├── app/          # или pages/, routes/ — composition root вашего фреймворка
+├── features/
+└── shared/
+    ├── ui/
+    └── lib/
+```
+
+Папку `services/` **не создавайте заранее** — она появится при первом promotion, когда модуль станет нужен двум потребителям.
+
+Подробнее о дереве — в [Структура проекта](/start/project-layout) и [Слои](/concepts/layers).
+
+## 2. Смонтируйте feature из composition root
+
+Composition root импортирует модули **только** через `public/`:
+
+```tsx
+// src/app/page.tsx
+import { CatalogPage } from "@/features/catalog/public/catalog-page";
+import { CheckoutPage } from "@/features/checkout/public/checkout-page";
+
+export default function Page() {
+  return (
+    <div>
+      <CatalogPage />
+      <CheckoutPage />
+    </div>
+  );
+}
+```
+
+Feature может тянуть `services/*/public/*` и `shared/`, но не другие features. Пример живого проекта — [examples/next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app) в репозитории DMA.
+
+## 3. Установите CLI
+
+```bash
+npm install -D @derived-modular/cli
+```
+
+## 4. Запустите проверку
+
+```bash
+npx @derived-modular/cli check .
+```
+
+Если всё чисто — увидите summary без ошибок. Если нет — CLI покажет правило, файл и импорт, который нарушен.
+
+Типичные первые ошибки:
+
+| Правило | Что случилось | Что делать |
+| --- | --- | --- |
+| `public-api` | Импорт в `features/foo/model`, а не в `public/` | Вынесите символ в `public/` или импортируйте оттуда |
+| `feature-to-feature` | Feature A импортирует feature B | Общее — в `services/` или `shared/` |
+| `layer-direction` | Импорт «вверх», например из `shared` в `features` | Разверните зависимость |
+
+Разбор всех правил — в [dma check](/tooling/cli/check).
+
+## 5. Добавьте в CI
+
+Минимальный шаг — одна команда в pipeline:
+
+```bash
+npx @derived-modular/cli check . --format json
+```
+
+Подробнее — [CI](/tooling/ci).
+
+## 6. (Опционально) Линтер в редакторе
+
+Для быстрой обратной связи при сохранении файла:
+
+```bash
+npm install -D @derived-modular/eslint-plugin eslint
+```
+
+```js
+// eslint.config.js
+import dma from "@derived-modular/eslint-plugin";
+
+export default [
+  ...dma.configs.recommended,
+  {
+    settings: {
+      dma: {
+        srcRoot: "src",
+        compositionRoots: ["app", "pages", "routes"],
+      },
+    },
+  },
+];
+```
+
+Линтер **не заменяет** `dma check` — он не видит циклы и inbound-предикаты. Настройка ESLint — на странице [ESLint](/tooling/eslint).
+
+## 7. Локальные сигналы роста
+
+```bash
+npx @derived-modular/cli doctor .
+```
+
+`doctor` не ломает CI (exit 0), но подсказывает: пора вынести в `shared`, раздуть сегменты, промоутить feature в service. Подробнее — [dma doctor](/tooling/cli/doctor).
+
+## Что дальше
+
+<Cards>
+  <Card title="Четыре инварианта" description="Правила, которые держит архитектуру" href="/concepts/invariants" />
+  <Card title="Модули и public API" description="Стадии роста модуля" href="/concepts/modules" />
+  <Card title="Обзор инструментов" description="CLI + линтеры" href="/tooling/overview" />
+</Cards>

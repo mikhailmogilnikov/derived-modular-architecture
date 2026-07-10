@@ -17,7 +17,7 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "dma": "bun packages/cli/src/cli/main.ts",
+    "cli": "bun packages/cli/src/cli/main.ts",
     "dma:build": "turbo run build",
     "upgrade": "ncu -u",
     "check": "ultracite check",

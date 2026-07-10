@@ -1,0 +1,126 @@
+---
+title: "Миграция на DMA"
+description: "Как внедрить DMA в существующий проект без big bang переписывания."
+icon: "ArrowRightLeft"
+---
+
+Миграция на DMA — не «переписать всё за спринт». Это последовательное уплотнение: сначала границы и проверки, потом promotion и shared — по сигналам графа.
+
+## Фаза 0: Зафиксировать цель
+
+Вы хотите:
+
+- перестать спорить об импортах на ревью;
+- ловить циклы и feature-to-feature в CI;
+- расти через colocation, а не через преждевременный `shared/`.
+
+Если достаточно style guide на Confluence — DMA может быть избыточен.
+
+## Фаза 1: Дерево и tooling (день 1)
+
+1. Приведите `src/` к базовой форме:
+
+```text
+src/
+├── app/          # или pages/, routes/
+├── features/
+└── shared/       # можно почти пустой
+```
+
+2. Установите CLI:
+
+```bash
+npm install -D @derived-modular/cli
+```
+
+3. Добавьте в CI:
+
+```bash
+npx @derived-modular/cli check . --format json
+```
+
+4. Подключите линтер ([ESLint](/tooling/eslint) или [Biome](/tooling/biome)).
+
+Первый прогон `dma check` покажет реальную картину — не пугайтесь длинного списка.
+
+## Фаза 2: Composition root (неделя 1)
+
+**Цель:** роуты и layout импортируют только `*/public/*`.
+
+| Было | Стало |
+| --- | --- |
+| `import { X } from '@/features/foo/internal'` | `import { X } from '@/features/foo/public/foo-page'` |
+| Логика в `page.tsx` | Тонкая оболочка + mount из feature |
+
+Не трогайте внутренности модулей, пока не почините точки входа.
+
+## Фаза 3: Убрать feature → feature (недели 2–3)
+
+Типичный паттерн до DMA:
+
+```text
+features/catalog → features/checkout/internal
+```
+
+Варианты исправления:
+
+1. **Promotion** — общий продуктовый код в `services/`
+2. **Lift в shared** — переносимый хелпер без продуктовой логики
+3. **Wiring в app** — props, events, providers ([склейка модулей](/guides/cross-module-wiring))
+
+После каждого рефакторинга — `npx @derived-modular/cli check .`.
+
+## Фаза 4: Public API и barrels (неделя 3–4)
+
+- Удалите barrel `index.ts` с реэкспортами внутри модулей
+- Вынесите публичные символы в `public/` с прямыми путями
+- Stage-0 файлы (`features/profile.tsx`) оставьте, если модуль один файл
+
+## Фаза 5: Promotion и shared (по сигналам)
+
+Не создавайте `services/` заранее. Ждите:
+
+- `feature-has-inbound` в `check` — пора промоутить
+- `shared-candidate` в `doctor` — пора подумать о lift
+
+Запускайте `npx @derived-modular/cli doctor .` раз в спринт на планировании.
+
+## Стратегии для больших кодовых баз
+
+### Strangler по фичам
+
+Выберите одну вертикаль (например checkout), разложите по DMA, остальное временно исключите из `dma check` через отдельный пакет/папку — **не** через отключение правил глобально.
+
+### Monorepo
+
+`dma check` в v1 — один app root за вызов:
+
+```bash
+npx @derived-modular/cli check apps/web
+npx @derived-modular/cli check apps/admin
+```
+
+Подробнее — [Монорепо](/guides/monorepo).
+
+### Legacy `utils/` и `components/`
+
+Не переименовывайте всё сразу. Новый код — по DMA. Старый — трогайте при втором использовании или при касании файла.
+
+## Чеклист готовности
+
+- [ ] `dma check` в CI на каждый PR
+- [ ] Composition root импортирует только `public/`
+- [ ] Нет feature → feature
+- [ ] Нет barrel внутри модулей
+- [ ] Линтер в редакторе для быстрой обратной связи
+- [ ] Команда знает про [Эволюция кода](/concepts/evolution) и [Куда положить файл](/concepts/placement)
+
+## Что дальше
+
+<Cards>
+  <Card title="Быстрый старт" description="С нуля" href="/start/quick-start" />
+  <Card title="Монорепо" description="Несколько app roots в CI" href="/guides/monorepo" />
+  <Card title="Эволюция кода" description="Promotion и doctor" href="/concepts/evolution" />
+  <Card title="Склейка модулей" description="Events и ports" href="/guides/cross-module-wiring" />
+  <Card title="Vite + React" description="Канонический пример" href="/guides/vite-react" />
+</Cards>

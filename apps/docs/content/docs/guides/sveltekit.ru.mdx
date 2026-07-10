@@ -1,0 +1,109 @@
+---
+title: "SvelteKit"
+description: "DMA с composition root в routes/ и Svelte 5 runes."
+icon: "Layers"
+---
+
+Пример **SvelteKit + Svelte 5**: breadth по features, promoted cart service, event wiring в `app-providers.svelte`.
+
+Исходники: [examples/sveltekit-routes](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/sveltekit-routes).
+
+## Composition root = routes/
+
+DMA трактует `src/routes/` как `app/`:
+
+```text
+src/routes/
+├── +layout.svelte       # import app.css, mount AppProviders
+├── +page.svelte         # тонкий shell — только wiring
+└── app-providers.svelte # theme tokens + event subscriptions
+```
+
+`+page.svelte` монтирует `features/*/public/*` и stage-0 `profile.svelte`, `promo.svelte`.
+
+## Event wiring
+
+Checkout эмитит событие; app подписывается и вызывает service:
+
+```svelte
+<!-- routes/app-providers.svelte -->
+<script>
+  import { onCheckoutCompleted } from "@/features/checkout/public/checkout.events";
+  import { clearCart } from "@/services/cart/public/cart";
+
+  onCheckoutCompleted(() => clearCart());
+</script>
+```
+
+Нет `checkout → cart` как feature edge — app импортирует оба модуля вниз. См. [Склейка модулей](/guides/cross-module-wiring).
+
+## Mini-shop flow
+
+1. **Catalog** — `catalog.store.ts` + `addCartItem` из cart service
+2. **Checkout** — cart service + `checkout.store.ts` (payment status)
+3. **AppProviders** — `checkoutCompleted` → `clearCart()`
+4. **Profile / Promo** — stage-0, shared `Card`
+
+## Svelte 5 runes
+
+| Файл | Runes |
+| --- | --- |
+| `profile.svelte` | `$state` |
+| `app-providers.svelte` | `$props`, `$effect` |
+| `button.svelte` | `$props` |
+
+Stores в `*.store.ts` — обычные Svelte stores, auto-subscription через `$store`.
+
+## Куда класть код
+
+| Вопрос | Место |
+| --- | --- |
+| Route shell, layout? | `src/routes/` |
+| UI flow? | `features/<name>/public/*` |
+| State одного feature? | `features/<name>/<name>.store.ts` |
+| 2+ modules? | `services/<name>/public/*` |
+| Portable helper/UI? | `shared/lib/`, `shared/ui/` |
+| Subscribers / ports? | `routes/app-providers.svelte` |
+
+Internals импортируются **relative** из `public/` файла того же feature.
+
+## Стили
+
+| Вид | Где |
+| --- | --- |
+| Global reset | `src/app.css` → `+layout.svelte` |
+| Design tokens | `app-providers.svelte` (`--color-*` на `.app-theme`) |
+| Route shell | scoped `<style>` в `+page.svelte` |
+| Feature page | scoped в `public/*.svelte` |
+| Shared UI | scoped в `shared/ui/*.svelte` |
+| Feature sheet | `checkout/checkout.css` → import из `public/` |
+
+Токены в provider shell — features и `shared/ui` читают `var(--…)` без импорта друг друга.
+
+## Тесты
+
+Colocated `*.test.ts` (Vitest):
+
+- `catalog.store.test.ts` — store + `svelte/store`
+- `services/cart/public/cart.test.ts` — service API
+- `shared/lib/format-currency.test.ts` — pure helper
+
+`dma check` игнорирует `*.test.ts`.
+
+## Команды
+
+```bash
+bun run dev
+bun run build
+bun run dma-check   # dma check .
+bun run lint        # oxlint + @derived-modular/oxlint-plugin
+bun run test
+```
+
+## Что дальше
+
+<Cards>
+  <Card title="Склейка модулей" description="Events pattern" href="/guides/cross-module-wiring" />
+  <Card title="Oxlint plugin" description="Настройка" href="/tooling/oxlint" />
+  <Card title="Vite + React" description="Канонический пример" href="/guides/vite-react" />
+</Cards>

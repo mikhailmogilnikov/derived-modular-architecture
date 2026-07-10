@@ -1,0 +1,13 @@
+{
+  "title": "Концепции",
+  "defaultOpen": true,
+  "pages": [
+    "invariants",
+    "layers",
+    "placement",
+    "modules",
+    "shared",
+    "evolution",
+    "testing"
+  ]
+}

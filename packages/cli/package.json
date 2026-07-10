@@ -3,9 +3,7 @@
   "version": "1.0.1",
   "description": "Derived Modular Architecture checker and doctor CLI",
   "type": "module",
-  "bin": {
-    "dma": "./dist/cli.js"
-  },
+  "bin": "./dist/cli.js",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

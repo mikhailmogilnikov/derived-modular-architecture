@@ -1,0 +1,74 @@
+---
+title: "Чего DMA не решает"
+description: "Честные границы подхода и ограничения tooling v1."
+icon: "CircleOff"
+---
+
+DMA описывает **размещение кода и направление зависимостей**, проверяемые по графу импортов. Ниже — то, что остаётся за пределами спецификации или v1 tooling. Знание границ снижает ложные ожидания при внедрении.
+
+## Спецификация не решает
+
+### Резку домена
+
+Один модуль `checkout` или два (`cart` + `checkout`) — продуктовое моделирование (Conway). DMA может **обнаружить** плохой cut постфактум (много портов, плотный subgraph в `doctor`), но не даёт рецепт «как нарезать домен».
+
+### State management и data flow
+
+Flux, signals, React Query, server cache — DMA говорит **где** живёт состояние (`model/` внутри модуля, `services/` при promotion), но не **как** его обновлять.
+
+### Стратегию тестирования
+
+Размещение colocate задано ([Тесты](/concepts/testing)). Coverage, пирамида, contract tests — выбор команды.
+
+### Runtime-границы
+
+Микрофронтенды, module federation, независимые деплои — вне scope. Принцип: файлы роутинга фреймворка — тонкая оболочка в composition root.
+
+### Детали рендеринга фреймворка
+
+SSR, RSC, file-based routing — в гайдах по стекам ([Next.js](/guides/nextjs)), но DMA не диктует framework-specific паттерны beyond composition root.
+
+## Остаётся на человеке
+
+### Граница services / shared
+
+Единственное правило без полной машинной проверки: продуктовый сценарий vs переносимая инфраструктура. Эвристика: «могло бы жить в другом продукте без смены смысла?» — см. [Services vs Shared](/deep-dive/services-vs-shared).
+
+### Stage 3 — split модуля
+
+Когда `public/` раздут (~8+ entrypoints) — делить модуль. Отдельного сигнала в `doctor` пока нет; решение на ревью.
+
+### Имена папок и продуктовая семантика
+
+`catalog` vs `shop` — DMA не спорит. Спорит только о **предикатах слоя** и **рёбрах графа**.
+
+## Tooling v1 не включает
+
+| Нет в v1 | Что делать вместо |
+| --- | --- |
+| Autofix / codemods | Ручной refactor + `dma check` после каждого шага |
+| Scaffolding проекта | [Быстрый старт](/start/quick-start), examples |
+| LSP / architecture server | CLI + линтеры в редакторе |
+| Watch mode | `dma check` в pre-push или CI |
+| User config для порогов doctor | Дефолты CLI; изменение — post-v1 |
+| Monorepo discovery одним вызовом | `dma check` на каждый app root ([Монорепо](/guides/monorepo)) |
+| Полный graph parity в Biome/Oxlint | Всегда `dma check` в CI |
+| Runtime loading `rules.json` в CLI | Правила встроены в `@derived-modular/cli` |
+
+## Declarations и «манифесты»
+
+DMA не использует декларативные файлы, которые дублируют то, что уже видно из дерева (`architecture.yaml` со списком слоёв). Допустимы только executable overrides (временные allowlist в tooling, если появятся) — не документационный театр.
+
+## Когда DMA может быть не лучшим выбором
+
+- Нужна жёсткая семантическая таксономия для онбординга («всё про пользователя — в entities») — см. [DMA vs FSD](/deep-dive/dma-vs-fsd).
+- Продукт организован горизонтальными доменами важнее вертикального ранга — DMA рекомендует split **внутри** `services/`, а не новые слои.
+- Команда не готова держать `dma check` в CI — правила без gate снова станут устными.
+
+## Что дальше
+
+<Cards>
+  <Card title="Что такое DMA" description="Контекст и границы" href="/start/what-is-dma" />
+  <Card title="DMA vs FSD" description="Сравнение с альтернативой" href="/deep-dive/dma-vs-fsd" />
+  <Card title="Обзор инструментов" description="Что проверяет v1" href="/tooling/overview" />
+</Cards>

@@ -1,0 +1,86 @@
+---
+title: "Куда положить файл"
+description: "Алгоритм размещения кода: от composition root до promotion и shared."
+icon: "GitBranch"
+---
+
+Ответ на вопрос «куда положить этот файл» — не вкус, а последовательность предикатов. Пройдите шаги сверху вниз и **остановитесь на первом совпадении**.
+
+## Алгоритм
+
+1. **Роут, layout, wiring, провайдеры?** → composition root: `app/`, `pages/` или `routes/`. Только монтирование `*/public/*`, без бизнес-логики.
+2. **Другой модуль должен импортировать этот код (продуктовый сценарий)?** → `services/<name>/public/`. Promotion: перенос + пересмотр public API. Никогда `feature → feature`.
+3. **Переносимый хелпер, UI или тип уже нужен 2+ модулям?** → `shared/{ui,lib,api,model,domain}`. Не выносите при первом использовании.
+4. **Единственный потребитель — один модуль?** → colocate внутри этого модуля (internal файл или сегмент `ui/`, `model/`).
+5. **Новый leaf-flow, монтируемый только из composition root?** → `features/<name>` (stage 0 — один файл, stage 1+ — папка с `public/`).
+6. **Ребро дало бы цикл или шаг вверх?** → порт в `public/ports.ts` + bind в composition root. Не используйте порт, чтобы обойти законный promotion.
+
+### Быстрые предикаты
+
+| Путь | Предикат |
+| --- | --- |
+| `app/` / `pages/` / `routes/` | Собирает приложение; модули его не импортируют |
+| `features/` | Нет inbound от других **модулей** |
+| `services/` | Есть inbound от модулей; папку создают при первом promotion |
+| `shared/` | Переносимый код без продуктового сценария |
+
+Inbound для promotion — только от `features/*` и `services/*`. Mount из composition root promotion **не** вызывает.
+
+## Таблица: типичный файл → папка
+
+| У вас… | Куда | Пример |
+| --- | --- | --- |
+| `page.tsx`, `+page.svelte`, `index.astro` | composition root | `app/page.tsx` |
+| Провайдеры, event wiring | composition root | `app/providers.tsx` |
+| Экран / flow для роута | `features/<name>/public/` или stage-0 файл | `catalog-page.tsx` |
+| Store одного feature | colocate в feature | `checkout.store.ts` |
+| Composable одного feature (Vue) | colocate в feature | `use-catalog-search.ts` |
+| Логика для catalog **и** checkout | `services/<name>/public/` | `cart.ts` |
+| Кнопка без продуктовой логики | `shared/ui/` | `button.tsx` |
+| `formatCurrency`, даты, i18n | `shared/lib/` | `format-currency.ts` |
+| Базовый HTTP-клиент, interceptors | `shared/api/` | `http.ts` |
+| Эндпоинты одной фичи | colocate в feature | `catalog.api.ts` |
+| `Product`, injection key | `shared/model/` или `shared/domain/` | `product.ts` |
+| Unit-тест store | рядом с store | `checkout.store.test.ts` |
+| E2E | корень app | `e2e/` рядом с конфигом |
+
+## services vs shared (последний ручной шаг)
+
+Вопрос: «Мог бы этот код жить в другом продукте без изменений смысла?»
+
+- **Да** → `shared/` (форматирование, UI-примитив, тип)
+- **Нет** → `services/` (корзина, сессия, каталог API как продуктовый сценарий)
+
+При сомнении оставьте colocation в feature до второго потребителя. Подробнее — [Services vs Shared](/deep-dive/services-vs-shared).
+
+## Склейка модулей
+
+Feature не импортирует feature. Варианты:
+
+| Задача | Механизм |
+| --- | --- |
+| Callback / props | composition root передаёт между `public/` entry |
+| Событие без подписчиков | `public/*.events.ts`; подписка в `app/` |
+| Цикл / внешний seed | `public/ports.ts` + bind в `app/` |
+
+Разбор — [Склейка модулей](/guides/cross-module-wiring).
+
+## Что проверяет tooling
+
+| Ситуация | Правило |
+| --- | --- |
+| Импорт вверх по слоям | `layer-direction` |
+| `features/a` → `features/b` | `feature-to-feature` |
+| Импорт мимо `public/` | `public-api` |
+| Feature с inbound | `feature-has-inbound` |
+| Кандидат в shared/services | `shared-candidate` (doctor) |
+
+Полный разбор ошибок — [dma check: справочник нарушений](/tooling/cli/check#справочник-нарушений).
+
+## Что дальше
+
+<Cards>
+  <Card title="Модули и public API" description="Стадии 0–4" href="/concepts/modules" />
+  <Card title="Эволюция кода" description="Promotion и second-use" href="/concepts/evolution" />
+  <Card title="Структура проекта" description="Дерево src/" href="/start/project-layout" />
+</Cards>

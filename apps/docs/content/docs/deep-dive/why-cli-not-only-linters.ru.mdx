@@ -1,0 +1,81 @@
+---
+title: "Почему CLI, а не только линтеры"
+description: "Архитектурные правила — свойства графа. Один файл этого не видит."
+icon: "Network"
+---
+
+## Короткий ответ
+
+ESLint, Biome и Oxlint смотрят на **один файл** (или эвристику строки импорта). Циклы, inbound-предикаты и promotion — свойства **всего графа**. Для этого нужен отдельный анализатор — `dma check`.
+
+Линтеры в редакторе остаются полезными. Но CI без CLI — дыра в архитектуре.
+
+## Что линтер видит
+
+File-scoped правила DMA:
+
+- импорт не в ту сторону по слоям (`layer-direction`)
+- feature → feature (`feature-to-feature`)
+- импорт мимо `public/` (`public-api`)
+- barrel `index` с реэкспортами (`no-barrel`)
+
+ESLint делает это точно — через `@derived-modular/boundaries` и резолв путей. Biome — эвристикой по паттернам строк.
+
+## Что линтер не видит
+
+| Правило | Почему нужен граф |
+| --- | --- |
+| `no-cycle` | Цикл — путь A→B→C→A через **несколько файлов** |
+| `feature-has-inbound` | Inbound считается по **всем модулям**, не одному импорту в файле |
+| `service-no-inbound` | Service без потребителей — свойство subgraph |
+| `dma doctor` | Сигналы эволюции по всему проекту |
+
+Пример: `features/catalog` импортирует `features/checkout/internal.ts` через третий файл в `shared/`. ESLint в каждом файле может быть зелёным. `dma check` найдёт цикл или feature-to-feature.
+
+## Гибридная модель DMA
+
+```text
+Редактор     →  линтер (быстро, file-scoped)
+CI           →  dma check (полный граф)
+Локально     →  dma doctor (мягкие сигналы)
+```
+
+Один анализатор (`@derived-modular/cli`) — source of truth. Линтеры — тонкие адаптеры поверх `@derived-modular/boundaries`, не второй источник правды.
+
+<Callout type="warn">
+  «Настроили ESLint — архитектура под контролем» — иллюзия, пока не гоняете `dma check` в CI.
+</Callout>
+
+## Почему не один мега-ESLint rule
+
+Теоретически ESLint мог бы анализировать весь проект. На практике:
+
+- линтеры оптимизированы под файл и кэш per-file;
+- полный graph pass на каждый save — дорого;
+- циклы и inbound — отдельный класс алгоритмов, не AST одного модуля.
+
+DMA сознательно вынес graph audit в CLI. Линтеры — для feedback loop в IDE.
+
+## Матрица покрытия
+
+| Concern | ESLint | Biome | dma check |
+| --- | --- | --- | --- |
+| `layer-direction` | ✓ | эвристика | ✓ |
+| `feature-to-feature` | ✓ | эвристика | ✓ |
+| `public-api` | ✓ | эвристика | ✓ |
+| `no-barrel` | ✓ | эвристика | ✓ |
+| `no-cycle` | — | — | ✓ |
+| inbound-предикаты | — | — | ✓ |
+| doctor | — | — | ✓ |
+
+## Практическая рекомендация
+
+1. Подключите [ESLint](/tooling/eslint) (или [Biome](/tooling/biome) / [Oxlint](/tooling/oxlint)) в редактор
+2. Добавьте `npx @derived-modular/cli check .` в [CI](/tooling/ci)
+3. Раз в спринт — `npx @derived-modular/cli doctor .` для сигналов роста
+
+## Связанные темы
+
+- [Обзор инструментов](/tooling/overview)
+- [dma check](/tooling/cli/check)
+- [Четыре инварианта](/concepts/invariants)

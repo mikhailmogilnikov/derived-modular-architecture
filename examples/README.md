@@ -1,6 +1,6 @@
 # DMA examples
 
-Copy-paste **clean** trees that demonstrate [Derived Modular Architecture](../spec/README.md) across frameworks. Every example exits 0 on `dma check .` — violations live in [`packages/cli/tests/fixtures`](../packages/cli/tests/fixtures), not here.
+Copy-paste **clean** trees that demonstrate [Derived Modular Architecture](../spec/README.md) across frameworks. Every example exits 0 on `npx @derived-modular/cli check .` — violations live in [`packages/cli/tests/fixtures`](../packages/cli/tests/fixtures), not here.
 
 **Normative architecture:** [`../spec/`](../spec/README.md) (single source of truth). Examples illustrate; they do not redefine rules.
 
@@ -74,7 +74,8 @@ See [vite-react README — Module evolution](./vite-react/README.md#module-evolu
 | User-facing screen / flow | `features/<name>/public/` or stage-0 `features/<name>.*` | Leaf modules; no inbound from other features |
 | State for one feature only | Colocated `*.store.ts` inside that feature | Relative import from `public/` |
 | Logic reused by other modules (product) | `services/<name>/public/` | One inbound module edge → `services/` |
-| Portable UI / pure helpers / HTTP | `shared/ui/`, `shared/lib/`, `shared/model/` | No product scenarios; bottom layer |
+| Portable UI / pure helpers | `shared/ui/`, `shared/lib/`, `shared/model/` | No product scenarios; bottom layer |
+| Portable HTTP/WS transport | `shared/api/` | Base client, interceptors — not feature endpoints |
 | Feature-specific API calls | `features/<name>/<name>.api.ts` | Internal until second consumer needs it |
 | Cross-module wiring / events | Composition root | Props, providers, ports — no `feature → feature` |
 | Colocated unit tests | Beside the file under test (`*.test.ts`) | See vite-react for Vitest pattern |
@@ -134,7 +135,7 @@ Rule of thumb: **globals in the composition root**, **feature skins colocated wi
 
 ## Violations tour
 
-Clean examples pass `dma check .`. To **see what breaks** and how to fix it, use the CLI test fixtures under [`packages/cli/tests/fixtures`](../packages/cli/tests/fixtures) — do not copy them into `examples/`.
+Clean examples pass `npx @derived-modular/cli check .`. To **see what breaks** and how to fix it, use the CLI test fixtures under [`packages/cli/tests/fixtures`](../packages/cli/tests/fixtures) — do not copy them into `examples/`.
 
 | Violation | Fixture | What breaks | How to fix |
 | --- | --- | --- | --- |
@@ -147,10 +148,10 @@ Run from the monorepo root (build CLI first):
 
 ```bash
 bun run build
-bun run dma check packages/cli/tests/fixtures/feature-to-feature
-bun run dma check packages/cli/tests/fixtures/barrel
-bun run dma check packages/cli/tests/fixtures/deep-import
-bun run dma check packages/cli/tests/fixtures/layer-violation
+npx @derived-modular/cli check packages/cli/tests/fixtures/feature-to-feature
+npx @derived-modular/cli check packages/cli/tests/fixtures/barrel
+npx @derived-modular/cli check packages/cli/tests/fixtures/deep-import
+npx @derived-modular/cli check packages/cli/tests/fixtures/layer-violation
 ```
 
 Other fixtures (`cycle`, `dense-services`, `inbound-feature`, `service-no-inbound`, `shared-candidate`, `stage-growth-0`, `stage-growth-1`) cover cycles, inbound predicates, and stage growth — explore the same way.
@@ -159,7 +160,7 @@ Other fixtures (`cycle`, `dense-services`, `inbound-feature`, `service-no-inboun
 
 | Tool | Role | Used in |
 | --- | --- | --- |
-| `dma check` (`@derived-modular/cli`) | **Hard gate** — graph rules, cycles, inbound predicates | All examples (`dma-check` script) |
+| `@derived-modular/cli` (`check`) | **Hard gate** — graph rules, cycles, inbound predicates | All examples (`dma-check` script) |
 | `@derived-modular/eslint-plugin` | File-scoped rules in ESLint flat config | vite-react, next-app |
 | `@derived-modular/biome-plugin` | GritQL heuristics via Biome `extends` | astro-pages, vue-vite |
 | `@derived-modular/oxlint-plugin` | Same rules via Oxlint JS plugins | sveltekit-routes |

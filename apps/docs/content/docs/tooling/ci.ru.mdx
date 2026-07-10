@@ -1,0 +1,114 @@
+---
+title: "CI"
+description: "Как подключить dma check в пайплайн — GitHub Actions, JSON, SARIF."
+icon: "Workflow"
+---
+
+`dma check` — единственная проверка, которая **должна** блокировать merge. Линтеры в CI полезны, но без CLI вы не увидите циклы и inbound-предикаты.
+
+## Минимальный шаг
+
+```bash
+npx @derived-modular/cli check .
+```
+
+Exit code `1` — есть архитектурные нарушения. Exit code `2` — проблема окружения (нет `src/`, битый tsconfig).
+
+Добавьте команду в pipeline после install и до deploy.
+
+## GitHub Actions
+
+```yaml
+name: Architecture
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  dma:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm ci
+
+      - run: npx @derived-modular/cli check . --format json
+```
+
+Для bun:
+
+```yaml
+      - uses: oven-sh/setup-bun@v2
+
+      - run: bun install --frozen-lockfile
+
+      - run: bun x @derived-modular/cli check .
+```
+
+## JSON для скриптов и агентов
+
+```bash
+npx @derived-modular/cli check . --format json > dma-report.json
+```
+
+Отчёт стабильный (`version: 1`) — удобно парсить в custom CI, ботах, AI-агентах.
+
+## SARIF для GitHub Code Scanning
+
+```bash
+npx @derived-modular/cli check . --format sarif > dma.sarif
+```
+
+Загрузите артефакт в Code Scanning — нарушения появятся во вкладке Security рядом с другими анализаторами.
+
+## Что запускать вместе
+
+| Шаг | Команда | Блокирует merge? |
+| --- | --- | --- |
+| Архитектура (обязательно) | `npx @derived-modular/cli check .` | Да |
+| Линт (опционально) | `eslint .` / `biome check` | По желанию команды |
+| Эволюция (опционально) | `npx @derived-modular/cli doctor .` | Нет (exit 0) |
+
+`doctor` в CI имеет смысл только как informational job — сигналы роста, не gate.
+
+## Монорепо
+
+Сейчас v1 CLI смотрит на один app root за вызов. В монорепо запускайте check **на каждое приложение**:
+
+```bash
+npx @derived-modular/cli check apps/web
+npx @derived-modular/cli check apps/admin
+```
+
+Или через turbo/npm scripts в каждом пакете. Подробнее — [Монорепо](/guides/monorepo).
+
+## Примеры в репозитории DMA
+
+Все [examples](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples) проходят `dma check`. В CI самого монорепо DMA:
+
+```yaml
+- name: DMA-check examples
+  run: bun run dma-check:examples
+```
+
+## Типичные ошибки
+
+| Проблема | Решение |
+| --- | --- |
+| `exit 2`, нет `src/` | Убедитесь, что `path` указывает на корень приложения, не монорепо |
+| Алиасы не резолвятся | Проверьте `tsconfig.json` paths в корне приложения |
+| CI зелёный, локально падает | Версии CLI, разный cwd, незакоммиченные файлы |
+
+## Что дальше
+
+<Cards>
+  <Card title="dma check" description="Правила и exit codes" href="/tooling/cli/check" />
+  <Card title="Обзор инструментов" description="CLI + линтеры" href="/tooling/overview" />
+  <Card title="Быстрый старт" description="Первый запуск локально" href="/start/quick-start" />
+</Cards>

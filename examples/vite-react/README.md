@@ -61,7 +61,7 @@ DMA detects the promotion via **inbound edges**: when catalog and checkout both 
 | Pure helper (no feature imports) | `shared/lib/` | `format-currency.ts` |
 | Type used by 2+ modules, portable | `shared/model/` | `product.ts` |
 | Provider wiring / theme mount | `app/` (imports `shared/ui` primitives) | `providers.tsx` |
-| API client for backend | `services/<name>/public/` or `shared/lib/http.ts` if truly portable | `http.ts` + `catalog.api.ts` |
+| API client for backend | `services/<name>/public/` or `shared/api/` if truly portable transport | `shared/api/http.ts` + `catalog.api.ts` |
 
 ### What must NOT go in `shared/`
 
@@ -89,11 +89,12 @@ Portable transport lives in `shared/`; feature-specific endpoints stay internal 
 
 | Layer | File | Role |
 | --- | --- | --- |
-| Portable fetch wrapper | `shared/lib/http.ts` | Thin `get<T>()` over `fetch` — reusable by any module |
+| Portable fetch wrapper | `shared/api/http.ts` | Thin `get<T>()` over `fetch` — reusable by any module |
+| Feature-specific endpoints | `features/<name>/*.api.ts` | `catalog.api.ts` — only catalog imports this |
 | Feature API | `features/catalog/catalog.api.ts` | `fetchCatalogProducts()` — only catalog imports this |
 | Static demo payload | `public/catalog.json` | Served by Vite; loaded at runtime from the catalog page |
 
-`catalog-page.tsx` calls `fetchCatalogProducts()` in `useEffect` and keeps loading state in the UI. Other features do not import `catalog.api.ts` — if checkout needed the same HTTP client, it would import `shared/lib/http.ts`, not catalog internals.
+`catalog-page.tsx` calls `fetchCatalogProducts()` in `useEffect` and keeps loading state in the UI. Other features do not import `catalog.api.ts` — if checkout needed the same HTTP client, it would import `shared/api/http.ts`, not catalog internals.
 
 For a real backend, replace `/catalog.json` with your API URL. Promote to `services/<name>/public/` when a second module needs the same product API.
 
@@ -201,7 +202,8 @@ src/
 │       ├── cart.ts                   # inbound: catalog + checkout
 │       └── cart.test.ts
 ├── shared/
-│   ├── lib/                          # format-currency, http, class-names (+ tests)
+│   ├── api/                          # http transport
+│   ├── lib/                          # format-currency, class-names (+ tests)
 │   ├── model/                        # product types
 │   └── ui/                           # button/card/badge/input (+ .module.css)
 ├── main.tsx                          # React mount (outside DMA layers)

@@ -1,0 +1,121 @@
+---
+title: "dma doctor"
+description: "Мягкие сигналы эволюции для локальной работы — без падения CI."
+icon: "Stethoscope"
+---
+
+`dma doctor` смотрит на тот же граф, что и `check`, но ищет **сигналы роста**, а не жёсткие нарушения. По умолчанию exit code 0 — команду можно гонять хоть каждый коммит, CI не сломается.
+
+Думайте о doctor как о «архитектурном линтере наперёд»: подсказывает, что пора вынести, промоутить или разделить — до того, как `check` начнёт ругаться.
+
+## Запуск
+
+```bash
+npx @derived-modular/cli doctor .
+npx @derived-modular/cli doctor . --format json
+npx @derived-modular/cli doctor . --format sarif
+```
+
+Те же форматы вывода, что у `check`: human, json, SARIF.
+
+## doctor vs check
+
+| | `dma check` | `dma doctor` |
+| --- | --- | --- |
+| Назначение | Жёсткие правила | Сигналы эволюции |
+| Блокирует CI | Да (exit 1) | Нет (exit 0) |
+| Повторяет rule ID из check | — | Нет |
+| Когда запускать | CI, pre-push | Локально, раз в спринт |
+
+Doctor **не дублирует** ошибки `check`. Если `check` красный — сначала чините check.
+
+## Сигналы
+
+### shared-candidate
+
+Файл модуля импортируют **2+ других модуля**.
+
+Что делать: решите, это продуктовый сценарий (→ `services/`) или переносимый хелпер (→ `shared/`). Не поднимайте в shared автоматически — сначала поймите смысл кода.
+
+### stage-growth
+
+Структура модуля отстаёт от размера:
+
+- file-модуль (stage 0) оброс соседними файлами → заведите папку и `public/`
+- много файлов без сегментов → добавьте `ui/`, `model/`, `api/`
+
+Порог по умолчанию — около 8 файлов (`stage1FileCount`).
+
+### Пример: stage-growth на checkout
+
+**До** — stage 0, один файл, но рядом появились store и хелперы:
+
+```text
+features/
+├── checkout.tsx
+├── checkout.store.ts
+└── use-shipping.ts
+```
+
+`dma doctor` → `stage-growth`: file-модуль оброс соседями.
+
+**После** — стадия 1:
+
+```text
+features/checkout/
+├── public/
+│   └── checkout-page.tsx
+├── checkout.store.ts
+└── use-shipping.ts
+```
+
+1. Создайте папку `features/checkout/`
+2. Перенесите UI в `public/checkout-page.tsx`
+3. Store и хелперы остаются internal; `public/` импортирует их **relative**
+4. Обновите импорты в composition root на `@/features/checkout/public/checkout-page`
+5. `npx @derived-modular/cli check .` — зелёный; `npx @derived-modular/cli doctor .` — `stage-growth` для checkout исчез
+
+Если файлов станет ~8+ без сегментов — добавьте `ui/`, `model/`, `api/` (стадия 2). См. [Модули и public API](/concepts/modules).
+
+### dense-services
+
+Subgraph `services/` выглядит плотным или глубоким. Пора делить **горизонтально** — домены, пакеты — а не добавлять новые вертикальные слои.
+
+### orphan-public
+
+Файл в `public/` никто не импортирует. Мёртвый контракт — удалите или сделайте внутренним.
+
+## Типичный workflow
+
+```bash
+# утром
+npx @derived-modular/cli check .          # gate
+
+# перед рефакторингом
+npx @derived-modular/cli doctor .         # что пора перестроить
+
+# после крупного PR
+npx @derived-modular/cli doctor . --format json > doctor.json
+```
+
+## Не ждите doctor в CI как gate
+
+Сигналы субъективны: `shared-candidate` на здоровом `services/*/public/*` — норма. Используйте doctor для **разговора в команде**, не для блокировки merge.
+
+В CI doctor имеет смысл только как informational job (артефакт json для дашборда).
+
+## Связанные темы
+
+- [Эволюция кода](/concepts/evolution) — second-use, promotion, триггеры
+- [dma check](/tooling/cli/check) — жёсткие правила
+- [Обзор инструментов](/tooling/overview) — гибридная модель
+
+## Что дальше
+
+<Cards>
+  <Card title="Куда положить файл" description="Алгоритм размещения" href="/concepts/placement" />
+  <Card title="Эволюция кода" description="Куда растёт архитектура" href="/concepts/evolution" />
+  <Card title="dma check" description="Справочник нарушений" href="/tooling/cli/check" />
+  <Card title="CI" description="Что блокировать в pipeline" href="/tooling/ci" />
+  <Card title="Модули и public API" description="Стадии роста" href="/concepts/modules" />
+</Cards>

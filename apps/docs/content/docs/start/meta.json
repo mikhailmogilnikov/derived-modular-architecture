@@ -1,0 +1,5 @@
+{
+  "title": "Начало",
+  "defaultOpen": true,
+  "pages": ["what-is-dma", "quick-start", "project-layout"]
+}

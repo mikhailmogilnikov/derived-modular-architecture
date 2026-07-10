@@ -1,0 +1,100 @@
+---
+title: "Структура проекта"
+description: "Дерево src/, composition roots и куда класть код на разных фреймворках."
+icon: "FolderTree"
+---
+
+DMA не привязан к одному фреймворку. Правила одни; меняется только имя папки composition root — места, где роуты и layout монтируют модули.
+
+## Базовое дерево
+
+```text
+src/
+├── app/         # composition root (Next.js App Router, Vite+React)
+├── features/    # leaf-модули
+├── services/    # появляется при promotion — не создавайте заранее
+└── shared/
+    ├── ui/
+    ├── lib/
+    ├── api/
+    ├── model/
+    └── domain/  # опционально
+```
+
+## Composition roots
+
+Под `src/` любая из папок — **один и тот же слой** по правилам DMA:
+
+| Папка | Типичный фреймворк |
+| --- | --- |
+| `app/` | Next.js App Router, Vite + React |
+| `pages/` | Astro, классический Next pages |
+| `routes/` | TanStack Router, SvelteKit |
+
+Все они:
+
+- монтируют модули через `*/public/*`;
+- **не импортируются** модулями;
+- держат роуты тонкими — импорт из `public/`, минимум логики.
+
+```tsx
+// src/app/checkout/page.tsx
+import { CheckoutPage } from "@/features/checkout/public/checkout-page";
+
+export default function Page() {
+  return <CheckoutPage />;
+}
+```
+
+Если в проекте несколько roots, предпочитайте `app/`. Tooling при конфликте возьмёт `app` первым.
+
+## Куда что класть
+
+| У вас есть… | Кладите в… |
+| --- | --- |
+| Роут, layout, провайдеры | Composition root |
+| Экран / пользовательский flow | `features/<name>/public/` или stage-0 файл |
+| Состояние одной фичи | Внутри feature, рядом с потребителем |
+| Логика, нужная другим модулям (продукт) | `services/<name>/public/` |
+| Переносимая UI / хелперы | `shared/ui/`, `shared/lib/` |
+| Базовый HTTP-клиент, interceptors | `shared/api/` |
+| Эндпоинты одной фичи | Внутри feature (`*.api.ts`) |
+| Склейка фич / события | Composition root — props, providers, ports |
+| Unit-тесты | Рядом с файлом (`*.test.ts`) |
+
+## Примеры по фреймворкам
+
+В репозитории DMA — пять чистых примеров с одной продуктовой историей (catalog, checkout, cart):
+
+| Пример | Composition root | Стек |
+| --- | --- | --- |
+| [vite-react](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vite-react) | `src/app/` | Vite + React |
+| [next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app) | `src/app/` | Next.js |
+| [astro-pages](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/astro-pages) | `src/pages/` | Astro |
+| [sveltekit-routes](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/sveltekit-routes) | `src/routes/` | SvelteKit |
+| [vue-vite](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vue-vite) | `src/app/` | Vue 3 + Vite |
+
+Стартовать удобнее с **vite-react** — runnable, с тестами и полной лестницей стадий модулей.
+
+## Лестница стадий модуля
+
+```text
+Stage 0   features/profile.tsx
+Stage 1   features/checkout/public/ + внутренности
+Promotion services/cart/public/     ← catalog + checkout импортируют
+Lift      shared/lib/format-currency.ts  ← 2+ модуля, без продуктовой логики
+```
+
+Подробнее — [Модули и public API](/concepts/modules) и [Эволюция кода](/concepts/evolution).
+
+## Алиасы путей
+
+CLI и ESLint-плагин резолвят `@/` → `src/` из `tsconfig.json`. Убедитесь, что paths настроены в корне приложения, не монорепо целиком.
+
+## Что дальше
+
+<Cards>
+  <Card title="Быстрый старт" description="Установка и dma check" href="/start/quick-start" />
+  <Card title="Слои" description="Предикаты app, features, services, shared" href="/concepts/layers" />
+  <Card title="Что такое DMA" description="Введение" href="/start/what-is-dma" />
+</Cards>

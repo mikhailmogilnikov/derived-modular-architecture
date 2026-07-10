@@ -16,6 +16,7 @@ import {
   source,
 } from "@/services/docs-content/public/source";
 import { gitConfig } from "@/shared/model/app-config";
+import { I18nDocLink } from "@/shared/ui/i18n-doc-link";
 
 export function DocsContentPage({
   lang,
@@ -48,7 +49,7 @@ export function DocsContentPage({
       <DocsBody>
         <MDX
           components={getMDXComponents({
-            a: createRelativeLink(source, page),
+            a: createRelativeLink(source, page, I18nDocLink),
           })}
         />
       </DocsBody>

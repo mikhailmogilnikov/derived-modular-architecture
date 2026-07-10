@@ -27,13 +27,13 @@ Normative architecture: [`spec/`](./spec/README.md) (single source of truth).
 
 | Layer | Package | Role |
 | --- | --- | --- |
-| CI / full audit | [`@derived-modular/cli`](./packages/cli) | `dma check` + `dma doctor` — graph rules, inbound predicates, cycles |
+| CI / full audit | [`@derived-modular/cli`](./packages/cli) | `check` + `doctor` — graph rules, inbound predicates, cycles |
 | Editor / lint | [`@derived-modular/eslint-plugin`](./packages/eslint-plugin) | Four file-scoped rules (strongest) |
 | Editor / lint | [`@derived-modular/oxlint-plugin`](./packages/oxlint-plugin) | Same rules via Oxlint JS plugins (alpha) |
 | Editor / lint | [`@derived-modular/biome-plugin`](./packages/biome-plugin) | Same four concerns, GritQL heuristics (weaker) |
 | Shared logic | [`@derived-modular/boundaries`](./packages/boundaries) | Path classifier used by CLI + ESLint |
 
-**Always run `dma check` in CI.** Linter adapters are complementary, not a substitute.
+**Always run `npx @derived-modular/cli check` in CI.** Linter adapters are complementary, not a substitute.
 
 ## CLI — `@derived-modular/cli`
 
@@ -48,7 +48,7 @@ Docs: [packages/cli/README.md](./packages/cli/README.md)
 From this monorepo:
 
 ```bash
-bun run dma check .
+npx @derived-modular/cli check .
 bun run dma:build
 bun run --cwd packages/cli test
 ```

@@ -134,9 +134,7 @@
     "packages/cli": {
       "name": "@derived-modular/cli",
       "version": "1.0.1",
-      "bin": {
-        "dma": "./dist/cli.js",
-      },
+      "bin": "./dist/cli.js",
       "dependencies": {
         "@derived-modular/boundaries": "workspace:*",
         "typescript": "5.9.3",

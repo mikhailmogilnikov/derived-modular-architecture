@@ -1,0 +1,14 @@
+{
+  "title": "Гайды",
+  "pages": [
+    "index",
+    "migration",
+    "monorepo",
+    "cross-module-wiring",
+    "vite-react",
+    "nextjs",
+    "astro",
+    "sveltekit",
+    "vue"
+  ]
+}

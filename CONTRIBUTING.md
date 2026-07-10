@@ -8,7 +8,7 @@ Thanks for your interest in Derived Modular Architecture (DMA).
 git clone https://github.com/mikhailmogilnikov/derived-modular-architecture.git
 cd derived-modular-architecture
 bun install
-bun run dma check packages/cli/tests/fixtures/clean
+npx @derived-modular/cli check packages/cli/tests/fixtures/clean
 ```
 
 Requires [Bun](https://bun.sh) `1.3.x` (see `packageManager` in root `package.json`).

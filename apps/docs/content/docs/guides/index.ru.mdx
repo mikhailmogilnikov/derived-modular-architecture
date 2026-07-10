@@ -1,0 +1,40 @@
+---
+title: "Гайды"
+description: "Практические инструкции: миграция, склейка модулей, DMA на разных фреймворках."
+icon: "Map"
+---
+
+Гайды — это «как сделать» на конкретном стеке. Концепции объясняют правила; здесь — пошаговые паттерны с живыми примерами из репозитория DMA.
+
+<Callout type="info">
+  Не читали базу? Начните с [Быстрый старт](/start/quick-start) и [Структура проекта](/start/project-layout).
+</Callout>
+
+## С чего начать
+
+<Cards>
+  <Card title="Миграция" description="Внедрить DMA в существующий проект" href="/guides/migration" />
+  <Card title="Монорепо" description="Несколько приложений, CI" href="/guides/monorepo" />
+  <Card title="Склейка модулей" description="События, порты, wiring в app" href="/guides/cross-module-wiring" />
+</Cards>
+
+## По фреймворкам
+
+Каждый гайд — тот же mini-shop, разный composition root:
+
+| Гайд | Composition root | Пример в репо |
+| --- | --- | --- |
+| [Vite + React](/guides/vite-react) | `src/app/` | Runnable canon |
+| [Next.js](/guides/nextjs) | `src/app/` | App Router + RSC |
+| [Astro](/guides/astro) | `src/pages/` + `src/app/` | `.astro` frontmatter |
+| [SvelteKit](/guides/sveltekit) | `src/routes/` | Svelte 5 runes |
+| [Vue + Vite](/guides/vue) | `src/app/` | SFC + composables |
+
+Все примеры проходят `dma check` — исходники в [examples](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples).
+
+## Общее для всех стеков
+
+- Роуты тонкие — импорт только из `*/public/*`
+- Нет `feature → feature`
+- `services/` создаётся при promotion, не заранее
+- CI: `dma check` + линтер по выбору

@@ -1,0 +1,65 @@
+---
+title: "Oxlint"
+description: "JS-плагин @derived-modular/oxlint-plugin — те же правила, что в ESLint, для Oxlint."
+icon: "Zap"
+---
+
+`@derived-modular/oxlint-plugin` оборачивает правила из `@derived-modular/eslint-plugin` для Oxlint JS plugins. Семантика та же, скорость выше — Oxlint заточен под быстрый линт больших кодовых баз.
+
+Статус: **alpha**. API Oxlint JS plugins ещё может меняться.
+
+Как и остальные линтеры — **не замена** `dma check`.
+
+## Установка
+
+```bash
+npm install -D @derived-modular/oxlint-plugin oxlint
+```
+
+Peer dependency: `oxlint >= 1.0.0`.
+
+## Настройка
+
+```jsonc
+// .oxlintrc.json
+{
+  "extends": ["./node_modules/@derived-modular/oxlint-plugin/configs/recommended.json"]
+}
+```
+
+Правила доступны под префиксом `dma/*`, например `dma/no-barrel`, `dma/layer-direction`.
+
+## Покрытие
+
+| Правило | Oxlint | dma check |
+| --- | --- | --- |
+| `layer-direction` | ✓ | ✓ |
+| `feature-to-feature` | ✓ | ✓ |
+| `public-api` | ✓ | ✓ |
+| `no-barrel` | ✓ | ✓ |
+| `no-cycle` | — | ✓ |
+| inbound-предикаты | — | ✓ |
+| `dma doctor` | — | ✓ |
+
+Oxlint использует тот же `@derived-modular/boundaries`, что и ESLint — точность file-scoped правил сопоставима с ESLint-плагином, не с Biome-эвристиками.
+
+## Oxlint vs ESLint
+
+| | Oxlint | ESLint |
+| --- | --- | --- |
+| Скорость | Выше на больших репо | Стандартная |
+| Зрелость DMA-плагина | Alpha | Stable |
+| Графовые правила | Нет (как у ESLint) | Нет |
+| Когда брать | Уже на Oxlint, нужна скорость | Default choice |
+
+## Biome-only проекты
+
+Если линтер только Biome — см. [Biome](/tooling/biome). Oxlint и Biome вместе обычно не нужны.
+
+## Что дальше
+
+<Cards>
+  <Card title="ESLint" description="Стабильная альтернатива" href="/tooling/eslint" />
+  <Card title="dma check" description="Обязателен в CI" href="/tooling/cli/check" />
+  <Card title="Обзор инструментов" description="Гибридная модель" href="/tooling/overview" />
+</Cards>

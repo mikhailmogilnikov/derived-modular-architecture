@@ -34,11 +34,13 @@ npx @derived-modular/cli doctor
 ## Commands
 
 ```bash
-dma check [path]                 # hard rules (fails CI on errors)
-dma doctor [path]                # evolution signals (exit 0 by default)
-dma check --format json
-dma doctor --format sarif
+npx @derived-modular/cli check [path]          # hard rules (fails CI on errors)
+npx @derived-modular/cli doctor [path]         # evolution signals (exit 0 by default)
+npx @derived-modular/cli check --format json
+npx @derived-modular/cli doctor --format sarif
 ```
+
+Invoke only via the package name — do not rely on a short global binary.
 
 `path` defaults to the current working directory. DMA looks for `src/{app|pages|routes,features,services?,shared}`.
 
@@ -60,7 +62,7 @@ Disable ANSI colors with `NO_COLOR=1`.
 
 ## Linter companions
 
-File-scoped rules in the editor / `lint` script — **not** a full substitute for `dma check`:
+File-scoped rules in the editor / `lint` script — **not** a full substitute for `npx @derived-modular/cli check`:
 
 | Package | Notes |
 | --- | --- |
@@ -120,7 +122,7 @@ The core never writes to stdout/stderr or calls `process.exit` — that stays in
 
 ```bash
 # from repo root
-bun run dma check packages/cli/tests/fixtures/clean
+npx @derived-modular/cli check packages/cli/tests/fixtures/clean
 bun run dma:build
 node packages/cli/dist/cli.js check .
 ```

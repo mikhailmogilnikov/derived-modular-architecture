@@ -1,0 +1,139 @@
+---
+title: "Склейка модулей"
+description: "Как связать features без feature → feature: props, события, порты."
+icon: "Unplug"
+---
+
+Feature не импортирует feature — жёсткое правило. Но продукту нужна склейка: каталог добавил в корзину → показать уведомление, checkout завершился → очистить корзину.
+
+Ответ DMA: **composition root** связывает модули, импортируя обе стороны вниз.
+
+## Четыре механизма
+
+| Задача | Механизм |
+| --- | --- |
+| Нужен код ниже по слоям | Прямой импорт `services/*/public/*` или `shared/` |
+| Уведомить, не зная подписчиков | Событие в `public/` эмиттера; подписка в `app/` |
+| Прямой импорт дал бы цикл | Порт в `public/ports.ts` + bind в `app/` |
+| Только визуальная композиция | Props / slots в composition root |
+
+## Props и callbacks (самый простой)
+
+Composition root монтирует оба модуля и передаёт callback:
+
+```tsx
+// app/App.tsx
+import { CatalogPage } from "@/features/catalog/public/catalog-page";
+import { addNotification } from "@/features/notifications/public/notifications-api";
+
+<CatalogPage
+  onAddedToCart={(name) => addNotification(`Added ${name}`)}
+/>
+```
+
+- Граф: `app → catalog`, `app → notifications` — оба вниз
+- Нет ребра `catalog → notifications`
+
+Это паттерн из [vite-react example](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vite-react).
+
+## События (event module)
+
+Эмиттер экспортирует подписку из `public/`:
+
+```ts
+// features/checkout/public/checkout.events.ts
+type Listener = () => void;
+const listeners = new Set<Listener>();
+
+export const onCheckoutCompleted = (fn: Listener) => {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+};
+
+export const emitCheckoutCompleted = () => {
+  for (const fn of listeners) fn();
+};
+```
+
+Composition root подписывается и вызывает service:
+
+```svelte
+<!-- routes/app-providers.svelte (SvelteKit example) -->
+<script>
+  import { onCheckoutCompleted } from "@/features/checkout/public/checkout.events";
+  import { clearCart } from "@/services/cart/public/cart";
+
+  onCheckoutCompleted(() => clearCart());
+</script>
+```
+
+См. [sveltekit-routes example](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/sveltekit-routes).
+
+## Порты (когда нужен runtime bind)
+
+Порт — интерфейс в `public/ports.ts`, реализация подставляется в `app/`:
+
+```ts
+// services/cart/public/ports.ts
+export type CartSeedPort = () => Product[];
+
+let seed: CartSeedPort | null = null;
+
+export const provideCartSeed = (port: CartSeedPort) => {
+  seed = port;
+};
+
+export const getCartSeed = () => seed?.() ?? [];
+```
+
+```astro
+---
+// app/shop-providers.astro (Astro example)
+import { provideCartSeed } from "@/services/cart/public/ports";
+import { demoCartSeed } from "@/app/cart-seed";
+
+provideCartSeed(demoCartSeed);
+---
+<slot />
+```
+
+Порты **невидимы** для статического графа — не используйте их, чтобы обойти promotion (`feature-has-inbound`).
+
+## Providers / context (React, Vue)
+
+Cross-cutting context (session, theme) — в `app/providers`:
+
+```tsx
+// app/providers.tsx
+"use client";
+import { SessionProvider } from "@/services/session/public/session-provider";
+
+export function Providers({ children }) {
+  return <SessionProvider>{children}</SessionProvider>;
+}
+```
+
+Feature читает через hook/`inject`, не импортируя другой feature. Пример — [next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app).
+
+## Антипаттерны
+
+| ✗ | Почему |
+| --- | --- |
+| `catalog` импортирует `notifications` | feature → feature |
+| Глобальный event bus в `shared/` без владельца | Непонятный граф, скрытые рёбра |
+| Порт вместо promotion | Inbound от модуля → должен быть `services/` |
+| Вся логика склейки в одном god-feature | Нарушает leaf-предикат |
+
+## Что проверяет tooling
+
+- `feature-to-feature` — прямой импорт между features
+- `no-cycle` — цикл через services/shared/app
+- `layer-direction` — app не импортируется модулями
+
+## Что дальше
+
+<Cards>
+  <Card title="Слои" description="Почему feature не тянет feature" href="/concepts/layers" />
+  <Card title="Модули и public API" description="public/, ports" href="/concepts/modules" />
+  <Card title="Vite + React" description="onAddedToCart в App" href="/guides/vite-react" />
+</Cards>

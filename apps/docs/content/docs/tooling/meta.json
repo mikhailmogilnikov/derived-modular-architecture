@@ -1,0 +1,12 @@
+{
+  "title": "Инструменты",
+  "pages": [
+    "overview",
+    "cli/check",
+    "cli/doctor",
+    "eslint",
+    "biome",
+    "oxlint",
+    "ci"
+  ]
+}

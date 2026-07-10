@@ -1,0 +1,157 @@
+---
+title: "dma check"
+description: "Жёсткая проверка графа зависимостей для CI — установка, запуск и разбор правил."
+icon: "Terminal"
+---
+
+`dma check` — главная команда DMA. Она строит граф импортов по проекту и проверяет архитектурные правила. Если что-то нарушено — ненулевой exit code, CI падает.
+
+Линтеры в редакторе полезны, но **не заменяют** `check`: циклы, inbound-предикаты и полный граф видит только CLI.
+
+## Установка
+
+```bash
+npm install -D @derived-modular/cli
+```
+
+Нужен Node.js 18+.
+
+Запуск — только через имя пакета:
+
+```bash
+npx @derived-modular/cli check
+npx @derived-modular/cli check .          # явный путь к корню проекта
+npx @derived-modular/cli check --format json
+```
+
+В `package.json`:
+
+```json
+{
+  "scripts": {
+    "dma-check": "npx @derived-modular/cli check ."
+  }
+}
+```
+
+По умолчанию CLI ищет дерево `src/{app|pages|routes, features, services?, shared}` относительно переданного пути.
+
+## Exit codes
+
+| Код | Значение |
+| --- | --- |
+| `0` | Ошибок нет |
+| `1` | Найдены архитектурные нарушения |
+| `2` | Сбой окружения: нет `src/`, битый tsconfig, неверные аргументы |
+
+В CI обычно достаточно:
+
+```bash
+npx @derived-modular/cli check .
+```
+
+Для GitHub Actions и агентов — `--format json` (стабильный отчёт `version: 1`).
+
+Цветной вывод отключается через `NO_COLOR=1`.
+
+## Что именно проверяется
+
+| Правило | Смысл |
+| --- | --- |
+| `layer-direction` | Импорты только вниз: `app → features → services → shared` |
+| `feature-to-feature` | Feature не импортирует другой feature |
+| `public-api` | Межмодульные импорты идут в `*/public/*` |
+| `no-barrel` | Нет barrel `index` с реэкспортами внутри модулей |
+| `no-cycle` | Граф модулей ацикличен |
+| `feature-has-inbound` | Feature с входящими рёбрами от модулей → должен быть в `services/` |
+| `service-no-inbound` | Service без потребителей среди модулей → нарушение предиката |
+
+Входящие рёбра считаются **только от модулей** (`features/*`, `services/*`). Mount из `app/`, `pages/`, `routes/` promotion не вызывает.
+
+Контекст правил — в [Четыре инварианта](/concepts/invariants) и [Слои](/concepts/layers). Алгоритм «куда положить файл» — [Куда положить файл](/concepts/placement).
+
+## Справочник нарушений
+
+Типичные `ruleId` из отчёта `check` и что с ними делать.
+
+| ruleId | Причина | Типичный фикс | Подробнее |
+| --- | --- | --- | --- |
+| `feature-to-feature` | Feature импортирует другой feature | Promotion в `services/`, lift в `shared/`, или wiring в composition root | [Склейка модулей](/guides/cross-module-wiring), [Куда положить файл](/concepts/placement) |
+| `layer-direction` | Импорт вверх по слою (например, feature → `app/`) | Уберите импорт; передайте данные через props/events из composition root | [Слои](/concepts/layers) |
+| `public-api` | Межмодульный импорт мимо `*/public/*` | Импортируйте `*/public/<file>` напрямую; internal — только relative внутри модуля | [Модули](/concepts/modules) |
+| `no-barrel` | `index.ts` с реэкспортами внутри модуля | Удалите barrel; импортируйте конкретные файлы | [Почему нет barrel](/deep-dive/why-no-barrels) |
+| `no-cycle` | Цикл в графе модулей | Extract в `shared/`, promotion в `services/`, или порт + bind в `app/` | [Склейка модулей](/guides/cross-module-wiring) |
+| `feature-has-inbound` | У feature есть inbound от другого модуля | Перенесите модуль в `services/<name>/`, пересмотрите `public/` | [Эволюция кода](/concepts/evolution) |
+| `service-no-inbound` | Service без потребителей среди модулей | Верните colocation в feature или удалите пустой service | [Слои](/concepts/layers) |
+
+### Exit code 2 (окружение)
+
+| Симптом | Что проверить |
+| --- | --- |
+| Нет `src/` | `path` указывает на корень **приложения**, не монорепо целиком |
+| Битый tsconfig | `paths` для `@/` в tsconfig приложения |
+| Неверные аргументы | `npx @derived-modular/cli check --help` |
+
+См. [Монорепо](/guides/monorepo) для нескольких app roots.
+
+## Что CLI умеет анализировать
+
+Сканируются статические импорты в:
+
+- `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs`
+- `.vue`, `.svelte`, `.astro`
+- `.md`, `.mdx` (для doc-компонентов)
+
+Учитываются `import`, `export … from`, `import type`, динамический `import()` и `require()` — в том числе цели `next/dynamic` и `React.lazy`.
+
+Алиасы путей подхватываются из `tsconfig.json`.
+
+## Форматы вывода
+
+| Формат | Когда использовать |
+| --- | --- |
+| `human` (default) | Локальная разработка |
+| `json` | CI, скрипты, AI-агенты |
+| `sarif` | GitHub Code Scanning |
+
+```bash
+npx @derived-modular/cli check --format sarif > dma.sarif
+```
+
+## check vs doctor
+
+| | `dma check` | `dma doctor` |
+| --- | --- | --- |
+| Назначение | Жёсткие правила | Мягкие сигналы эволюции |
+| Exit code при находках | `1` | `0` (по умолчанию) |
+| Где запускать | CI, pre-push | Локально |
+
+`doctor` подсказывает `shared-candidate`, `stage-growth`, `dense-services`, `orphan-public` — но не дублирует ошибки `check`. Подробнее — на странице [dma doctor](/tooling/cli/doctor).
+
+## Линтеры — дополнение, не замена
+
+В редакторе можно подключить ESLint, Biome или Oxlint плагины DMA. Они ловят часть правил по одному файлу, но **не видят** циклы и inbound-предикаты.
+
+<Callout type="warn">
+  Всегда запускайте `npx @derived-modular/cli check` в CI. Линтеры — для быстрой обратной связи в IDE.
+</Callout>
+
+Обзор всех адаптеров — [Инструменты: обзор](/tooling/overview).
+
+## Пример для монорепо DMA
+
+Если вы в репозитории `derived-modular-architecture`:
+
+```bash
+npx @derived-modular/cli check .
+```
+
+## Что дальше
+
+<Cards>
+  <Card title="Куда положить файл" description="Алгоритм размещения" href="/concepts/placement" />
+  <Card title="dma doctor" description="Сигналы эволюции" href="/tooling/cli/doctor" />
+  <Card title="Обзор инструментов" description="CLI + линтеры, гибридная модель" href="/tooling/overview" />
+  <Card title="ESLint" description="Плагин для flat config" href="/tooling/eslint" />
+  <Card title="CI" description="Подключение check в пайплайн" href="/tooling/ci" />
+</Cards>

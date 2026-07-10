@@ -1,0 +1,130 @@
+---
+title: "Vue + Vite"
+description: "DMA на Vue 3: SFC, composables, provide/inject."
+icon: "Component"
+---
+
+Runnable **Vue 3 + Vite** пример: composition root `src/app/`, SFC modules, colocated composables, `provide`/`inject` для cross-cutting context.
+
+Исходники: [examples/vue-vite](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vue-vite).
+
+## Composition root
+
+```text
+src/app/
+├── App.vue            # nav, badges, mount */public/*
+├── AppProviders.vue   # provide(shopThemeKey, …)
+└── app.css            # global reset + CSS variables
+```
+
+`App.vue` склеивает catalog и notifications через emit → public API — без `feature → feature`:
+
+```vue
+<CatalogPage @added-to-cart="onAddedToCart" />
+```
+
+```ts
+import { addNotification } from "@/features/notifications/public/notifications-api";
+```
+
+## Composables rule
+
+Composables остаются в feature folder, пока **второй модуль** не импортирует ту же логику:
+
+| Composable | Где | Почему |
+| --- | --- | --- |
+| `use-catalog-search.ts` | `features/catalog/` | Только catalog |
+| `use-checkout.ts` | `features/checkout/` | Только checkout |
+| `use-notifications.ts` | `features/notifications/` | Только notifications |
+
+Promotion: product state → `services/`, pure helpers → `shared/lib`.
+
+## provide / inject
+
+Cross-cutting theme — в app, не в feature:
+
+```vue
+<!-- AppProviders.vue -->
+<script setup>
+import { provide } from "vue";
+import { shopThemeKey } from "@/shared/domain/shop-theme";
+
+provide(shopThemeKey, { accent: "teal" });
+</script>
+```
+
+```vue
+<!-- features/profile.vue -->
+<script setup>
+import { inject } from "vue";
+import { shopThemeKey } from "@/shared/domain/shop-theme";
+
+const theme = inject(shopThemeKey);
+</script>
+```
+
+Injection keys в `shared/domain/` — portable, без product logic.
+
+## SFC boundaries
+
+| Файл | Слой |
+| --- | --- |
+| `App.vue` | `app/` — mount `*/public/*` only |
+| `AppProviders.vue` | `app/` — provide context |
+| `catalog-page.vue` | feature `public/` — relative → composables |
+| `profile.vue` | stage-0 — `inject` |
+| `cart.ts` | service — framework-agnostic |
+
+`public/` импортирует internals через **relative paths** (`../use-catalog.ts`). Cross-module — `@/` aliases на `*/public/*`.
+
+## Куда класть код
+
+| Задача | Папка |
+| --- | --- |
+| Shell, layout | `src/app/` |
+| Product screen | `features/<name>/public/<page>.vue` |
+| Feature composable | colocated в feature |
+| 2+ consumers | `services/<name>/public/` |
+| UI primitive | `shared/ui/` |
+| Injection keys | `shared/domain/` |
+| Types | `shared/model/` |
+
+## Стили
+
+| Вид | Где |
+| --- | --- |
+| Global baseline | `app/app.css` |
+| Shell layout | `App.vue` `<style scoped>` |
+| Feature page | `public/*.vue` scoped или CSS Modules |
+| SCSS (optional) | `profile.vue` `<style lang="scss" scoped>` |
+| Shared UI | `shared/ui/*.vue` scoped |
+
+CSS Modules: `catalog-page.module.css` + `<style module src="…">`.
+
+## Тесты
+
+Colocated `*.test.ts` (Vitest, `environment: "node"`):
+
+- `use-catalog-search.test.ts`
+- `checkout.store.test.ts`
+- `services/cart/public/cart.test.ts`
+
+Компонентные тесты — опционально с `@vue/test-utils`.
+
+## Команды
+
+```bash
+bun run dev
+bun run build
+bun run dma-check   # dma check .
+bun run lint        # biome + @derived-modular/biome-plugin
+bun run test
+```
+
+## Что дальше
+
+<Cards>
+  <Card title="Склейка модулей" description="Emit + app wiring" href="/guides/cross-module-wiring" />
+  <Card title="Vite + React" description="Та же mini-shop" href="/guides/vite-react" />
+  <Card title="Модули" description="public/ и colocation" href="/concepts/modules" />
+</Cards>

@@ -1,0 +1,104 @@
+---
+title: "Shared"
+description: "Переносимый код: группы ui, lib, api, model, domain и правила роста."
+icon: "Share2"
+---
+
+`shared/` — единственное место в проекте, где группировка **по виду кода** уместна. Здесь нет фич и продуктовых сценариев — только горизонтальные возможности, которые могли бы жить в любом приложении.
+
+Всё в `shared/` **публично по умолчанию**. Папка `public/` здесь не нужна — слой существует, чтобы его импортировали.
+
+## Группы
+
+```text
+shared/
+├── ui/       # примитивы UI — без знания продукта
+├── lib/      # чистые хелперы, обёртки инфраструктуры
+├── api/      # транспорт: базовый клиент, interceptors
+├── model/    # инфра-состояние: query client, env, flags
+└── domain/   # общие бизнес-типы (опционально)
+```
+
+| Группа | Кладите | Не кладите |
+| --- | --- | --- |
+| `ui/` | Кнопки, инпуты, layout-примитивы, иконки | Компоненты, знающие про заказы/корзину |
+| `lib/` | Даты, форматирование, i18n, storage | Хелпер, нужный одному модулю |
+| `api/` | Базовый HTTP/WS клиент, auth plumbing | Эндпоинты конкретной фичи |
+| `model/` | Query client, route constants, env/config | Бизнес-состояние фичи |
+| `domain/` | `User`, `Money`, branded ID | Типы, принадлежащие одному модулю |
+
+## Направление внутри shared
+
+Группы имеют разную стабильность и разные права на импорты:
+
+```text
+domain → (ничего)
+lib    → domain
+api    → lib, domain
+model  → api, lib, domain
+ui     → lib, domain     (✗ api, ✗ model)
+```
+
+`ui` не должен тянуть сеть или глобальное продуктовое состояние — иначе перестаёт быть переносимым примитивом.
+
+## lib vs api vs api фичи
+
+Три разных места — частая путаница:
+
+| Код | Где | Почему |
+| --- | --- | --- |
+| `get<T>()` поверх `fetch` | `shared/api/http.ts` | Транспорт без знания эндпоинтов |
+| `fetchCatalogProducts()` | `features/catalog/catalog.api.ts` | Эндпоинт одной фичи; другие модули не импортируют |
+| `formatCurrency()` | `shared/lib/format-currency.ts` | Чистый хелпер, не сеть |
+
+Если второй модуль зовёт тот же **продуктовый** API (не transport) — promotion в `services/`, не в `shared/api`.
+
+Пример в [vite-react example](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vite-react).
+
+## Отличие от сегментов модуля
+
+Имена совпадают (`ui`, `model`, `api`), но **права разные**:
+
+- `features/checkout/ui` **может** импортировать `features/checkout/model`
+- `shared/ui` **не может** импортировать `shared/model`
+
+Модуль — изолированный остров со своими внутренними правилами. Shared — общий пласт с жёсткой портативностью.
+
+## Как код попадает в shared
+
+**Правило второго использования:** не выносите «на будущее». Хелпер переезжает в `shared/`, когда его импортируют **два и более модуля**. Сигнал — `shared-candidate` в `dma doctor`.
+
+Исключение: bootstrap-инфраструктура с первого дня (базовый API-клиент, env, первые UI-примитивы), если ими пользуется всё приложение.
+
+## Обратный путь
+
+Если файл в `shared/` имеет **одного** потребителя — верните его в модуль. Colocation дешевле, чем преждевременный shared. Это решение на ревью; отдельного doctor-правила пока нет.
+
+## Рост внутри группы
+
+Как и модули, группы densify in place:
+
+```text
+shared/ui/button.tsx  →  shared/ui/button/  (когда файлов стало много)
+```
+
+`ui` и `api` — наименее стабильные жители shared; первые кандидаты на вынос в пакет (stage 4).
+
+## Граница shared vs services
+
+Shared — переносимый код. Services — продуктовый сценарий с inbound от модулей. Если сомневаетесь — [Services vs Shared](/deep-dive/services-vs-shared).
+
+## Что проверяет tooling
+
+| Правило | Что ловит |
+| --- | --- |
+| `layer-direction` | Импорт из shared «вверх» |
+| `shared-candidate` (doctor) | Файл импортируют 2+ модуля — пора подумать о lift |
+
+## Что дальше
+
+<Cards>
+  <Card title="Эволюция кода" description="Second-use, promotion, doctor" href="/concepts/evolution" />
+  <Card title="Модули и public API" description="Стадии роста модуля" href="/concepts/modules" />
+  <Card title="Services vs Shared" description="Deep dive о границе" href="/deep-dive/services-vs-shared" />
+</Cards>

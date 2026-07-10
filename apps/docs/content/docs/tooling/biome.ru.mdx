@@ -1,0 +1,72 @@
+---
+title: "Biome"
+description: "GritQL-эвристики @derived-modular/biome-plugin для проектов на Biome."
+icon: "ScanSearch"
+---
+
+`@derived-modular/biome-plugin` добавляет четыре архитектурных правила DMA в Biome через GritQL-паттерны. Удобно, если Biome у вас уже единственный линтер и форматтер.
+
+Это **best-effort**: плагин смотрит на строки импорта, а не строит полный граф. Точнее работает [ESLint-плагин](/tooling/eslint) — там есть `@derived-modular/boundaries` и нормальный резолв путей.
+
+В CI всё равно нужен `dma check`.
+
+## Установка
+
+```bash
+npm install -D @derived-modular/biome-plugin
+```
+
+## Настройка
+
+```jsonc
+// biome.jsonc
+{
+  "extends": ["@derived-modular/biome-plugin"],
+  "files": {
+    "includes": ["**", "!dist"]
+  }
+}
+```
+
+Плагин подключает четыре GritQL-правила: `layer-direction`, `feature-to-feature`, `public-api`, `no-barrel`.
+
+## Что покрывается
+
+| Правило | Biome | ESLint | dma check |
+| --- | --- | --- | --- |
+| `layer-direction` | эвристика | ✓ | ✓ |
+| `feature-to-feature` | эвристика | ✓ | ✓ |
+| `public-api` | эвристика | ✓ | ✓ |
+| `no-barrel` | эвристика | ✓ | ✓ |
+| `no-cycle` | — | — | ✓ |
+| inbound-предикаты | — | — | ✓ |
+
+## Ограничения
+
+**Нет резолва импортов.** Плагин ищет паттерны `@/` и относительных путей, но не читает `tsconfig` aliases целиком. Сложные алиасы могут проскочить или дать ложное срабатывание.
+
+**Пути к Grit-плагинам** резолвятся от корня проекта (`./node_modules/@derived-modular/biome-plugin/...`). В flat `node_modules` (npm, bun) работает стабильно; в некоторых monorepo / PnP раскладках Biome ещё дорабатывает shared-config.
+
+**Нет графовых правил.** Циклы и «feature с inbound → service» — только в CLI.
+
+<Callout type="warn">
+  Если можете выбрать — берите ESLint-плагин. Biome оставьте для команд, которые уже полностью на Biome и готовы к эвристикам.
+</Callout>
+
+## Когда подходит
+
+| Ситуация | Рекомендация |
+| --- | --- |
+| Biome — единый toolchain | biome-plugin + `dma check` в CI |
+| Уже есть ESLint | [ESLint](/tooling/eslint) вместо Biome для DMA |
+| Нужна максимальная точность в редакторе | ESLint, не Biome |
+
+Пример конфига — [examples/vue-vite/biome.jsonc](https://github.com/mikhailmogilnikov/derived-modular-architecture/blob/main/examples/vue-vite/biome.jsonc).
+
+## Что дальше
+
+<Cards>
+  <Card title="dma check" description="Полный аудит графа в CI" href="/tooling/cli/check" />
+  <Card title="Обзор инструментов" description="Сравнение адаптеров" href="/tooling/overview" />
+  <Card title="Oxlint" description="Альтернатива для Oxlint" href="/tooling/oxlint" />
+</Cards>

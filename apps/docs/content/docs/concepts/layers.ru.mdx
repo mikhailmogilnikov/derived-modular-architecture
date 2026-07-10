@@ -1,0 +1,109 @@
+---
+title: "Слои"
+description: "app, features, services, shared — что это за слои и как tooling определяет принадлежность модуля."
+icon: "GitBranch"
+---
+
+В DMA слой — это не звание, которое вы вешаете на папку по ощущениям. Слой — **предикат**: набор условий, которые можно проверить по файловой системе и графу импортов.
+
+Если модуль попадает под предикат `features/` — он feature. Появились входящие рёбра от других модулей — пора в `services/`. Спорить о ранге не нужно: граф уже ответил.
+
+## Дерево по умолчанию
+
+```text
+src/
+├── app/         # composition root
+├── features/    # нет входящих рёбер от других модулей
+├── services/    # есть входящие рёбра + продуктовый сценарий
+└── shared/      # есть входящие рёбра + переносимый код
+```
+
+Папки `services/` **может не быть** в начале проекта. Пока ни один модуль не стал общим для двух потребителей, services не нужен — правила, которые на неё ссылаются, просто не срабатывают.
+
+## Предикаты слоёв
+
+| Слой | Условие |
+| --- | --- |
+| Composition root (`app/`, `pages/`, `routes/`) | Собирает модули; **никто** из модулей не импортирует composition root |
+| `features/` | Нет входящих рёбер от других **модулей** (только mount из composition root) |
+| `services/` | Есть входящие рёбра от модулей **и** код реализует продуктовый сценарий |
+| `shared/` | Есть входящие рёбра **и** код можно перенести в другой продукт без изменений |
+
+### Граница services / shared
+
+Это единственное место, где остаётся человеческое суждение. Эвристика:
+
+> Может ли этот код жить в другом продукте без изменений?
+
+- **Да** → `shared/` (кнопка, `formatCurrency`, HTTP-клиент).
+- **Нет** → `services/` (корзина, checkout-flow, права доступа к сущностям продукта).
+
+Подробнее — в [Services vs Shared](/deep-dive/services-vs-shared).
+
+## Composition root
+
+`app/`, `pages/`, `routes/` под `src/` — одно и то же по смыслу: **точка сборки**.
+
+- Монтирует features и services через `*/public/*`
+- Mount **не считается** входящим ребром для promotion — роут, который рендерит `<CheckoutPage />`, не превращает checkout в service
+- Файлы роутов должны быть тонкими: импорт из `public/`, минимум логики
+
+```tsx
+// app/checkout/page.tsx — тонкая оболочка
+import { CheckoutPage } from "@/features/checkout/public/checkout-page";
+
+export default function Page() {
+  return <CheckoutPage />;
+}
+```
+
+Если в проекте несколько composition roots, предпочитайте `app/`; tooling при конфликте возьмёт `app` первым.
+
+## Направление зависимостей
+
+```text
+app/pages/routes  →  features/*/public, services/*/public, shared
+features            →  services/*/public, shared
+services            →  services/*/public, shared   (без циклов)
+shared              →  shared
+```
+
+Запрещено:
+
+- любой импорт «вверх» (из shared в features и т.д.);
+- импорт внутренностей чужого модуля — только `*/public/*`;
+- импорт feature → feature (нужен общий service или shared).
+
+### Feature не импортирует feature
+
+Если checkout и catalog должны делить поведение — выносите общее в `services/` или переносимый кусок в `shared/`, а не тяните импорт между features.
+
+### Promotion: feature → service
+
+Feature с входящими рёбрами от **других модулей** нарушает предикат. Такой модуль переезжает в `services/`. Сигнал: правило `feature-has-inbound`.
+
+Обратное тоже проверяется: service без входящих рёбер от модулей — `service-no-inbound` (демотировать или удалить).
+
+<Callout type="info">
+  Почему всего два слоя модулей (features + services), а не четыре как в FSD? → [Почему два слоя модулей](/deep-dive/why-two-layers)
+</Callout>
+
+## Что проверяет tooling
+
+| Правило | Что ловит |
+| --- | --- |
+| `layer-direction` | Импорт не в том направлении |
+| `feature-to-feature` | Feature тянет другой feature |
+| `no-cycle` | Цикл в графе модулей |
+| `feature-has-inbound` | Feature, от которого зависят модули |
+| `service-no-inbound` | Service без реальных потребителей среди модулей |
+
+Полный аудит графа — `dma check`. Подробнее в [dma check](/tooling/cli/check).
+
+## Что дальше
+
+<Cards>
+  <Card title="Модули и public API" description="Стадии роста, папка public/, сегменты" href="/concepts/modules" />
+  <Card title="Четыре инварианта" description="Обзор всех правил DMA" href="/concepts/invariants" />
+  <Card title="Deep Dive" description="Почему архитектура устроена так" href="/deep-dive" />
+</Cards>

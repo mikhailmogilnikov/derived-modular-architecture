@@ -1,0 +1,100 @@
+---
+title: "Монорепо"
+description: "dma check в монорепо: несколько приложений, workspace-пакеты, CI."
+icon: "Boxes"
+---
+
+В v1 CLI смотрит на **один app root за вызов**. Монорепо не ломает DMA — меняется только то, как вы запускаете проверку и где лежит `src/`.
+
+## Один check — одно приложение
+
+```bash
+npx @derived-modular/cli check apps/web
+npx @derived-modular/cli check apps/admin
+npx @derived-modular/cli check examples/vite-react
+```
+
+Путь должен указывать на корень приложения с `src/{app|pages|routes, features, services?, shared}`, а не на корень всего монорепо.
+
+`exit 2` с сообщением об отсутствии `src/` часто значит, что вы передали корень workspace вместо app package.
+
+## CI для нескольких приложений
+
+Варианты:
+
+### Матрица jobs
+
+```yaml
+strategy:
+  matrix:
+    app: [apps/web, apps/admin]
+steps:
+  - run: npx @derived-modular/cli check ${{ matrix.app }}
+```
+
+### Скрипт в корне
+
+```bash
+for app in apps/web apps/admin; do
+  npx @derived-modular/cli check "$app" || exit 1
+done
+```
+
+Каждое приложение — отдельный граф. Циклы между пакетами через workspace imports `dma check` в v1 **не** склеивает в один граф — это осознанное ограничение v1.
+
+## Workspace-пакеты (stage 4)
+
+Когда модуль потребляют **несколько приложений**, выносите в пакет монорепо:
+
+```text
+packages/
+└── cart/
+    ├── package.json      # exports указывают на public surface
+    └── src/
+        └── public/
+            └── cart.ts
+```
+
+Правила те же: прямые пути, без barrel внутри пакета. Enforcement — через `exports` в `package.json` и импорты приложений на published surface.
+
+Приложение импортирует `@my-org/cart/public/cart` (или path из `exports`) — как внешний модуль ниже по слою, не как feature.
+
+Подробнее о стадии 4 — [Модули и public API](/concepts/modules).
+
+## Paths и tsconfig
+
+Алиасы `@/` резолвятся из `tsconfig.json` **приложения**, не корневого tsconfig всего монорепо. Убедитесь, что `paths` настроены в пакете, где лежит `src/`.
+
+## Examples в этом репозитории
+
+Каждый example — workspace package под `examples/*`:
+
+```bash
+bun run build   # собрать CLI и плагины
+bun run --cwd examples/vite-react dma-check
+```
+
+В CI монорепо DMA гоняют check по examples отдельными job'ами — тот же паттерн, что для `apps/*`.
+
+## Линтеры в монорепо
+
+ESLint / Biome / Oxlint конфиги обычно **per package**. `@derived-modular/*` плагины подключаются в конфиге приложения, где живёт `src/`.
+
+Biome Grit-плагины резолвят пути от корня проекта; в некоторых monorepo / PnP раскладках возможны ограничения — см. [Biome](/tooling/biome).
+
+## Миграция монорепо
+
+Не включайте `dma check` на весь legacy сразу. Strangler по приложению:
+
+1. Одно app (`apps/web`) — зелёный `check`
+2. Остальные — позже или с отдельным планом
+
+См. [Миграция](/guides/migration).
+
+## Что дальше
+
+<Cards>
+  <Card title="CI" description="Подключение check в pipeline" href="/tooling/ci" />
+  <Card title="dma check" description="Exit codes и правила" href="/tooling/cli/check" />
+  <Card title="Миграция" description="Поэтапное внедрение" href="/guides/migration" />
+</Cards>

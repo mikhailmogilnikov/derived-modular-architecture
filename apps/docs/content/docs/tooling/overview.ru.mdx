@@ -1,0 +1,72 @@
+---
+title: "Обзор инструментов"
+description: "Гибридная модель enforcement: полный граф в CLI, быстрая обратная связь в редакторе."
+icon: "Wrench"
+---
+
+DMA проверяет архитектуру **гибридно**: тяжёлый аудит графа — в CLI, лёгкие подсказки по файлу — в линтерах.
+
+Правило, которое нельзя проверить машиной, со временем перестают соблюдать. Поэтому ядро — `npx @derived-modular/cli check`, а не «настроили ESLint и забыли».
+
+## Две поверхности
+
+| Инструмент | Где запускать | Роль |
+| --- | --- | --- |
+| `npx @derived-modular/cli check` | CI, pre-push | Жёсткий gate: граф, циклы, inbound-предикаты |
+| `npx @derived-modular/cli doctor` | Локально | Мягкие сигналы роста (exit 0) |
+| ESLint / Oxlint / Biome | Редактор, `lint` script | Четыре file-scoped правила |
+
+**Всегда запускайте `npx @derived-modular/cli check` в CI.** Линтеры — дополнение для скорости, не замена.
+
+## Матрица покрытия
+
+| Правило | dma check | dma doctor | ESLint / Oxlint | Biome |
+| --- | --- | --- | --- | --- |
+| `layer-direction` | ✓ | — | ✓ | эвристика |
+| `feature-to-feature` | ✓ | — | ✓ | эвристика |
+| `public-api` | ✓ | — | ✓ | эвристика |
+| `no-barrel` | ✓ | — | ✓ | эвристика |
+| `no-cycle` | ✓ | — | — | — |
+| inbound-предикаты | ✓ | — | — | — |
+| сигналы эволюции | — | ✓ | — | — |
+
+Циклы и «feature с входящими рёбрами должен быть service» — свойства **графа**. Один файл линтеру не виден весь граф, поэтому эти правила только в CLI.
+
+<Callout type="info">
+  Почему недостаточно одних линтеров → [Почему CLI, а не только линтеры](/deep-dive/why-cli-not-only-linters).
+</Callout>
+
+## Пакеты
+
+| Пакет | Назначение |
+| --- | --- |
+| `@derived-modular/cli` | `check` + `doctor` |
+| `@derived-modular/eslint-plugin` | ESLint flat config |
+| `@derived-modular/oxlint-plugin` | Те же правила для Oxlint |
+| `@derived-modular/biome-plugin` | GritQL-эвристики (слабее) |
+| `@derived-modular/boundaries` | Общая классификация путей для CLI и ESLint |
+
+## Рекомендуемый workflow
+
+1. **Локально:** ESLint (или Biome/Oxlint) при сохранении — ловит очевидные импорты
+2. **Перед push:** `npx @derived-modular/cli check .`
+3. **Время от времени:** `npx @derived-modular/cli doctor .` — посмотреть, что пора вынести или промоутить
+4. **В CI:** `npx @derived-modular/cli check . --format json` (или SARIF для GitHub Code Scanning)
+
+## Что выбрать
+
+| Ситуация | Рекомендация |
+| --- | --- |
+| Уже есть ESLint 9+ flat config | `@derived-modular/eslint-plugin` |
+| Biome как единый линтер/форматтер | `@derived-modular/biome-plugin` + всё равно `dma check` в CI |
+| Oxlint для скорости | `@derived-modular/oxlint-plugin` (alpha) |
+| Только CI, без редактора | Достаточно `@derived-modular/cli` |
+
+## Что дальше
+
+<Cards>
+  <Card title="dma check" description="Жёсткая проверка для CI" href="/tooling/cli/check" />
+  <Card title="dma doctor" description="Сигналы эволюции" href="/tooling/cli/doctor" />
+  <Card title="ESLint" description="Плагин для редактора" href="/tooling/eslint" />
+  <Card title="CI" description="Подключение в пайплайн" href="/tooling/ci" />
+</Cards>

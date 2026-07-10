@@ -1,0 +1,89 @@
+---
+title: "Тесты"
+description: "Где colocate unit-, integration- и e2e-тесты в DMA-проекте."
+icon: "FlaskConical"
+---
+
+DMA задаёт **размещение** тестов относительно модулей, но не выбирает раннер, coverage-пороги и пирамиду. Правило одно: тест живёт рядом с кодом, который защищает.
+
+## Unit-тесты — colocate
+
+Файл `*.test.ts` (или `*.spec.ts`) — в той же папке, что и реализация:
+
+```text
+features/checkout/
+├── checkout.store.ts
+├── checkout.store.test.ts      # store — internal
+└── public/
+    └── checkout-page.tsx
+
+services/cart/public/
+├── cart.ts
+└── cart.test.ts                # public API сервиса
+
+shared/lib/
+├── format-currency.ts
+└── format-currency.test.ts
+```
+
+`dma check` не анализирует тестовые файлы как production-граф — импорты в `*.test.ts` не создают архитектурных рёбер в gate.
+
+### Что тестировать напрямую
+
+| Код | Тест через |
+| --- | --- |
+| Internal store, composable | relative import в том же модуле |
+| `services/*/public/*` | import public-файла |
+| `shared/lib/*` | import хелпера |
+
+### Что не делать
+
+- Импортировать **internals чужого модуля** из теста в другой папке — тестируйте через `public/` или вынесите логику в testable слой внутри модуля.
+- Корневой `__tests__/` на весь проект — тесты не едут вместе с модулем при refactor.
+
+## Компонентные тесты
+
+SFC / React component tests — colocate рядом с компонентом:
+
+```text
+features/catalog/public/
+├── catalog-page.tsx
+└── catalog-page.test.tsx       # опционально
+```
+
+Раннер на выбор: Vitest + Testing Library, `@vue/test-utils`, `@testing-library/svelte`. В examples DMA runnable-тесты в основном на pure TS (stores, services, lib) — без DOM harness.
+
+## Integration / route tests
+
+Тонкий composition root (`app/`, `routes/`) — место для проверки wiring, если нужно. Чаще — отдельная папка в корне приложения:
+
+```text
+apps/web/
+├── src/
+├── e2e/                        # Playwright, Cypress
+└── playwright.config.ts
+```
+
+E2E не colocate внутри `features/` — они пересекают несколько модулей и роутов.
+
+## Монорепо
+
+Unit-тесты остаются в пакете приложения (`apps/web/src/...`). Тесты workspace-пакета — внутри пакета. `dma check` гоняется **на app root**, не на весь монорепо за один вызов. См. [Монорепо](/guides/monorepo).
+
+## Примеры в репозитории
+
+| Example | Раннер | Colocate |
+| --- | --- | --- |
+| [vite-react](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vite-react) | Vitest | `*.test.ts` рядом со stores, cart, lib |
+| [next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app) | Bun test | stores + `format-currency` |
+| [sveltekit-routes](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/sveltekit-routes) | Vitest | stores, cart, lib |
+| [astro-pages](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/astro-pages) | Bun test | stores, cart, lib |
+| [vue-vite](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vue-vite) | Vitest | stores, composables, cart |
+
+## Что дальше
+
+<Cards>
+  <Card title="Куда положить файл" description="Алгоритм размещения" href="/concepts/placement" />
+  <Card title="Модули и public API" description="Colocation внутри модуля" href="/concepts/modules" />
+  <Card title="Vite + React" description="Пример с Vitest" href="/guides/vite-react" />
+</Cards>

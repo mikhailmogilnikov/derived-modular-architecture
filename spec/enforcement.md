@@ -10,7 +10,7 @@ Anything that is not machine-checked is a wish and will die. DMA ships a **hybri
 | `doctor` | [`@derived-modular/cli`](../packages/cli) | Soft evolution signals (exit 0 by default) |
 | `lint` | ESLint / Oxlint / Biome plugins | File-scoped subset for editor feedback |
 
-**Always run `dma check` in CI.** Linter adapters are complementary, not a substitute.
+**Always run `npx @derived-modular/cli check` in CI.** Linter adapters are complementary, not a substitute.
 
 ## Concern matrix
 
@@ -43,8 +43,8 @@ Implemented today:
 
 ```bash
 # published / consumer projects
-bun x dma check . --format json
-# this monorepo
-bun run dma check packages/cli/tests/fixtures/feature-to-feature
-bun run dma doctor .
+npx @derived-modular/cli check . --format json
+# this monorepo (same after bun install)
+npx @derived-modular/cli check packages/cli/tests/fixtures/feature-to-feature
+npx @derived-modular/cli doctor .
 ```

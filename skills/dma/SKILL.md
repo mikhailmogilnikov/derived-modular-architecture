@@ -70,11 +70,11 @@ outside module   → */public/* only (not ui/model/api internals)
 2. **Place/move** via the algorithm; rewrite imports to **direct** public files.
 3. **Verify** if CLI is available:
    ```bash
-   bun x dma check . --format json    # or: npx @derived-modular/cli check .
-   bun x dma doctor . --format json   # soft signals; do not invent layers from these
+   npx @derived-modular/cli check . --format json
+   npx @derived-modular/cli doctor . --format json   # soft signals; do not invent layers from these
    ```
    Exit: `0` ok · `1` check errors (must fix) · `2` env/args.
-4. Use **editor linter plugins** when the project already has that linter (see below) — still run `dma check` in CI.
+4. Use **editor linter plugins** when the project already has that linter (see below) — still run `npx @derived-modular/cli check` in CI.
 5. Never “fix” with barrels, deep imports, empty `services/`, or ports that hide a legal downward import.
 
 ## Linter plugins (editor / `lint` script)
