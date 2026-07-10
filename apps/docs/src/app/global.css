@@ -20,6 +20,14 @@ html {
   scrollbar-gutter: stable;
 }
 
+#nd-nav,
+#nd-nav > *,
+#nd-subnav {
+  background-color: var(--color-fd-background);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
 html > body[data-scroll-locked] {
   --removed-body-scroll-bar-size: 0px !important;
   margin-right: 0px !important;
