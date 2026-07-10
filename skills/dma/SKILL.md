@@ -4,7 +4,7 @@ description: >-
   Applies Derived Modular Architecture (DMA): layer predicates, public API without
   barrels, colocation, second-use promotions, and module evolution stages. Use when
   placing or moving frontend files, designing modules, reviewing imports/structure,
-  migrating from FSD/ED, or working with `@dma/cli` / `dma check` / `dma doctor` /
+  migrating from FSD/ED, or working with `@derived-modular/cli` / `dma check` / `dma doctor` /
   `src/{app,features,services,shared}`.
 license: MIT
 metadata:
@@ -17,7 +17,10 @@ metadata:
 Rules are **derived from the filesystem and import graph**, then enforced by tooling — not taste.
 
 Long-form spec: [docs/derived-modular.md](https://github.com/mikhailmogilnikov/derived-modular-architecture/blob/main/docs/derived-modular.md)  
-CLI: [`@dma/cli`](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/dma)  
+CLI: [`@derived-modular/cli`](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/cli)  
+ESLint: [`@derived-modular/eslint-plugin`](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/eslint-plugin) (file-scoped only — still run `dma check`)  
+Biome: [`@derived-modular/biome-plugin`](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/biome-plugin) (best-effort GritQL)  
+Oxlint: [`@derived-modular/oxlint-plugin`](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/oxlint-plugin) (same rules as ESLint via JS plugins)  
 Detail cheat sheets: [references/reference.md](references/reference.md)
 
 ## Install (skills.sh)
@@ -43,7 +46,7 @@ Anything not machine-checkable is a wish, not a rule — except the last judgmen
 
 | Layer | Predicate |
 | --- | --- |
-| `app/` | Composition root; mounts modules; nobody imports it |
+| `app/` | Composition root; mounts modules; nobody imports it. Also: `pages/`, `routes/` under `src/` (framework routers) |
 | `features/` | **No** inbound edges from other modules (only mounted from `app`) |
 | `services/` | **Has** inbound edges from modules **and** product scenarios |
 | `shared/` | Has inbound edges **and** no product scenarios (portable) |
@@ -126,11 +129,16 @@ api    → lib
 
 1. Inspect existing `src/{app,features,services?,shared}` and real imports (not assumed layers).
 2. Place/move code via the algorithm; update import paths to **direct** `public/` files.
-3. If `@dma/cli` is available, run:
+3. If `@derived-modular/cli` is available, run:
    - `dma check [path]` — hard errors must be fixed (exit `1`)
    - `dma doctor [path]` — soft evolution signals (inform; don’t invent extra layers)
-4. Prefer JSON for automation: `dma check --format json`.
-5. Never “fix” violations with barrels, deep imports, empty `services/`, or ports that hide a legal direct import.
+4. Optional editor feedback:
+   - `@derived-modular/eslint-plugin` — stronger file-scoped rules
+   - `@derived-modular/biome-plugin` — best-effort GritQL heuristics
+   - `@derived-modular/oxlint-plugin` — same rules as ESLint via Oxlint JS plugins
+   - Neither replaces `dma check` (cycles / inbound predicates).
+5. Prefer JSON for automation: `dma check --format json`.
+6. Never “fix” violations with barrels, deep imports, empty `services/`, or ports that hide a legal direct import.
 
 ## Antipatterns (refuse)
 
@@ -151,4 +159,4 @@ Domain slicing recipe, state-management library choice, test pyramid, microfront
 
 - [references/reference.md](references/reference.md) — stages, triggers, shared groups, migration hints
 - Spec: https://github.com/mikhailmogilnikov/derived-modular-architecture/blob/main/docs/derived-modular.md
-- CLI: `npx @dma/cli` / https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/dma
+- CLI: `npx @derived-modular/cli` / https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/cli

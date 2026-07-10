@@ -5,7 +5,7 @@ Supplementary detail for the [dma](../SKILL.md) skill. Prefer `SKILL.md` for day
 ## Canonical sources
 
 - Full synthesis: https://github.com/mikhailmogilnikov/derived-modular-architecture/blob/main/docs/derived-modular.md
-- CLI package: https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/dma (`@dma/cli`)
+- CLI package: https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/cli (`@derived-modular/cli`)
 
 ## Module stages (detail)
 
@@ -59,7 +59,7 @@ Multi-app reuse → monorepo packages; same semantics via `exports` / workspace 
 | Dense/deep `services` subgraph | Horizontal split (`domains/*` or packages) — not new vertical layers |
 | Helper in `shared` used by one module | Push back into that module |
 
-Exact numeric thresholds for `@dma/cli doctor` live in the package (`DEFAULT_THRESHOLDS`); treat them as project defaults, not dogma.
+Exact numeric thresholds for `@derived-modular/cli doctor` live in the package (`DEFAULT_THRESHOLDS`); treat them as project defaults, not dogma.
 
 ## `shared/` groups
 
@@ -112,7 +112,7 @@ Wire in `app/providers.tsx`. Ports are runtime edges invisible to the import gra
 - Stories/mocks colocated (`*.stories.tsx`, `*.mock.ts`)
 - **No `index.*` barrels**
 
-## `@dma/cli` (v1)
+## `@derived-modular/cli` (v1)
 
 ```bash
 dma check [path]                 # hard rules; exit 1 on errors
@@ -126,7 +126,9 @@ Hard rules: `layer-direction`, `feature-to-feature`, `public-api`, `no-barrel`, 
 
 Doctor signals: `shared-candidate`, `stage-growth`, `dense-services`, `orphan-public`.
 
-Inbound for promotion = edges from other modules only (not `app` mounts).
+Inbound for promotion = edges from other modules only (not composition-root mounts).
+
+File-scoped subset also available via `@derived-modular/eslint-plugin` / `@derived-modular/oxlint-plugin` (stronger) and `@derived-modular/biome-plugin` (best-effort). Neither substitutes for `dma check`.
 
 ## Migration shorts
 

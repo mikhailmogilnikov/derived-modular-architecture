@@ -1,0 +1,46 @@
+language js;
+
+or {
+  or {
+    `import $bindings from $source`,
+    `import type $bindings from $source`,
+    `export { $names } from $source`,
+    `export * from $source`
+  } where {
+    $filename <: r".*/features/.+",
+    $source <: r"^['\"](?:@/|\.\./)*(?:app|pages|routes)/.+['\"]$",
+    register_diagnostic(
+      span = $source,
+      message = "Upward import from features to composition root (layer-direction). Import only downward: app → features → services → shared.",
+      severity = "error"
+    )
+  },
+  or {
+    `import $bindings from $source`,
+    `import type $bindings from $source`,
+    `export { $names } from $source`,
+    `export * from $source`
+  } where {
+    $filename <: r".*/services/.+",
+    $source <: r"^['\"](?:@/|\.\./)*(?:app|pages|routes|features)/.+['\"]$",
+    register_diagnostic(
+      span = $source,
+      message = "Upward import from services (layer-direction). Import only downward: app → features → services → shared.",
+      severity = "error"
+    )
+  },
+  or {
+    `import $bindings from $source`,
+    `import type $bindings from $source`,
+    `export { $names } from $source`,
+    `export * from $source`
+  } where {
+    $filename <: r".*/shared/.+",
+    $source <: r"^['\"](?:@/|\.\./)*(?:app|pages|routes|features|services)/.+['\"]$",
+    register_diagnostic(
+      span = $source,
+      message = "Upward import from shared (layer-direction). Import only downward: app → features → services → shared.",
+      severity = "error"
+    )
+  }
+}

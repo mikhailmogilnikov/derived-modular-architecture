@@ -1,0 +1,14 @@
+{
+  "jsPlugins": [
+    {
+      "name": "dma",
+      "specifier": "@derived-modular/eslint-plugin"
+    }
+  ],
+  "rules": {
+    "dma/feature-to-feature": "error",
+    "dma/layer-direction": "error",
+    "dma/no-barrel": "error",
+    "dma/public-api": "error"
+  }
+}

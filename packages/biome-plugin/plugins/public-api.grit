@@ -1,0 +1,15 @@
+language js;
+
+or {
+  `import $bindings from $source`,
+  `import type $bindings from $source`,
+  `export { $names } from $source`,
+  `export * from $source`
+} where {
+  $source <: r"^['\"](?:@/|\.\./)*(?:features|services)/[^'\"]+/(?:ui|model|api|lib)/.+['\"]$",
+  register_diagnostic(
+    span = $source,
+    message = "Deep import into a DMA module outside public/ (public-api). Import only from */public/* or a stage-0 file module.",
+    severity = "error"
+  )
+}

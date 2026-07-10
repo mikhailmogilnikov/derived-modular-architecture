@@ -1,0 +1,26 @@
+{
+  "root": false,
+  "plugins": [
+    {
+      "path": "./node_modules/@derived-modular/biome-plugin/plugins/no-barrel.grit",
+      "includes": [
+        "**/features/**/index.ts",
+        "**/features/**/index.tsx",
+        "**/services/**/index.ts",
+        "**/services/**/index.tsx"
+      ]
+    },
+    {
+      "path": "./node_modules/@derived-modular/biome-plugin/plugins/feature-to-feature.grit",
+      "includes": ["**/features/**"]
+    },
+    {
+      "path": "./node_modules/@derived-modular/biome-plugin/plugins/layer-direction.grit",
+      "includes": ["**/features/**", "**/services/**", "**/shared/**"]
+    },
+    {
+      "path": "./node_modules/@derived-modular/biome-plugin/plugins/public-api.grit",
+      "includes": ["**/src/**"]
+    }
+  ]
+}

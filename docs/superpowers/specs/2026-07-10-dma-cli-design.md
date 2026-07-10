@@ -1,7 +1,7 @@
 # DMA CLI v1 — Design
 
 > Status: approved for implementation planning  
-> Package: `packages/dma`  
+> Package: `packages/cli`  
 > Related: [Derived Modular Architecture](../../derived-modular.md)
 
 ## Goal
@@ -44,7 +44,7 @@ discover → parse imports → build graph → classify → rules/signals → re
 ### Package layout
 
 ```
-packages/dma/
+packages/cli/
 ├── package.json          # bin: dma
 ├── src/
 │   ├── core/             # analyze(projectRoot) → Result

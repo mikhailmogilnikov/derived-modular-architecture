@@ -1,0 +1,16 @@
+language js;
+
+or {
+  `import $bindings from $source`,
+  `import type $bindings from $source`,
+  `export { $names } from $source`,
+  `export * from $source`
+} where {
+  $filename <: r".*/features/.*",
+  $source <: r"^['\"](?:@/|\.\./)*features/.+['\"]$",
+  register_diagnostic(
+    span = $source,
+    message = "Feature must not import another feature (feature-to-feature). Promote shared flow to services/ or use dma check for full graph audit.",
+    severity = "error"
+  )
+}

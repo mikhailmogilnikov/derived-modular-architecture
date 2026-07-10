@@ -7,11 +7,20 @@
     "ultracite/biome/react"
   ],
   "files": {
-    "includes": ["!packages/dma/tests/fixtures"]
+    "includes": [
+      "!packages/cli/tests/fixtures",
+      "!packages/biome-plugin",
+      "!packages/eslint-plugin/tests/fixtures",
+      "!packages/oxlint-plugin/tests/fixtures"
+    ]
   },
   "overrides": [
     {
-      "includes": ["packages/dma/src/index.ts"],
+      "includes": [
+        "packages/cli/src/index.ts",
+        "packages/boundaries/src/index.ts",
+        "packages/oxlint-plugin/src/index.ts"
+      ],
       "linter": {
         "rules": {
           "performance": {

@@ -7,7 +7,7 @@
 
 Ship **file-scoped** DMA enforcement inside existing linter pipelines (editor + `lint` scripts), while keeping **`dma check` / `dma doctor` as the source of truth** for full graph audit.
 
-Primary deliverable: **`@dma/eslint-plugin`**. Biome and oxlint follow later with best-effort coverage, not full parity.
+Primary deliverable: **`@derived-modular/eslint-plugin`**. Biome and oxlint follow later with best-effort coverage, not full parity.
 
 ## Decisions
 
@@ -17,7 +17,7 @@ Primary deliverable: **`@dma/eslint-plugin`**. Biome and oxlint follow later wit
 | Priority | ESLint first; Biome / oxlint later and possibly reduced |
 | Native rule set (v1) | `no-barrel`, `layer-direction`, `feature-to-feature`, `public-api` |
 | CLI-only | `no-cycle`, `feature-has-inbound`, `service-no-inbound`, all `doctor` signals |
-| Packaging | `@dma/eslint-plugin` + shared `@dma/boundaries`; core stays `@dma/cli` |
+| Packaging | `@derived-modular/eslint-plugin` + shared `@derived-modular/boundaries`; core stays `@derived-modular/cli` |
 | Architecture | Shared path classifier + native ESLint rules (not boundaries-preset wrapper, not `analyze()` from ESLint) |
 
 ## Non-goals (this increment)
@@ -33,10 +33,10 @@ Primary deliverable: **`@dma/eslint-plugin`**. Biome and oxlint follow later wit
 ## Architecture
 
 ```text
-@dma/boundaries          # pure path helpers (no FS graph, no ESLint)
+@derived-modular/boundaries          # pure path helpers (no FS graph, no ESLint)
         ↑
-@dma/eslint-plugin       # file-scoped rules (v1 deliverable)
-@dma/cli                 # full graph check/doctor (unchanged role)
+@derived-modular/eslint-plugin       # file-scoped rules (v1 deliverable)
+@derived-modular/cli                 # full graph check/doctor (unchanged role)
         ↑ later
 biome grit / oxlint      # best-effort subset, same rule ids where possible
 ```
@@ -45,9 +45,9 @@ biome grit / oxlint      # best-effort subset, same rule ids where possible
 
 | Package | Does | Does not |
 | --- | --- | --- |
-| `@dma/boundaries` | Classify paths: layer, composition root, module id, stage-0 vs dir, public surface, barrel index candidate | Build import graph; parse tsconfig aliases |
-| `@dma/eslint-plugin` | Rules on Import/Export AST + boundaries; flat `recommended` preset | Call `analyze()`; emulate cycle / inbound predicates |
-| `@dma/cli` | Full `check` / `doctor` | Depend on ESLint |
+| `@derived-modular/boundaries` | Classify paths: layer, composition root, module id, stage-0 vs dir, public surface, barrel index candidate | Build import graph; parse tsconfig aliases |
+| `@derived-modular/eslint-plugin` | Rules on Import/Export AST + boundaries; flat `recommended` preset | Call `analyze()`; emulate cycle / inbound predicates |
+| `@derived-modular/cli` | Full `check` / `doctor` | Depend on ESLint |
 
 **Contract:** same `ruleId` strings as CLI (`layer-direction`, `feature-to-feature`, `public-api`, `no-barrel`). Messages/help should match CLI wording where practical.
 
@@ -55,12 +55,12 @@ biome grit / oxlint      # best-effort subset, same rule ids where possible
 
 ```text
 packages/
-├── dma/                 # @dma/cli (consumes @dma/boundaries for path heuristics where applicable)
-├── boundaries/          # @dma/boundaries
-└── eslint-plugin/       # @dma/eslint-plugin
+├── dma/                 # @derived-modular/cli (consumes @derived-modular/boundaries for path heuristics where applicable)
+├── boundaries/          # @derived-modular/boundaries
+└── eslint-plugin/       # @derived-modular/eslint-plugin
 ```
 
-## `@dma/boundaries`
+## `@derived-modular/boundaries`
 
 Pure functions over absolute paths + `srcRoot` / composition-root dirnames.
 
@@ -74,7 +74,7 @@ Must support (aligned with current CLI):
 
 No I/O beyond what callers pass in. No dependency on ESLint or TypeScript compiler API.
 
-## `@dma/eslint-plugin` (v1)
+## `@derived-modular/eslint-plugin` (v1)
 
 ### Rules
 
@@ -108,7 +108,7 @@ Flat config: `dma.configs.recommended` (and documented legacy-compatible name if
 
 - `dma check` remains mandatory for CI completeness (graph rules).
 - Docs must state clearly: ESLint plugin is **not** a replacement for `dma check`.
-- Refactor CLI path classification to use `@dma/boundaries` where it reduces duplication; graph pipeline stays in `@dma/cli`.
+- Refactor CLI path classification to use `@derived-modular/boundaries` where it reduces duplication; graph pipeline stays in `@derived-modular/cli`.
 
 ## Biome and oxlint (follow-up)
 
@@ -122,27 +122,27 @@ Not in the same implementation plan as ESLint v1; documented roadmap only:
 
 **oxlint**
 
-- When JS plugins are mature enough: thin wrapper reusing `@dma/boundaries` + AST, same rule ids.
+- When JS plugins are mature enough: thin wrapper reusing `@derived-modular/boundaries` + AST, same rule ids.
 - Until then: documented gap + CLI.
 
 **Invariant:** neither Biome nor oxlint implements graph rules.
 
 ## Testing
 
-- `@dma/boundaries`: unit tests on path fixtures (composition roots, stage-0, public vs deep, layer ranks).
-- `@dma/eslint-plugin`: RuleTester cases mirroring CLI fixtures (`layer-violation`, `feature-to-feature`, `deep-import`, `barrel`) plus clean negatives.
-- Regression: existing `@dma/cli` tests stay green after boundaries extraction.
+- `@derived-modular/boundaries`: unit tests on path fixtures (composition roots, stage-0, public vs deep, layer ranks).
+- `@derived-modular/eslint-plugin`: RuleTester cases mirroring CLI fixtures (`layer-violation`, `feature-to-feature`, `deep-import`, `barrel`) plus clean negatives.
+- Regression: existing `@derived-modular/cli` tests stay green after boundaries extraction.
 
 ## Documentation
 
-- `@dma/eslint-plugin` README: flat-config snippet, native vs CLI-only table, “not a substitute for `dma check`”.
+- `@derived-modular/eslint-plugin` README: flat-config snippet, native vs CLI-only table, “not a substitute for `dma check`”.
 - Root README + DMA skill: one-line pointer to the ESLint adapter.
 - Optional later: Biome/oxlint install notes when those packages exist.
 
 ## Delivery order
 
-1. `@dma/boundaries` + wire CLI path heuristics to it  
-2. `@dma/eslint-plugin` + `recommended` + tests + README  
+1. `@derived-modular/boundaries` + wire CLI path heuristics to it  
+2. `@derived-modular/eslint-plugin` + `recommended` + tests + README  
 3. Root/skill docs touch  
 4. Biome / oxlint — separate spec/plan when ready  
 

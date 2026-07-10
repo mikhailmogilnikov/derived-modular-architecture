@@ -2,7 +2,7 @@
 
 > **For agentic workers:** Implement task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship `@dma/boundaries` + `@dma/eslint-plugin` for file-scoped DMA rules (`layer-direction`, `feature-to-feature`, `public-api`, `no-barrel`), wire CLI path heuristics to boundaries, keep full graph audit in `@dma/cli`.
+**Goal:** Ship `@derived-modular/boundaries` + `@derived-modular/eslint-plugin` for file-scoped DMA rules (`layer-direction`, `feature-to-feature`, `public-api`, `no-barrel`), wire CLI path heuristics to boundaries, keep full graph audit in `@derived-modular/cli`.
 
 **Architecture:** Pure path classifier package shared by ESLint rules and CLI; ESLint plugin never calls `analyze()`; graph rules stay CLI-only.
 
@@ -16,7 +16,7 @@
 - Composition roots default: `app`, `pages`, `routes` under `srcRoot` → semantic layer `app`.
 - Unresolved / external imports: ignore in ESLint rules.
 - Do not implement `no-cycle`, `feature-has-inbound`, `service-no-inbound`, or doctor in the plugin.
-- `@dma/boundaries` must not depend on ESLint or TypeScript compiler API.
+- `@derived-modular/boundaries` must not depend on ESLint or TypeScript compiler API.
 - Core CLI must keep existing tests green after refactor.
 - Package manager: bun. Run `bun x ultracite fix` when convenient after edits.
 - Root workspaces already include `packages/*`.
@@ -26,7 +26,7 @@
 
 ```text
 packages/
-├── boundaries/                 # @dma/boundaries
+├── boundaries/                 # @derived-modular/boundaries
 │   ├── package.json
 │   ├── tsconfig.json
 │   ├── src/
@@ -37,7 +37,7 @@ packages/
 │   │   └── classify-path.ts    # layerOf, moduleOf, isPublicTarget, isBarrelFilename
 │   └── tests/
 │       └── classify-path.test.ts
-├── eslint-plugin/              # @dma/eslint-plugin
+├── eslint-plugin/              # @derived-modular/eslint-plugin
 │   ├── package.json
 │   ├── tsconfig.json
 │   ├── README.md
@@ -55,13 +55,13 @@ packages/
 │       ├── feature-to-feature.test.ts
 │       ├── public-api.test.ts
 │       └── no-barrel.test.ts
-└── dma/                        # @dma/cli — consume @dma/boundaries
+└── dma/                        # @derived-modular/cli — consume @derived-modular/boundaries
     └── src/core/{discover,rules,index}.ts
 ```
 
 ---
 
-### Task 1: Scaffold `@dma/boundaries` + path API
+### Task 1: Scaffold `@derived-modular/boundaries` + path API
 
 **Files:**
 - Create: `packages/boundaries/package.json`
@@ -143,7 +143,7 @@ Expected: FAIL (package/module missing)
 
 ```json
 {
-  "name": "@dma/boundaries",
+  "name": "@derived-modular/boundaries",
   "version": "0.1.0",
   "type": "module",
   "exports": {
@@ -190,32 +190,32 @@ EOF
 
 ---
 
-### Task 2: Wire `@dma/cli` to `@dma/boundaries`
+### Task 2: Wire `@derived-modular/cli` to `@derived-modular/boundaries`
 
 **Files:**
-- Modify: `packages/dma/package.json` (dependency `@dma/boundaries`)
-- Modify: `packages/dma/src/core/discover.ts` (import `DEFAULT_COMPOSITION_ROOT_DIRNAMES` from boundaries)
-- Modify: `packages/dma/src/core/rules.ts` (use `layerOfPath` / shared helpers where equivalent)
-- Modify: `packages/dma/src/index.ts` (re-export composition roots from boundaries if currently local)
-- Test: existing `packages/dma` suite (no new fixtures required)
+- Modify: `packages/cli/package.json` (dependency `@derived-modular/boundaries`)
+- Modify: `packages/cli/src/core/discover.ts` (import `DEFAULT_COMPOSITION_ROOT_DIRNAMES` from boundaries)
+- Modify: `packages/cli/src/core/rules.ts` (use `layerOfPath` / shared helpers where equivalent)
+- Modify: `packages/cli/src/index.ts` (re-export composition roots from boundaries if currently local)
+- Test: existing `packages/cli` suite (no new fixtures required)
 
 **Interfaces:**
-- Consumes: `@dma/boundaries`
+- Consumes: `@derived-modular/boundaries`
 - Produces: unchanged CLI public API; remove duplicated constants from discover when possible
 
 - [ ] **Step 1: Add workspace dependency**
 
-In `packages/dma/package.json` dependencies:
+In `packages/cli/package.json` dependencies:
 
 ```json
-"@dma/boundaries": "workspace:*"
+"@derived-modular/boundaries": "workspace:*"
 ```
 
 Run: `bun install` from repo root.
 
 - [ ] **Step 2: Replace local composition-root constant**
 
-In `discover.ts`, import `DEFAULT_COMPOSITION_ROOT_DIRNAMES` from `@dma/boundaries` instead of defining locally. Keep `compositionRoots: string[]` absolute paths on `DiscoveredProject`.
+In `discover.ts`, import `DEFAULT_COMPOSITION_ROOT_DIRNAMES` from `@derived-modular/boundaries` instead of defining locally. Keep `compositionRoots: string[]` absolute paths on `DiscoveredProject`.
 
 - [ ] **Step 3: Align `layerOfFile` with boundaries**
 
@@ -223,15 +223,15 @@ In `rules.ts`, for non-module files, prefer `layerOfPath(file, { srcRoot, compos
 
 - [ ] **Step 4: Regression**
 
-Run: `cd packages/dma && bun test`
+Run: `cd packages/cli && bun test`
 Expected: all existing tests PASS (including composition-root cases)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/dma/package.json packages/dma/src bun.lock
+git add packages/cli/package.json packages/cli/src bun.lock
 git commit -m "$(cat <<'EOF'
-refactor(dma): use @dma/boundaries for path layer classification
+refactor(dma): use @derived-modular/boundaries for path layer classification
 
 Keep graph analysis in CLI; share composition-root and layer path rules.
 EOF
@@ -240,7 +240,7 @@ EOF
 
 ---
 
-### Task 3: Scaffold `@dma/eslint-plugin` + `no-barrel`
+### Task 3: Scaffold `@derived-modular/eslint-plugin` + `no-barrel`
 
 **Files:**
 - Create: `packages/eslint-plugin/package.json`
@@ -251,7 +251,7 @@ EOF
 - Test: `packages/eslint-plugin/tests/no-barrel.test.ts`
 
 **Interfaces:**
-- Consumes: `@dma/boundaries`, `eslint` peer
+- Consumes: `@derived-modular/boundaries`, `eslint` peer
 - Produces: ESLint flat plugin with rule `no-barrel`
 
 - [ ] **Step 1: Write RuleTester failing test**
@@ -264,7 +264,7 @@ Run: `cd packages/eslint-plugin && bun test tests/no-barrel.test.ts`
 
 - [ ] **Step 3: Implement plugin skeleton + rule**
 
-`package.json` name: `@dma/eslint-plugin`, peerDependencies `eslint: ">=9"`, dependency `@dma/boundaries: workspace:*`.
+`package.json` name: `@derived-modular/eslint-plugin`, peerDependencies `eslint: ">=9"`, dependency `@derived-modular/boundaries: workspace:*`.
 
 `no-barrel`: on Program for files whose path is a barrel index filename under a features/services module, if any `ExportNamedDeclaration` / `ExportAllDeclaration` has `source`, report with message aligned to CLI.
 
@@ -274,7 +274,7 @@ Run: `cd packages/eslint-plugin && bun test tests/no-barrel.test.ts`
 
 ```bash
 git commit -m "$(cat <<'EOF'
-feat(eslint-plugin): add @dma/eslint-plugin with no-barrel
+feat(eslint-plugin): add @derived-modular/eslint-plugin with no-barrel
 
 First file-scoped DMA rule for ESLint flat config.
 EOF
@@ -316,7 +316,7 @@ Mirror CLI fixtures:
 - `feature-to-feature`: `features/a` → `features/b` → error
 - `layer-direction`: `features` → `pages` or `shared` → `features` upward → error; `pages` → `features` → ok
 
-- [ ] **Step 2: Implement rules using `@dma/boundaries`**
+- [ ] **Step 2: Implement rules using `@derived-modular/boundaries`**
 
 Shared helper: `getDmaContext(context)` → `{ srcRootAbs, compositionRootDirnames, filename }`.
 
@@ -330,7 +330,7 @@ Shared helper: `getDmaContext(context)` → `{ srcRootAbs, compositionRootDirnam
 git commit -m "$(cat <<'EOF'
 feat(eslint-plugin): add public-api, feature-to-feature, layer-direction
 
-Complete file-scoped DMA rule set for ESLint using @dma/boundaries.
+Complete file-scoped DMA rule set for ESLint using @derived-modular/boundaries.
 EOF
 )"
 ```
@@ -344,7 +344,7 @@ EOF
 - Create: `packages/eslint-plugin/README.md`
 - Modify: `README.md` (root)
 - Modify: `skills/dma/SKILL.md` and/or `skills/dma/references/reference.md`
-- Modify: `packages/dma/README.md` (pointer: plugin ≠ full check)
+- Modify: `packages/cli/README.md` (pointer: plugin ≠ full check)
 
 - [ ] **Step 1: Export flat recommended config**
 
@@ -352,19 +352,19 @@ EOF
 configs: {
   recommended: [
     {
-      plugins: { "@dma": plugin },
+      plugins: { '@derived-modular': plugin },
       rules: {
-        "@dma/layer-direction": "error",
-        "@dma/feature-to-feature": "error",
-        "@dma/public-api": "error",
-        "@dma/no-barrel": "error",
+        "@derived-modular/layer-direction": "error",
+        "@derived-modular/feature-to-feature": "error",
+        "@derived-modular/public-api": "error",
+        "@derived-modular/no-barrel": "error",
       },
     },
   ],
 }
 ```
 
-(Exact plugin key naming: prefer `dma` short name if package exports conventionally — document install as `import dma from "@dma/eslint-plugin"`.)
+(Exact plugin key naming: prefer `dma` short name if package exports conventionally — document install as `import dma from "@derived-modular/eslint-plugin"`.)
 
 - [ ] **Step 2: README content**
 
@@ -386,7 +386,7 @@ From a tiny fixture dir, run `bunx eslint` with the plugin if practical; otherwi
 ```bash
 git add -f docs/superpowers/plans/2026-07-10-dma-linter-adapters.md 2>/dev/null || true
 git commit -m "$(cat <<'EOF'
-docs: document @dma/eslint-plugin recommended setup
+docs: document @derived-modular/eslint-plugin recommended setup
 
 Clarify hybrid enforcement: ESLint file-scoped rules + dma check for graph.
 EOF
@@ -402,7 +402,7 @@ EOF
 ```bash
 bun test --cwd packages/boundaries
 bun test --cwd packages/eslint-plugin
-bun test --cwd packages/dma
+bun test --cwd packages/cli
 ```
 
 Expected: all PASS
@@ -412,7 +412,7 @@ Expected: all PASS
 ```bash
 bun run --cwd packages/boundaries check-types
 bun run --cwd packages/eslint-plugin check-types
-bun run --cwd packages/dma check-types
+bun run --cwd packages/cli check-types
 ```
 
 - [ ] **Step 3: Spec checklist**
@@ -429,7 +429,7 @@ bun run --cwd packages/dma check-types
 
 ## Out of scope (do not implement in this plan)
 
-- `@dma/biome-plugin` / GritQL shipping  
+- `@derived-modular/biome-plugin` / GritQL shipping  
 - oxlint JS plugin package  
 - Autofix  
 - Calling `analyze()` from ESLint  

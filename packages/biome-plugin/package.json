@@ -1,0 +1,24 @@
+{
+  "name": "@derived-modular/biome-plugin",
+  "version": "0.1.0",
+  "description": "Biome GritQL plugins for Derived Modular Architecture",
+  "type": "module",
+  "files": [
+    "config",
+    "plugins",
+    "README.md"
+  ],
+  "exports": {
+    ".": "./config/biome.jsonc",
+    "./plugins/*": "./plugins/*"
+  },
+  "scripts": {
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.2",
+    "@types/bun": "latest"
+  },
+  "license": "MIT",
+  "keywords": ["dma", "biome", "gritql", "architecture"]
+}
