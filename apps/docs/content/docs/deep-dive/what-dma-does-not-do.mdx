@@ -1,6 +1,74 @@
 ---
-title: "What DMA Does Not Solve"
-description: "Honest boundaries of the approach and v1 tooling limits."
+title: "What DMA Does Not Do"
+description: "Honest boundaries of the approach and tooling v1 limits."
+icon: "CircleOff"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/deep-dive/what-dma-does-not-do).
+DMA describes **code placement and dependency direction**, verifiable from the import graph. Below is what stays outside the specification or v1 tooling. Knowing the limits reduces false expectations during adoption.
+
+## The specification does not solve
+
+### Domain slicing
+
+One module `checkout` or two (`cart` + `checkout`) — product modeling (Conway). DMA can **detect** a bad cut after the fact (many ports, dense subgraph in `doctor`), but does not give a recipe for "how to slice the domain."
+
+### State management and data flow
+
+Flux, signals, React Query, server cache — DMA says **where** state lives (`model/` inside a module, `services/` on promotion), not **how** to update it.
+
+### Testing strategy
+
+Colocated placement is defined ([Testing](/concepts/testing)). Coverage, pyramid, contract tests — the team's choice.
+
+### Runtime boundaries
+
+Micro-frontends, module federation, independent deploys — out of scope. Principle: framework routing files are a thin shell in the composition root.
+
+### Framework rendering details
+
+SSR, RSC, file-based routing — in stack guides ([Next.js](/guides/nextjs)), but DMA does not dictate framework-specific patterns beyond the composition root.
+
+## Stays on humans
+
+### services / shared boundary
+
+The only rule without full machine verification: product scenario vs portable infrastructure. Heuristic: "could it live in another product without changing meaning?" — see [Services vs Shared](/deep-dive/services-vs-shared).
+
+### Stage 3 — module split
+
+When `public/` is bloated (~8+ entrypoints) — split the module. No dedicated `doctor` signal yet; decision on review.
+
+### Folder names and product semantics
+
+`catalog` vs `shop` — DMA does not argue. It only argues about **layer predicates** and **graph edges**.
+
+## Tooling v1 does not include
+
+| Not in v1 | What to do instead |
+| --- | --- |
+| Autofix / codemods | Manual refactor + `dma check` after each step |
+| Project scaffolding | [Quick start](/start/quick-start), examples |
+| LSP / architecture server | CLI + linters in the editor |
+| Watch mode | `dma check` in pre-push or CI |
+| User config for doctor thresholds | CLI defaults; changes — post-v1 |
+| Monorepo discovery in one call | `dma check` per app root ([Monorepo](/guides/monorepo)) |
+| Full graph parity in Biome/Oxlint | Always `dma check` in CI |
+| Runtime loading of `rules.json` in CLI | Rules built into `@derived-modular/cli` |
+
+## Declarations and "manifests"
+
+DMA does not use declarative files that duplicate what is already visible from the tree (`architecture.yaml` with a layer list). Only executable overrides are allowed (temporary allowlists in tooling, if they appear) — not documentation theater.
+
+## When DMA may not be the best fit
+
+- You need a strict semantic taxonomy for onboarding ("everything about the user goes in entities") — see [DMA vs FSD](/deep-dive/dma-vs-fsd).
+- The product is organized around horizontal domains more than vertical rank — DMA recommends splitting **inside** `services/`, not new layers.
+- The team is not ready to keep `dma check` in CI — rules without a gate become oral tradition again.
+
+## What's next
+
+<Cards>
+  <Card title="What is DMA" description="Context and boundaries" href="/start/what-is-dma" />
+  <Card title="DMA vs FSD" description="Comparison with an alternative" href="/deep-dive/dma-vs-fsd" />
+  <Card title="Tooling overview" description="What v1 verifies" href="/tooling/overview" />
+</Cards>

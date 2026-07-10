@@ -1,6 +1,81 @@
 ---
-title: "Why CLI, Not Just Linters"
-description: "Why graph rules need a dedicated analyzer."
+title: "Why CLI, Not Only Linters"
+description: "Architecture rules are graph properties. A single file cannot see them."
+icon: "Network"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/deep-dive/why-cli-not-only-linters).
+## Short answer
+
+ESLint, Biome, and Oxlint look at **one file** (or a string-import heuristic). Cycles, inbound predicates, and promotion are properties of the **whole graph**. That needs a separate analyzer — `dma check`.
+
+Linters in the editor remain useful. But CI without the CLI is a hole in architecture.
+
+## What the linter sees
+
+DMA file-scoped rules:
+
+- import in the wrong layer direction (`layer-direction`)
+- feature → feature (`feature-to-feature`)
+- import bypassing `public/` (`public-api`)
+- barrel `index` with re-exports (`no-barrel`)
+
+ESLint does this precisely — via `@derived-modular/boundaries` and path resolution. Biome — by heuristics on string patterns.
+
+## What the linter does not see
+
+| Rule | Why the graph is needed |
+| --- | --- |
+| `no-cycle` | A cycle is a path A→B→C→A across **multiple files** |
+| `feature-has-inbound` | Inbound is counted across **all modules**, not one import in one file |
+| `service-no-inbound` | A service without consumers is a subgraph property |
+| `dma doctor` | Evolution signals across the whole project |
+
+Example: a cycle `services/billing` → `services/cart` → `services/inventory` → `services/billing` — in each file one import looks legal, while `no-cycle` only sees the full graph. Or catalog imports checkout directly — ESLint catches `feature-to-feature` in the file, but the inbound predicate `feature-has-inbound` and chains through several modules — only `check`.
+
+## DMA's hybrid model
+
+```text
+Editor     →  linter (fast, file-scoped)
+CI         →  dma check (full graph)
+Locally    →  dma doctor (soft signals)
+```
+
+One analyzer (`@derived-modular/cli`) — source of truth. Linters are thin adapters on top of `@derived-modular/boundaries`, not a second source of truth.
+
+<Callout type="warn">
+  "We configured ESLint — architecture is under control" is an illusion until you run `dma check` in CI.
+</Callout>
+
+## Why not one mega-ESLint rule
+
+In theory ESLint could analyze the whole project. In practice:
+
+- linters are optimized for per-file work and per-file cache;
+- a full graph pass on every save is expensive;
+- cycles and inbound are a separate class of algorithms, not the AST of one module.
+
+DMA deliberately moved graph audit into the CLI. Linters are for the IDE feedback loop.
+
+## Coverage matrix
+
+| Concern | ESLint | Biome | dma check |
+| --- | --- | --- | --- |
+| `layer-direction` | ✓ | heuristic | ✓ |
+| `feature-to-feature` | ✓ | heuristic | ✓ |
+| `public-api` | ✓ | heuristic | ✓ |
+| `no-barrel` | ✓ | heuristic | ✓ |
+| `no-cycle` | — | — | ✓ |
+| inbound predicates | — | — | ✓ |
+| doctor | — | — | ✓ |
+
+## Practical recommendation
+
+1. Wire up [ESLint](/tooling/eslint) (or [Biome](/tooling/biome) / [Oxlint](/tooling/oxlint)) in the editor
+2. Add `npx @derived-modular/cli check .` to [CI](/tooling/ci)
+3. Once per sprint — `npx @derived-modular/cli doctor .` for growth signals
+
+## Related topics
+
+- [Tooling overview](/tooling/overview)
+- [dma check](/tooling/cli/check)
+- [Four invariants](/concepts/invariants)

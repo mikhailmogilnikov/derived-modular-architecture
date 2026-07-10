@@ -1,6 +1,123 @@
 ---
-title: "Quick Start"
-description: "Run dma check in five minutes."
+title: "Quick start"
+description: "Lay out src/, wire up dma check, and confirm the architecture holds."
+icon: "Rocket"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/start/quick-start).
+This guide is the minimal path from an empty `src/` to working enforcement. We assume a TypeScript project with `src/` at the root.
+
+## 1. Lay out the tree
+
+Create the base structure:
+
+```text
+src/
+├── app/          # or pages/, routes/ — composition root for your framework
+├── features/
+└── shared/
+    ├── ui/
+    └── lib/
+```
+
+Do **not** create `services/` upfront — it appears on the first promotion, when **another module** imports the code (inbound from `features/*` or `services/*`; mount from the composition root does not count).
+
+More on the tree — [Project layout](/start/project-layout) and [Layers](/concepts/layers).
+
+## 2. Mount a feature from the composition root
+
+The composition root imports modules **only** through `public/`:
+
+```tsx
+// src/app/page.tsx
+import { CatalogPage } from "@/features/catalog/public/catalog-page";
+import { CheckoutPage } from "@/features/checkout/public/checkout-page";
+
+export default function Page() {
+  return (
+    <div>
+      <CatalogPage />
+      <CheckoutPage />
+    </div>
+  );
+}
+```
+
+A feature may pull `services/*/public/*` and `shared/`, but not other features. A live example — [examples/next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app) in the DMA repo.
+
+## 3. Install the CLI
+
+```bash
+npm install -D @derived-modular/cli
+```
+
+## 4. Run the check
+
+```bash
+npx @derived-modular/cli check .
+```
+
+If everything is clean — you'll see a summary with no errors. If not — the CLI shows the rule, file, and import that was violated.
+
+Typical first errors:
+
+| Rule | What happened | What to do |
+| --- | --- | --- |
+| `public-api` | Import into `features/foo/model`, not `public/` | Export the symbol in `public/` or import from there |
+| `feature-to-feature` | Feature A imports feature B | Shared logic goes in `services/` or `shared/` |
+| `layer-direction` | Import “upward”, e.g. from `shared` into `features` | Reverse the dependency |
+
+All rules — [dma check](/tooling/cli/check).
+
+## 5. Add to CI
+
+Minimal step — one command in the pipeline:
+
+```bash
+npx @derived-modular/cli check . --format json
+```
+
+More — [CI](/tooling/ci).
+
+## 6. (Optional) Linter in the editor
+
+For fast feedback on save:
+
+```bash
+npm install -D @derived-modular/eslint-plugin eslint
+```
+
+```js
+// eslint.config.js
+import dma from "@derived-modular/eslint-plugin";
+
+export default [
+  ...dma.configs.recommended,
+  {
+    settings: {
+      dma: {
+        srcRoot: "src",
+        compositionRoots: ["app", "pages", "routes"],
+      },
+    },
+  },
+];
+```
+
+The linter **does not replace** `dma check` — it doesn't see cycles or inbound predicates. ESLint setup — on the [ESLint](/tooling/eslint) page.
+
+## 7. Local growth signals
+
+```bash
+npx @derived-modular/cli doctor .
+```
+
+`doctor` doesn't break CI (exit 0), but hints: time to extract to `shared`, split segments, promote a feature to a service. More — [dma doctor](/tooling/cli/doctor).
+
+## What's next
+
+<Cards>
+  <Card title="Four invariants" description="Rules that hold the architecture" href="/concepts/invariants" />
+  <Card title="Modules & public API" description="Module growth stages" href="/concepts/modules" />
+  <Card title="Tooling overview" description="CLI + linters" href="/tooling/overview" />
+  <Card title="AI & agents" description="dma skill for Cursor" href="/tooling/ai-agents" />
+</Cards>

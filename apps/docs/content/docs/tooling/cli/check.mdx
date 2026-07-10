@@ -1,6 +1,157 @@
 ---
 title: "dma check"
-description: "Hard graph checks for CI."
+description: "Hard dependency graph check for CI — installation, usage, and rule reference."
+icon: "Terminal"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/tooling/cli/check).
+`dma check` is the main DMA command. It builds an import graph for the project and validates architectural rules. If something is violated — non-zero exit code, CI fails.
+
+Editor linters are useful but **do not replace** `check`: cycles, inbound predicates, and the full graph are visible only to the CLI.
+
+## Installation
+
+```bash
+npm install -D @derived-modular/cli
+```
+
+Requires Node.js 18+.
+
+Run only via the package name:
+
+```bash
+npx @derived-modular/cli check
+npx @derived-modular/cli check .          # explicit path to project root
+npx @derived-modular/cli check --format json
+```
+
+In `package.json`:
+
+```json
+{
+  "scripts": {
+    "dma-check": "npx @derived-modular/cli check ."
+  }
+}
+```
+
+By default the CLI looks for the tree `src/{app|pages|routes, features, services?, shared}` relative to the path you pass.
+
+## Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| `0` | No errors |
+| `1` | Architectural violations found |
+| `2` | Environment failure: missing `src/`, broken tsconfig, invalid arguments |
+
+In CI this is usually enough:
+
+```bash
+npx @derived-modular/cli check .
+```
+
+For GitHub Actions and agents — `--format json` (stable report `version: 1`).
+
+Disable colored output with `NO_COLOR=1`.
+
+## What is checked
+
+| Rule | Meaning |
+| --- | --- |
+| `layer-direction` | Imports only downward: `app/pages/routes → features → services → shared` |
+| `feature-to-feature` | A feature must not import another feature |
+| `public-api` | Cross-module imports go through `*/public/*` |
+| `no-barrel` | No barrel `index` with re-exports inside modules |
+| `no-cycle` | The module graph is acyclic |
+| `feature-has-inbound` | A feature with inbound edges from modules → must live in `services/` |
+| `service-no-inbound` | A service with no consumers among modules → predicate violation |
+
+Inbound edges are counted **only from modules** (`features/*`, `services/*`). Mounts from `app/`, `pages/`, `routes/` do not trigger promotion.
+
+Rule context — in [Four invariants](/concepts/invariants) and [Layers](/concepts/layers). The "where to put a file" algorithm — [Where to put a file](/concepts/placement).
+
+## Violation reference
+
+Typical `ruleId` values from the `check` report and what to do about them.
+
+| ruleId | Cause | Typical fix | More |
+| --- | --- | --- | --- |
+| `feature-to-feature` | Feature imports another feature | Promotion to `services/`, lift to `shared/`, or wiring in composition root | [Cross-module wiring](/guides/cross-module-wiring), [Where to put a file](/concepts/placement) |
+| `layer-direction` | Import upward in the layer stack (e.g. feature → `app/`) | Remove the import; pass data via props/events from composition root | [Layers](/concepts/layers) |
+| `public-api` | Cross-module import bypasses `*/public/*` | Import `*/public/<file>` directly; internal — relative only inside the module | [Modules](/concepts/modules) |
+| `no-barrel` | `index.ts` with re-exports inside a module | Remove the barrel; import specific files | [Why no barrels](/deep-dive/why-no-barrels) |
+| `no-cycle` | Cycle in the module graph | Extract to `shared/`, promotion to `services/`, or port + bind in `app/` | [Cross-module wiring](/guides/cross-module-wiring) |
+| `feature-has-inbound` | Feature has inbound from another module | Move the module to `services/<name>/`, revisit `public/` | [Code evolution](/concepts/evolution) |
+| `service-no-inbound` | Service with no consumers among modules | Move back to feature colocation or remove empty service | [Layers](/concepts/layers) |
+
+### Exit code 2 (environment)
+
+| Symptom | What to check |
+| --- | --- |
+| Missing `src/` | `path` points to the **application** root, not the whole monorepo |
+| Broken tsconfig | `paths` for `@/` in the app tsconfig |
+| Invalid arguments | `npx @derived-modular/cli check --help` |
+
+See [Monorepo](/guides/monorepo) for multiple app roots.
+
+## What the CLI can analyze
+
+Static imports are scanned in:
+
+- `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs`
+- `.vue`, `.svelte`, `.astro`
+- `.md`, `.mdx` — imports in content also enter the graph (relevant for doc-apps and MDX components)
+
+`import`, `export … from`, `import type`, dynamic `import()`, and `require()` are counted — including targets of `next/dynamic` and `React.lazy`.
+
+Path aliases are picked up from `tsconfig.json`.
+
+## Output formats
+
+| Format | When to use |
+| --- | --- |
+| `human` (default) | Local development |
+| `json` | CI, scripts, AI agents |
+| `sarif` | GitHub Code Scanning |
+
+```bash
+npx @derived-modular/cli check --format sarif > dma.sarif
+```
+
+## check vs doctor
+
+| | `dma check` | `dma doctor` |
+| --- | --- | --- |
+| Purpose | Hard rules | Soft evolution signals |
+| Exit code on findings | `1` | `0` (default) |
+| Where to run | CI, pre-push | Locally |
+
+`doctor` suggests `shared-candidate`, `stage-growth`, `dense-services`, `orphan-public` — but does not duplicate `check` errors. Details on the [dma doctor](/tooling/cli/doctor) page.
+
+## Linters — supplement, not replacement
+
+In the editor you can enable ESLint, Biome, or Oxlint DMA plugins. They catch some rules per file but **do not see** cycles and inbound predicates.
+
+<Callout type="warn">
+  Always run `npx @derived-modular/cli check` in CI. Linters are for fast feedback in the IDE.
+</Callout>
+
+Overview of all adapters — [Tooling overview](/tooling/overview).
+
+## Example for the DMA monorepo
+
+If you are in the `derived-modular-architecture` repository:
+
+```bash
+npx @derived-modular/cli check .
+```
+
+## What's next
+
+<Cards>
+  <Card title="Where to put a file" description="Placement algorithm" href="/concepts/placement" />
+  <Card title="dma doctor" description="Evolution signals" href="/tooling/cli/doctor" />
+  <Card title="Tooling overview" description="CLI + linters, hybrid model" href="/tooling/overview" />
+  <Card title="ESLint" description="Flat config plugin" href="/tooling/eslint" />
+  <Card title="CI" description="Wire check into the pipeline" href="/tooling/ci" />
+</Cards>

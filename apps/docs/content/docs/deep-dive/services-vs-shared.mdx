@@ -1,6 +1,69 @@
 ---
 title: "Services vs Shared"
-description: "The product vs infrastructure boundary."
+description: "Where the boundary runs between a product scenario and portable infrastructure."
+icon: "Split"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/deep-dive/services-vs-shared).
+## Short answer
+
+**Shared** — code that would move to another product unchanged. **Services** — code that implements a scenario of *this* product and that other modules depend on. This is the only boundary in DMA the machine does not fully decide — heuristics and judgment remain.
+
+## One-sentence heuristic
+
+> Could this code live in another product unchanged?
+
+- **Yes** → `shared/`
+- **No** → `services/`
+
+A button, `formatCurrency`, a basic HTTP client — shared. Cart, checkout flow, permissions for this product's orders — services.
+
+## Why both layers have inbound
+
+Both `services/` and `shared/` have inbound edges from modules. The difference is not in the graph but in **what the code means**:
+
+| | Services | Shared |
+| --- | --- | --- |
+| Knows the product | Yes | No |
+| Example | `cart`, `session`, `permissions` | `Button`, `format-date`, `api-client` |
+| `public/` | Yes, flat | Not needed — the whole layer is public |
+| Internal grouping | Module segments (ui, model…) | `ui/`, `lib/`, `api/`, `model/`, `domain/` |
+
+## Typical mistakes
+
+**Too early into shared.** You extracted a helper "for later" — a month later `shared/lib` becomes a dump. Second-use rule: colocate first, lift on the second consumer.
+
+**Product code in shared.** `shared/ui/cart-badge.tsx` knows about the cart — that is a feature or service, not a shared UI primitive.
+
+**Service without consumers.** A module in `services/` that no other module depends on violates the predicate (`service-no-inbound`). Demote back to a feature or remove it.
+
+**Feature everyone depends on.** Catalog and profile import checkout — that is a service, not a feature (`feature-has-inbound`).
+
+## How to decide in practice
+
+1. Did a second consumer appear? (`dma doctor` → `shared-candidate`)
+2. Is the code about **this** product? → `services/`, promotion from feature
+3. Is the code **portable**? → the right group in `shared/` (`ui`, `lib`, `api`, `model`, `domain`)
+4. Unsure? Leave it in a feature until a second consumer appears — colocation is cheaper than a mistake
+
+## Shared groups
+
+```text
+shared/
+├── ui/       # buttons, inputs — no domain knowledge
+├── lib/      # dates, formatting, storage
+├── api/      # base HTTP client, interceptors
+├── model/    # query client, env, feature flags
+└── domain/   # shared business types (User, Money)
+```
+
+More detail — [Shared](/concepts/shared).
+
+## Services and domains
+
+When `services/` grows, cut **horizontally** (`domains/billing/`, separate packages) — do not add new vertical layers. The `dense-services` signal in doctor hints when it is time to split.
+
+## Related topics
+
+- [Layers](/concepts/layers) — layer predicates
+- [Code evolution](/concepts/evolution) — second-use and promotion
+- [Why two module layers](/deep-dive/why-two-layers) — why feature/service split exists at all

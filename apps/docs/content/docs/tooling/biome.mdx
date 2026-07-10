@@ -1,6 +1,72 @@
 ---
 title: "Biome"
-description: "GritQL heuristics via @derived-modular/biome-plugin."
+description: "GritQL heuristics from @derived-modular/biome-plugin for Biome projects."
+icon: "ScanSearch"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/tooling/biome).
+`@derived-modular/biome-plugin` adds four DMA architectural rules to Biome via GritQL patterns. Convenient if Biome is already your sole linter and formatter.
+
+This is **best-effort**: the plugin looks at import strings, it does not build a full graph. The [ESLint plugin](/tooling/eslint) is more accurate — it uses `@derived-modular/boundaries` and proper path resolution.
+
+You still need `dma check` in CI.
+
+## Installation
+
+```bash
+npm install -D @derived-modular/biome-plugin
+```
+
+## Configuration
+
+```jsonc
+// biome.jsonc
+{
+  "extends": ["@derived-modular/biome-plugin"],
+  "files": {
+    "includes": ["**", "!dist"]
+  }
+}
+```
+
+The plugin enables four GritQL rules: `layer-direction`, `feature-to-feature`, `public-api`, `no-barrel`.
+
+## Coverage
+
+| Rule | Biome | ESLint | dma check |
+| --- | --- | --- | --- |
+| `layer-direction` | heuristic | ✓ | ✓ |
+| `feature-to-feature` | heuristic | ✓ | ✓ |
+| `public-api` | heuristic | ✓ | ✓ |
+| `no-barrel` | heuristic | ✓ | ✓ |
+| `no-cycle` | — | — | ✓ |
+| inbound predicates | — | — | ✓ |
+
+## Limitations
+
+**No import resolution.** The plugin matches `@/` and relative path patterns but does not fully read `tsconfig` aliases. Complex aliases may slip through or cause false positives.
+
+**Grit plugin paths** resolve from the project root (`./node_modules/@derived-modular/biome-plugin/...`). Works reliably in flat `node_modules` (npm, bun); in some monorepo / PnP layouts Biome is still improving shared-config support.
+
+**No graph rules.** Cycles and "feature with inbound → service" — CLI only.
+
+<Callout type="warn">
+  If you can choose — use the ESLint plugin. Keep Biome for teams already fully on Biome and willing to accept heuristics.
+</Callout>
+
+## When it fits
+
+| Situation | Recommendation |
+| --- | --- |
+| Biome is the unified toolchain | biome-plugin + `dma check` in CI |
+| Already have ESLint | [ESLint](/tooling/eslint) for DMA instead of Biome |
+| Need maximum editor accuracy | ESLint, not Biome |
+
+Example config — [examples/vue-vite/biome.jsonc](https://github.com/mikhailmogilnikov/derived-modular-architecture/blob/main/examples/vue-vite/biome.jsonc).
+
+## What's next
+
+<Cards>
+  <Card title="dma check" description="Full graph audit in CI" href="/tooling/cli/check" />
+  <Card title="Tooling overview" description="Adapter comparison" href="/tooling/overview" />
+  <Card title="Oxlint" description="Alternative for Oxlint" href="/tooling/oxlint" />
+</Cards>

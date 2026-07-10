@@ -1,6 +1,126 @@
 ---
-title: "Migration to DMA"
+title: "Migrating to DMA"
 description: "How to adopt DMA in an existing project without a big-bang rewrite."
+icon: "ArrowRightLeft"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/guides/migration).
+Migrating to DMA is not "rewrite everything in one sprint." It is incremental tightening: first boundaries and checks, then promotion and shared — driven by graph signals.
+
+## Phase 0: Define the goal
+
+You want to:
+
+- stop arguing about imports in code review;
+- catch cycles and feature-to-feature edges in CI;
+- grow through colocation, not premature `shared/`.
+
+If a style guide on Confluence is enough — DMA may be overkill.
+
+## Phase 1: Tree and tooling (day 1)
+
+1. Shape `src/` into the baseline layout:
+
+```text
+src/
+├── app/          # or pages/, routes/
+├── features/
+└── shared/       # can be nearly empty
+```
+
+2. Install the CLI:
+
+```bash
+npm install -D @derived-modular/cli
+```
+
+3. Add to CI:
+
+```bash
+npx @derived-modular/cli check . --format json
+```
+
+4. Wire up a linter ([ESLint](/tooling/eslint) or [Biome](/tooling/biome)).
+
+The first `dma check` run shows the real picture — don't be scared by a long list.
+
+## Phase 2: Composition root (week 1)
+
+**Goal:** routes and layout import only `*/public/*`.
+
+| Before | After |
+| --- | --- |
+| `import { X } from '@/features/foo/internal'` | `import { X } from '@/features/foo/public/foo-page'` |
+| Logic in `page.tsx` | Thin shell + mount from feature |
+
+Don't touch module internals until entry points are fixed.
+
+## Phase 3: Remove feature → feature (weeks 2–3)
+
+Typical pre-DMA pattern:
+
+```text
+features/catalog → features/checkout/internal
+```
+
+Fix options:
+
+1. **Promotion** — shared product code in `services/`
+2. **Lift to shared** — portable helper without product logic
+3. **Wiring in app** — props, events, providers ([cross-module wiring](/guides/cross-module-wiring))
+
+After each refactor — `npx @derived-modular/cli check .`.
+
+## Phase 4: Public API and barrels (week 3–4)
+
+- Remove barrel `index.ts` re-exports inside modules
+- Move public symbols to `public/` with direct paths
+- Keep stage-0 files (`features/profile.tsx`) if the module is a single file
+
+## Phase 5: Promotion and shared (on signals)
+
+Don't create `services/` upfront. Wait for:
+
+- `feature-has-inbound` in `check` — time to promote
+- `shared-candidate` in `doctor` — time to consider a lift
+
+Run `npx @derived-modular/cli doctor .` once per sprint during planning.
+
+## Strategies for large codebases
+
+### Strangler by feature
+
+Pick one vertical (e.g. checkout), lay it out with DMA, and temporarily exclude the rest from `dma check` via a separate package/folder — **not** by disabling rules globally.
+
+### Monorepo
+
+`dma check` in v1 — one app root per invocation:
+
+```bash
+npx @derived-modular/cli check apps/web
+npx @derived-modular/cli check apps/admin
+```
+
+See [Monorepo](/guides/monorepo) for details.
+
+### Legacy `utils/` and `components/`
+
+Don't rename everything at once. New code follows DMA. Touch old code on second use or when you edit the file.
+
+## Readiness checklist
+
+- [ ] `dma check` in CI on every PR
+- [ ] Composition root imports only `public/`
+- [ ] No feature → feature
+- [ ] No barrels inside modules
+- [ ] Linter in the editor for fast feedback
+- [ ] Team knows [Code evolution](/concepts/evolution) and [Where to put a file](/concepts/placement)
+
+## What's next
+
+<Cards>
+  <Card title="Quick start" description="From scratch" href="/start/quick-start" />
+  <Card title="Monorepo" description="Multiple app roots in CI" href="/guides/monorepo" />
+  <Card title="Code evolution" description="Promotion and doctor" href="/concepts/evolution" />
+  <Card title="Cross-module wiring" description="Events and ports" href="/guides/cross-module-wiring" />
+  <Card title="Vite + React" description="Canonical example" href="/guides/vite-react" />
+</Cards>

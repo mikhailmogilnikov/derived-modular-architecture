@@ -1,6 +1,123 @@
 ---
 title: "Next.js"
 description: "DMA on App Router: Server Components, Client boundary, providers."
+icon: "AppWindow"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/guides/nextjs).
+This example shows how DMA fits the **RSC boundary** of Next.js App Router. Not a full runnable app in v1 — enough source for `dma check` and ESLint.
+
+Sources: [examples/next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app).
+
+## Tree
+
+```text
+src/
+├── app/
+│   ├── layout.tsx       # Server — shell + <Providers>
+│   ├── page.tsx         # Server — thin route
+│   ├── providers.tsx    # Client — SessionProvider
+│   └── globals.scss
+├── features/
+│   ├── catalog/         # catalog.store + public/catalog-page
+│   ├── checkout/
+│   ├── search/
+│   └── profile.tsx      # stage 0
+├── services/
+│   ├── cart/public/
+│   └── session/public/
+└── shared/
+    ├── domain/
+    ├── lib/
+    └── ui/
+```
+
+Direction: `app/pages/routes → features → services → shared`. Features do not import each other.
+
+## Server vs Client
+
+Next.js defaults to Server Components. DMA keeps the split at **composition root** vs **feature public entries**:
+
+| File | Boundary | Why |
+| --- | --- | --- |
+| `layout.tsx` | Server | HTML shell, no hooks |
+| `page.tsx` | Server | Mounts only `*/public/*` |
+| `providers.tsx` | Client (`"use client"`) | Context needs client boundary |
+| `catalog-page.tsx` | Client | `onClick`, store |
+| `button.tsx` | Server-safe | Without `"use client"` — pulled into client bundle via feature |
+
+```text
+app/layout.tsx          (Server)
+  └── app/providers.tsx (Client)
+        └── app/page.tsx        (Server)
+              ├── features/catalog/public/catalog-page.tsx   (Client)
+              ├── features/search/public/search-page.tsx     (Client)
+              └── features/profile.tsx                       (Client)
+```
+
+**Pattern:** `page.tsx` stays a thin server composition root. Interactivity lives in feature `public/` entries. Do not import `*.store.ts` from `page.tsx`.
+
+## Thin `page.tsx`
+
+```tsx
+import { CatalogPage } from "@/features/catalog/public/catalog-page";
+import { CheckoutPage } from "@/features/checkout/public/checkout-page";
+import { Profile } from "@/features/profile";
+import { SearchPage } from "@/features/search/public/search-page";
+```
+
+```tsx
+// ❌ never in app/
+import { catalogStore } from "@/features/catalog/catalog.store";
+```
+
+## Providers in app
+
+Cross-cutting context (session) — in `app/providers.tsx`:
+
+```tsx
+"use client";
+import { SessionProvider } from "@/services/session/public/session-provider";
+
+export function Providers({ children }) {
+  return <SessionProvider>{children}</SessionProvider>;
+}
+```
+
+`profile.tsx` reads `useSession()` — provider is mounted in app, not in a feature.
+
+## Services
+
+| Module | Consumers | Role |
+| --- | --- | --- |
+| `cart` | catalog, checkout | `addToCart`, `cartTotal` |
+| `session` | profile (via provider) | `SessionProvider` |
+
+`services/` appeared because **two modules** import cart — promotion from colocation.
+
+## Styles
+
+| Kind | Where | Example |
+| --- | --- | --- |
+| Global | `app/globals.scss` | reset, shell |
+| SCSS module | next to `public/` page | `catalog-page.module.scss` |
+| CSS module | next to `public/` page | `checkout-page.module.css` |
+
+Global styles — only from `layout.tsx`. Features do not import globals.
+
+## Tooling
+
+```bash
+bun run dma-check   # dma check .
+bun run lint        # eslint + compositionRoots: ["app", "pages", "routes"]
+bun run test
+```
+
+ESLint catches file-scoped errors (store from `page.tsx`). Full graph — only `dma check`.
+
+## What's next
+
+<Cards>
+  <Card title="Vite + React" description="Runnable canon" href="/guides/vite-react" />
+  <Card title="Cross-module wiring" description="Providers and events" href="/guides/cross-module-wiring" />
+  <Card title="Project layout" description="app vs pages vs routes" href="/start/project-layout" />
+</Cards>

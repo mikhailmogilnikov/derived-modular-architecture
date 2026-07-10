@@ -1,6 +1,50 @@
 ---
 title: "Overview"
 description: "When to read deep dive and where to start."
+icon: "BookOpen"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/deep-dive/index).
+Deep Dive is for people who already understand the basics and want answers to "why it works this way." You do not have to read it cover to cover. Pick the question that came up in review or in a debate with a teammate.
+
+<Callout type="info">
+  If DMA is new to you, start with [What is DMA](/start/what-is-dma) and [Four invariants](/concepts/invariants). You can come back here later.
+</Callout>
+
+## Question → article
+
+| Question | Article |
+| --- | --- |
+| Why forbid `index.ts` re-exports? | [Why no barrel files](/deep-dive/why-no-barrels) |
+| Why not widgets/entities like in FSD? | [Why two module layers](/deep-dive/why-two-layers) |
+| Where does the cart go — services or shared? | [Services vs Shared](/deep-dive/services-vs-shared) |
+| How is DMA different from FSD? | [DMA vs FSD](/deep-dive/dma-vs-fsd) |
+| Why a CLI if ESLint exists? | [Why CLI, not only linters](/deep-dive/why-cli-not-only-linters) |
+| What does DMA **not** solve? | [What DMA does not do](/deep-dive/what-dma-does-not-do) |
+| Where should a new file go? | [Placement](/concepts/placement) |
+
+## Recommended order
+
+If you do read it in sequence:
+
+1. [Why two module layers](/deep-dive/why-two-layers) — layer philosophy
+2. [Why no barrel files](/deep-dive/why-no-barrels) — graph transparency
+3. [Services vs Shared](/deep-dive/services-vs-shared) — the only "gray" boundary
+4. [Why CLI, not only linters](/deep-dive/why-cli-not-only-linters) — enforcement
+5. [DMA vs FSD](/deep-dive/dma-vs-fsd) — comparison with an alternative
+
+## Relation to concepts
+
+| Deep Dive | Base article |
+| --- | --- |
+| Barrel files | [Modules and public API](/concepts/modules) |
+| Two layers | [Layers](/concepts/layers) |
+| Services vs Shared | [Shared](/concepts/shared), [Code evolution](/concepts/evolution) |
+| CLI vs linters | [Tooling overview](/tooling/overview) |
+
+## What's next
+
+<Cards>
+  <Card title="Concepts" description="Invariants, layers, modules" href="/concepts/invariants" />
+  <Card title="Tooling" description="CLI and plugins" href="/tooling/overview" />
+  <Card title="Quick start" description="Your first dma check" href="/start/quick-start" />
+</Cards>

@@ -1,6 +1,114 @@
 ---
 title: "CI"
-description: "How to wire dma check into your pipeline."
+description: "How to wire dma check into the pipeline — GitHub Actions, JSON, SARIF."
+icon: "Workflow"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/tooling/ci).
+`dma check` is the only check that **must** block merge. Linters in CI are useful, but without the CLI you will not see cycles and inbound predicates.
+
+## Minimal step
+
+```bash
+npx @derived-modular/cli check .
+```
+
+Exit code `1` — architectural violations. Exit code `2` — environment problem (missing `src/`, broken tsconfig).
+
+Add the command to the pipeline after install and before deploy.
+
+## GitHub Actions
+
+```yaml
+name: Architecture
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  dma:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm ci
+
+      - run: npx @derived-modular/cli check . --format json
+```
+
+For bun:
+
+```yaml
+      - uses: oven-sh/setup-bun@v2
+
+      - run: bun install --frozen-lockfile
+
+      - run: bun x @derived-modular/cli check .
+```
+
+## JSON for scripts and agents
+
+```bash
+npx @derived-modular/cli check . --format json > dma-report.json
+```
+
+The report is stable (`version: 1`) — easy to parse in custom CI, bots, and AI agents.
+
+## SARIF for GitHub Code Scanning
+
+```bash
+npx @derived-modular/cli check . --format sarif > dma.sarif
+```
+
+Upload the artifact to Code Scanning — violations appear in the Security tab alongside other analyzers.
+
+## What to run together
+
+| Step | Command | Blocks merge? |
+| --- | --- | --- |
+| Architecture (required) | `npx @derived-modular/cli check .` | Yes |
+| Lint (optional) | `eslint .` / `biome check` | Team choice |
+| Evolution (optional) | `npx @derived-modular/cli doctor .` | No (exit 0) |
+
+`doctor` in CI only makes sense as an informational job — growth signals, not a gate.
+
+## Monorepo
+
+Currently v1 CLI inspects one app root per invocation. In a monorepo run check **per application**:
+
+```bash
+npx @derived-modular/cli check apps/web
+npx @derived-modular/cli check apps/admin
+```
+
+Or via turbo/npm scripts in each package. Details — [Monorepo](/guides/monorepo).
+
+## Examples in the DMA repository
+
+All [examples](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples) pass `dma check`. In the DMA monorepo CI:
+
+```yaml
+- name: DMA-check examples
+  run: bun run dma-check:examples
+```
+
+## Common mistakes
+
+| Problem | Fix |
+| --- | --- |
+| `exit 2`, missing `src/` | Ensure `path` points to the application root, not the monorepo |
+| Aliases not resolved | Check `tsconfig.json` paths at the application root |
+| CI green, local fails | CLI versions, different cwd, uncommitted files |
+
+## What's next
+
+<Cards>
+  <Card title="dma check" description="Rules and exit codes" href="/tooling/cli/check" />
+  <Card title="Tooling overview" description="CLI + linters" href="/tooling/overview" />
+  <Card title="Quick start" description="First local run" href="/start/quick-start" />
+</Cards>

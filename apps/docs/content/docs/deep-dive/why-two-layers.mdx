@@ -1,6 +1,60 @@
 ---
 title: "Why Two Module Layers"
-description: "Why features and services, not widgets/entities."
+description: "Features and services are not a shortcut. Why not widgets/entities and not FSD's six layers."
+icon: "Layers2"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/deep-dive/why-two-layers).
+## Short answer
+
+The dependency graph has one qualitative split: **"nothing depends on me"** vs **"other modules depend on me."** Features are the first, services the second. Extra layers (widgets, entities, processes) slice a continuous rank by size and meaning — you argue about boundaries forever, and a machine cannot verify them.
+
+## Continuous rank vs discrete obligations
+
+Any module can be placed on the axis "how much code depends on it." That is a continuous scale. But **obligations** change in a jump at one point:
+
+| | Feature | Service |
+| --- | --- | --- |
+| Inbound from modules | No | Yes |
+| API stability | Can change more freely | Dependents break |
+| Promotion | — | Feature moves here |
+| Predicate | Checkable: no inbound | Checkable: has inbound |
+
+Adding `widgets` between `features` and `services` means introducing a boundary with **no different machine obligations** on either side. That is taste, not a rule.
+
+## Why not FSD with 4–6 layers
+
+Feature-Sliced Design cuts code by semantics: entities, features, widgets, pages… Teams argue for months: "is the cart an entity or a feature?" DMA answers: **do not argue — look at the graph.**
+
+- No inbound from modules → `features/`
+- Inbound appeared → `services/`
+- Portable code → `shared/`
+
+Product semantics stay in folder names (`checkout`, `catalog`), not in layer rank.
+
+## Why not one flat `modules/`
+
+Without a feature/service split the inbound predicate is meaningless. You will not automatically know that a module became shared and its API should stabilize. Promotion is a deliberate design moment: an API that grew for one consumer is forced to become a contract for many.
+
+## `services/` is not day one
+
+The folder is lazy: while all modules are leaf features, `services/` is not needed. Rules about services "sleep." That lowers the entry bar — you do not create empty layers "for later."
+
+## Honest trade-offs
+
+**DMA loses** when:
+
+- the team needs a strict semantic taxonomy for onboarding ("everything about the user goes in entities");
+- the product is huge and horizontal domains (`billing/`, `catalog/`) matter more than vertical rank — DMA recommends splitting by domain inside `services/`, not new layers.
+
+**DMA wins** when:
+
+- you want rules CI can check without interpretation;
+- you are tired of "is this a widget or a feature?" on every review.
+
+Table comparison — [DMA vs FSD](/deep-dive/dma-vs-fsd).
+
+## Related topics
+
+- [Layers](/concepts/layers) — predicates and import direction
+- [Code evolution](/concepts/evolution) — promotion feature → service
+- Tooling: `feature-has-inbound`, `service-no-inbound` in [dma check](/tooling/cli/check)

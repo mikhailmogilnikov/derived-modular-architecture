@@ -1,6 +1,65 @@
 ---
 title: "DMA vs FSD"
-description: "Comparison on layers, enforcement, and flexibility."
+description: "An honest comparison of Derived Modular Architecture and Feature-Sliced Design."
+icon: "GitCompare"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/deep-dive/dma-vs-fsd).
+Feature-Sliced Design (FSD) and DMA address a similar pain — chaos in frontend architecture. But the approach differs: FSD cuts by **product semantics**, DMA by **graph predicates** a machine can verify.
+
+This is not "FSD bad, DMA good." These are different bets.
+
+## Comparison axis
+
+| | FSD | DMA |
+| --- | --- | --- |
+| Layer boundaries | Semantics (entity, feature, widget…) | Predicates (inbound edges, direction) |
+| Review debates | "Is this an entity or a feature?" | "Has inbound? → service" |
+| Enforcement | Conventions, linters (varying maturity) | `dma check` — full graph in CI |
+| Module layers | 4–6+ | 2 (features + services) |
+| Shared/kernel | Separate layers | `shared/` with groups |
+| Project start | Often all folders at once | `services/` lazy, shared almost empty |
+| Onboarding | Taxonomy helps newcomers | Fewer words — more graph |
+
+## Where FSD is stronger
+
+**Semantic onboarding.** Easier for newcomers: "everything about the user goes in entities." DMA does not give that cheat sheet — you look at dependencies.
+
+**Rich taxonomy for large teams.** When the product is mature and roles are split (design system, platform, features), FSD's named layers are a shared language.
+
+**Ecosystem.** FSD has been around longer — more articles, examples, community tooling.
+
+## Where DMA is stronger
+
+**Machine verification.** Four invariants (direction, public API, colocation, second-use) and seven hard `dma check` rules in CI. The debate "is this import allowed" ends with an exit code, not an hour on Zoom.
+
+**Fewer rank arguments.** Two module layers with checkable obligations — not six where the widget/feature boundary is subjective.
+
+**Lazy growth.** You do not create empty `services/`, `entities/`, `widgets/`. Folders appear when the graph says "time."
+
+**Honest trade-offs.** One boundary stays human — `services` vs `shared`. The rest is tooling.
+
+## Can you combine them?
+
+In practice — little point in layering FSD slices on top of DMA predicates: you get two conflicting rule sets.
+
+You can **borrow ideas**: feature naming, colocation, public API. DMA does not forbid folders named `catalog` and `checkout` — it forbids importing feature from feature.
+
+## Who DMA is for
+
+- Teams tired of architecture debates with no objective criterion
+- Projects where CI must catch cycles and promotion
+- Monorepos and long-lived codebases where the graph matters more than taxonomy
+
+## Who FSD is for
+
+- Teams where semantic layers are already the shared language
+- Products with strict domain modeling from day one
+- When machine enforcement matters less than onboarding
+
+## Related deep dives
+
+<Cards>
+  <Card title="Why two module layers" description="Defense against 4–6 layers" href="/deep-dive/why-two-layers" />
+  <Card title="Why CLI, not only linters" description="Graph vs file" href="/deep-dive/why-cli-not-only-linters" />
+  <Card title="What is DMA" description="Introduction" href="/start/what-is-dma" />
+</Cards>

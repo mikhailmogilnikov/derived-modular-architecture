@@ -1,7 +1,123 @@
 ---
-title: "AI & agents"
-description: "The dma agent skill — install for Cursor and other assistants, workflow with check --format json."
+title: "AI and agents"
+description: "Agent skill dma — setup for Cursor and other assistants, workflow with check --format json."
 icon: "Bot"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/tooling/ai-agents).
+LLM assistants write code fast, but often "improve" architecture using FSD-style patterns: inventing `widgets/`, `entities/`, barrel `index.ts`, pulling feature → feature. DMA relies on the **graph and tooling**, not model taste.
+
+An **agent skill** is a compact instruction for the agent: placement algorithm, list of prohibitions, links to the spec. The skill **does not replace** `dma check` — it guides the agent before merge; the CLI remains the gate in CI.
+
+## What's inside the `dma` skill
+
+Source in the repository: [skills/dma](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/skills/dma).
+
+| Section | Contents |
+| --- | --- |
+| Placement algorithm | Where to put a file — same steps as [Where to put a file](/concepts/placement) |
+| Import cheat sheet | Dependency direction, `*/public/*`, `import type` = edge |
+| Agent workflow | Inspect → place/move → verify via CLI |
+| Refuse / rewrite | Barrels, feature→feature, premature `shared/`, ports instead of promotion |
+| Linter matrix | ESLint / Oxlint / Biome — file-scoped, not full graph |
+| When to open more | spec, reference.md, examples, fixtures |
+
+The normative SoT for the agent is [spec/](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/spec). The skill is a compressed checklist, not a replacement for the specification.
+
+## Installation
+
+Via [skills.sh](https://skills.sh/) (Cursor, Claude Code, and other hosts with skills support):
+
+```bash
+npx skills add mikhailmogilnikov/derived-modular-architecture --skill dma
+```
+
+List skills in the repository:
+
+```bash
+npx skills add mikhailmogilnikov/derived-modular-architecture --list
+```
+
+### Manual setup
+
+Copy or symlink the `skills/dma` folder into your editor's skills directory (for example `~/.cursor/skills/dma` or `.cursor/skills/dma` at the project root). The `SKILL.md` file must be available to the agent as a skill.
+
+## Recommended agent workflow
+
+1. **Read the tree** — actual `src/{app\|pages\|routes,features,services?,shared}` and imports; do not assume FSD layers.
+2. **Place / move** using the algorithm; imports go through **direct** paths to `*/public/*`.
+3. **Verify with CLI** (if the package is installed in the project):
+
+```bash
+npx @derived-modular/cli check . --format json
+npx @derived-modular/cli doctor . --format json
+```
+
+| Exit code | Meaning |
+| --- | --- |
+| `0` | OK (for `doctor` — warnings may appear, CI is not broken) |
+| `1` | `check` found violations — fix before merge |
+| `2` | Environment: missing `src/`, tsconfig, invalid arguments |
+
+4. **Do not "fix"** barrels, deep imports, empty `services/`, or ports to bypass legitimate promotion.
+5. **In CI** still run `check` — the agent may not have run the CLI or may have missed an edge case.
+
+<Callout type="warn">
+  "The agent said the architecture is fine" is not an argument. The only hard gate is `npx @derived-modular/cli check` in CI (and locally before push).
+</Callout>
+
+## JSON for automation
+
+The `--format json` flag produces a stable report (`version: 1`) — convenient for CI, scripts, and agents:
+
+```bash
+npx @derived-modular/cli check . --format json
+npx @derived-modular/cli doctor . --format json
+```
+
+The `ruleId`, `severity`, `file`, and `message` fields match the [violation reference](/tooling/cli/check#violation-reference) and [doctor](/tooling/cli/doctor) signals.
+
+SARIF is for GitHub Code Scanning; see [CI](/tooling/ci).
+
+## Skill + linter + CLI
+
+```text
+Agent (skill)     →  where to put a file, what not to invent
+Editor (lint)     →  four file-scoped rules on save
+CI (dma check)    →  full graph, cycles, inbound predicates
+```
+
+The skill and ESLint/Biome **do not see** `no-cycle` and `feature-has-inbound` — only the CLI does. See [Tooling overview](/tooling/overview) and [Why CLI, not linters only](/deep-dive/why-cli-not-only-linters).
+
+## AGENTS.md in your project
+
+In your own repository you can duplicate key rules in `AGENTS.md` (check commands, barrel prohibition). The `dma` skill is a ready-made variant with the algorithm and refuse list; use the skill if you do not want to maintain your own file manually.
+
+Minimum for a DMA project in any case:
+
+```json
+{
+  "scripts": {
+    "dma-check": "npx @derived-modular/cli check ."
+  }
+}
+```
+
+And a line in CI — see [CI](/tooling/ci).
+
+## What the skill does not do
+
+| Not the skill | Why |
+| --- | --- |
+| CI gate | Only `dma check` with exit code |
+| Domain cut choice | Conway — on the team; see [What DMA does not decide](/deep-dive/what-dma-does-not-do) |
+| Import autofix | Manual refactor + re-run `check` |
+| Spec replacement | Skill references spec; on conflict, tooling + spec win |
+
+## What's next
+
+<Cards>
+  <Card title="Where to put a file" description="Algorithm for humans and agents" href="/concepts/placement" />
+  <Card title="dma check" description="JSON, ruleId, exit codes" href="/tooling/cli/check" />
+  <Card title="Tooling overview" description="Hybrid model" href="/tooling/overview" />
+  <Card title="CI" description="Gate in the pipeline" href="/tooling/ci" />
+</Cards>

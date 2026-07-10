@@ -1,6 +1,75 @@
 ---
-title: "Overview"
-description: "Hybrid model: CLI in CI, linters in the editor."
+title: "Tooling overview"
+description: "Hybrid enforcement model: full graph in CLI, fast feedback in the editor."
+icon: "Wrench"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/tooling/overview).
+DMA validates architecture **hybridly**: heavy graph audit in the CLI, lightweight per-file hints in linters.
+
+Rules that cannot be checked by a machine eventually stop being followed. That is why the core is `npx @derived-modular/cli check`, not "set up ESLint and forget."
+
+## Two surfaces
+
+| Tool | Where to run | Role |
+| --- | --- | --- |
+| `npx @derived-modular/cli check` | CI, pre-push | Hard gate: graph, cycles, inbound predicates |
+| `npx @derived-modular/cli doctor` | Locally | Soft growth signals (exit 0) |
+| Agent skill `dma` | Cursor, Claude Code, … | Placement algorithm and prohibitions for LLMs |
+| ESLint / Oxlint / Biome | Editor, `lint` script | Four file-scoped rules |
+
+**Always run `npx @derived-modular/cli check` in CI.** Linters are a speed supplement, not a replacement.
+
+## Coverage matrix
+
+| Rule | dma check | dma doctor | ESLint / Oxlint | Biome |
+| --- | --- | --- | --- | --- |
+| `layer-direction` | ✓ | — | ✓ | heuristic |
+| `feature-to-feature` | ✓ | — | ✓ | heuristic |
+| `public-api` | ✓ | — | ✓ | heuristic |
+| `no-barrel` | ✓ | — | ✓ | heuristic |
+| `no-cycle` | ✓ | — | — | — |
+| inbound predicates | ✓ | — | — | — |
+| evolution signals | — | ✓ | — | — |
+
+Cycles and "a feature with inbound edges must be a service" are **graph** properties. A linter sees one file at a time and cannot see the full graph, so these rules live only in the CLI.
+
+<Callout type="info">
+  Why linters alone are not enough → [Why CLI, not linters only](/deep-dive/why-cli-not-only-linters).
+</Callout>
+
+## Packages
+
+| Package | Purpose |
+| --- | --- |
+| `@derived-modular/cli` | `check` + `doctor` |
+| `@derived-modular/eslint-plugin` | ESLint flat config |
+| `@derived-modular/oxlint-plugin` | Same rules for Oxlint |
+| `@derived-modular/biome-plugin` | GritQL heuristics (weaker) |
+| `@derived-modular/boundaries` | Shared path classification for CLI and ESLint |
+| Skill `dma` ([skills/dma](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/skills/dma)) | Agent skill — not an npm package; `npx skills add … --skill dma` |
+
+## Recommended workflow
+
+1. **Locally:** ESLint (or Biome/Oxlint) on save — catches obvious imports
+2. **Before push:** `npx @derived-modular/cli check .`
+3. **From time to time:** `npx @derived-modular/cli doctor .` — see what to extract or promote
+4. **In CI:** `npx @derived-modular/cli check . --format json` (or SARIF for GitHub Code Scanning)
+
+## What to choose
+
+| Situation | Recommendation |
+| --- | --- |
+| Already on ESLint 9+ flat config | `@derived-modular/eslint-plugin` |
+| Biome as unified linter/formatter | `@derived-modular/biome-plugin` + still run `dma check` in CI |
+| Oxlint for speed | `@derived-modular/oxlint-plugin` (alpha) |
+| CI only, no editor | `@derived-modular/cli` is enough |
+
+## What's next
+
+<Cards>
+  <Card title="AI and agents" description="dma skill for Cursor and CLI JSON" href="/tooling/ai-agents" />
+  <Card title="dma check" description="Hard check for CI" href="/tooling/cli/check" />
+  <Card title="dma doctor" description="Evolution signals" href="/tooling/cli/doctor" />
+  <Card title="ESLint" description="Editor plugin" href="/tooling/eslint" />
+  <Card title="CI" description="Pipeline integration" href="/tooling/ci" />
+</Cards>

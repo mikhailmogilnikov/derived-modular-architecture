@@ -1,6 +1,86 @@
 ---
-title: "Placement"
-description: "Code placement algorithm: composition root through promotion and shared."
+title: "Where to put a file"
+description: "Code placement algorithm: from composition root to promotion and shared."
+icon: "GitBranch"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/concepts/placement).
+The answer to “where does this file go” isn't taste — it's a sequence of predicates. Walk the steps top to bottom and **stop at the first match**.
+
+## Algorithm
+
+1. **Route, layout, wiring, providers?** → composition root: `app/`, `pages/`, or `routes/`. Only mount `*/public/*`, no business logic.
+2. **Must another module import this code (product flow)?** → `services/<name>/public/`. Promotion: move + revisit public API. Never `feature → feature`.
+3. **Portable helper, UI, or type already needed by 2+ modules?** → `shared/{ui,lib,api,model,domain}`. Don't extract on first use.
+4. **Sole consumer is one module?** → colocate inside that module (internal file or `ui/`, `model/` segment).
+5. **New leaf flow, mounted only from composition root?** → `features/<name>` (stage 0 — one file, stage 1+ — folder with `public/`).
+6. **Edge would create a cycle or step upward?** → port in `public/ports.ts` + bind in composition root. Don't use a port to bypass lawful promotion.
+
+### Quick predicates
+
+| Path | Predicate |
+| --- | --- |
+| `app/` / `pages/` / `routes/` | Assembles the app; modules don't import it |
+| `features/` | No inbound from other **modules** |
+| `services/` | Has inbound from modules; folder created on first promotion |
+| `shared/` | Portable code without a product flow |
+
+Inbound for promotion — only from `features/*` and `services/*`. Mount from composition root does **not** trigger promotion.
+
+## Table: typical file → folder
+
+| You have… | Where | Example |
+| --- | --- | --- |
+| `page.tsx`, `+page.svelte`, `index.astro` | composition root | `app/page.tsx` |
+| Providers, event wiring | composition root | `app/providers.tsx` |
+| Screen / flow for a route | `features/<name>/public/` or stage-0 file | `catalog-page.tsx` |
+| Store for one feature | colocate in feature | `checkout.store.ts` |
+| Composable for one feature (Vue) | colocate in feature | `use-catalog-search.ts` |
+| Logic for catalog **and** checkout | `services/<name>/public/` | `cart.ts` |
+| Button without product logic | `shared/ui/` | `button.tsx` |
+| `formatCurrency`, dates, i18n | `shared/lib/` | `format-currency.ts` |
+| Base HTTP client, interceptors | `shared/api/` | `http.ts` |
+| Endpoints for one feature | colocate in feature | `catalog.api.ts` |
+| `Product`, injection key | `shared/model/` or `shared/domain/` | `product.ts` |
+| Unit test for store | next to store | `checkout.store.test.ts` |
+| E2E | app root | `e2e/` next to config |
+
+## services vs shared (last manual step)
+
+Question: “Could this code live in another product without changing its meaning?”
+
+- **Yes** → `shared/` (formatting, UI primitive, type)
+- **No** → `services/` (cart, session, catalog API as a product flow)
+
+When in doubt, keep colocation in the feature until a second consumer. More — [Services vs Shared](/deep-dive/services-vs-shared).
+
+## Cross-module wiring
+
+Feature does not import feature. Options:
+
+| Task | Mechanism |
+| --- | --- |
+| Callback / props | composition root passes between `public/` entries |
+| Event without subscribers | `public/*.events.ts`; subscribe in `app/` |
+| Cycle / external seed | `public/ports.ts` + bind in `app/` |
+
+Breakdown — [Cross-module wiring](/guides/cross-module-wiring).
+
+## What tooling checks
+
+| Situation | Rule |
+| --- | --- |
+| Import upward across layers | `layer-direction` |
+| `features/a` → `features/b` | `feature-to-feature` |
+| Import bypassing `public/` | `public-api` |
+| Feature with inbound | `feature-has-inbound` |
+| Candidate for shared/services | `shared-candidate` (doctor) |
+
+Full error breakdown — [dma check: violation reference](/tooling/cli/check#violation-reference).
+
+## What's next
+
+<Cards>
+  <Card title="Modules & public API" description="Stages 0–4" href="/concepts/modules" />
+  <Card title="Code evolution" description="Promotion and second-use" href="/concepts/evolution" />
+  <Card title="Project layout" description="The src/ tree" href="/start/project-layout" />
+</Cards>

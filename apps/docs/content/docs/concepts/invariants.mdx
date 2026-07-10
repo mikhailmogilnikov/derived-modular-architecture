@@ -1,6 +1,80 @@
 ---
-title: "Four Invariants"
-description: "Rules DMA enforces at every scale."
+title: "Four invariants"
+description: "Rules DMA enforces at every scale — from a pet project to a monorepo."
+icon: "Shield"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/concepts/invariants).
+An invariant in DMA is a rule that **does not depend on team or project size**. Four such rules cover dependency direction, module boundaries, and how code grows over time.
+
+If a rule can't be verified by tooling — it's a wish, not part of the architecture. One exception: the boundary between `services` and `shared` partly remains your judgment (see [Layers](/concepts/layers)).
+
+## 1. Imports only downward
+
+Modules import only from layers below in rank:
+
+```text
+app/pages/routes → features → services → shared
+```
+
+The composition root (`app/`, `pages/`, `routes/`) assembles the application. Features don't know about each other. Services may depend on other services, but the graph stays acyclic. Shared — only within shared.
+
+**Why:** cycles and “leaks upward” are the main reason refactoring gets expensive. Direction is fixed and visible in the graph.
+
+**What tooling checks:** rules `layer-direction`, `feature-to-feature`, `no-cycle`.
+
+## 2. Public API without barrel files
+
+When one module uses another, the import goes **directly to a file** inside `*/public/*`:
+
+```ts
+// ✓
+import { CartPanel } from "@/features/cart/public/cart-panel";
+
+// ✗ barrel hides where the dependency really comes from
+import { CartPanel } from "@/features/cart/public";
+```
+
+For small modules (stage 0), the whole file may be public — no `public/` folder. Once the module grows internals, the public surface moves into `public/`.
+
+**Why:** the linter and `dma check` build the graph from real import paths. A barrel with re-exports breaks that graph.
+
+**What tooling checks:** `public-api`, `no-barrel`.
+
+<Callout type="info">
+  Want to go deeper — [Why no barrel files](/deep-dive/why-no-barrels).
+</Callout>
+
+## 3. Colocation by default
+
+New code lives **next to its sole consumer** until a second one appears. Don't create `shared/format-date.ts` if `format-date` is only needed in checkout.
+
+**Why:** premature generalization bloats `shared/` and blurs module boundaries. Colocation keeps code where it's easier to understand and delete.
+
+**What tooling checks:** partially — `shared-candidate` in `dma doctor`, when **the same file** is already legally imported by 2+ modules (often after a lift into `shared/` or on a `services/*/public/*` surface).
+
+## 4. Second-use rule
+
+You may move code up a level only when a **second consumer** appears — not “for the future,” not “just in case.”
+
+Typical path:
+
+1. Helper colocated inside feature A — one consumer.
+2. The same code is needed by feature B → **first** extract (to `shared/` or promotion into `services/`), don't deep-import from A's internals.
+3. If B imported A's internals directly — `check` fails on `public-api` / `feature-to-feature` before doctor shows `shared-candidate`.
+4. After a legal second consumer, `dma doctor` may hint `shared-candidate` on the shared file.
+
+**Why:** architecture grows from actual use, not expectations.
+
+**What tooling checks:** `shared-candidate`, inbound predicates on promotion.
+
+## Important detail about types
+
+`import type` counts as a dependency the same as a regular import. A type link is still a link. You can't bypass rules via `import type`.
+
+## What's next
+
+<Cards>
+  <Card title="Layers" description="How membership in app, features, services, shared is determined" href="/concepts/layers" />
+  <Card title="Modules & public API" description="Module growth stages and the public/ folder" href="/concepts/modules" />
+  <Card title="Code evolution" description="Promotion, doctor, second-use in practice" href="/concepts/evolution" />
+</Cards>

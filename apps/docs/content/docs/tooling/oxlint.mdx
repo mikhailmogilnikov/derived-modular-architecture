@@ -1,6 +1,65 @@
 ---
 title: "Oxlint"
-description: "JS plugin @derived-modular/oxlint-plugin."
+description: "@derived-modular/oxlint-plugin JS plugin — same rules as ESLint, for Oxlint."
+icon: "Zap"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/tooling/oxlint).
+`@derived-modular/oxlint-plugin` wraps rules from `@derived-modular/eslint-plugin` for Oxlint JS plugins. Same semantics, higher speed — Oxlint is tuned for fast linting of large codebases.
+
+Status: **alpha**. The Oxlint JS plugins API may still change.
+
+Like other linters — **not a replacement** for `dma check`.
+
+## Installation
+
+```bash
+npm install -D @derived-modular/oxlint-plugin oxlint
+```
+
+Peer dependency: `oxlint >= 1.0.0`.
+
+## Configuration
+
+```jsonc
+// .oxlintrc.json
+{
+  "extends": ["./node_modules/@derived-modular/oxlint-plugin/configs/recommended.json"]
+}
+```
+
+Rules are available under the `dma/*` prefix, e.g. `dma/no-barrel`, `dma/layer-direction`.
+
+## Coverage
+
+| Rule | Oxlint | dma check |
+| --- | --- | --- |
+| `layer-direction` | ✓ | ✓ |
+| `feature-to-feature` | ✓ | ✓ |
+| `public-api` | ✓ | ✓ |
+| `no-barrel` | ✓ | ✓ |
+| `no-cycle` | — | ✓ |
+| inbound predicates | — | ✓ |
+| `dma doctor` | — | ✓ |
+
+Oxlint uses the same `@derived-modular/boundaries` as ESLint — file-scoped rule accuracy is comparable to the ESLint plugin, not Biome heuristics.
+
+## Oxlint vs ESLint
+
+| | Oxlint | ESLint |
+| --- | --- | --- |
+| Speed | Higher on large repos | Standard |
+| DMA plugin maturity | Alpha | Stable |
+| Graph rules | No (same as ESLint) | No |
+| When to use | Already on Oxlint, need speed | Default choice |
+
+## Biome-only projects
+
+If the linter is Biome only — see [Biome](/tooling/biome). Oxlint and Biome together are usually unnecessary.
+
+## What's next
+
+<Cards>
+  <Card title="ESLint" description="Stable alternative" href="/tooling/eslint" />
+  <Card title="dma check" description="Required in CI" href="/tooling/cli/check" />
+  <Card title="Tooling overview" description="Hybrid model" href="/tooling/overview" />
+</Cards>

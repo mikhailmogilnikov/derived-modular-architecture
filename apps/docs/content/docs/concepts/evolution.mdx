@@ -1,6 +1,99 @@
 ---
-title: "Code Evolution"
-description: "Second-use rule, promotion, and doctor signals."
+title: "Code evolution"
+description: "How architecture grows without rewriting: second-use, promotion, doctor signals."
+icon: "TrendingUp"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/concepts/evolution).
+DMA doesn't scale by replacing architecture with another. The project **densifies in place**: folders appear when predicates start carrying information.
+
+You don't create an empty `services/` “for growth.” You don't extract to `shared/` “just in case.” Growth responds to a second consumer or a tooling signal.
+
+## Three project phases
+
+### 1. Start
+
+```text
+src/
+├── app/          # or pages/, routes/
+├── features/
+└── shared/       # almost empty
+```
+
+No `services/`. All modules are leaf features.
+
+### 2. First promotion
+
+A module is needed by **another module** → create `services/`, move the module, revisit public API. From this point, cycle checks inside services become useful.
+
+Example: catalog calls `addToCart`, checkout too — cart moves from feature to `services/cart/`.
+
+### 3. Domains (when services has grown)
+
+Dense services subgraph or multiple teams → **horizontal** split (`domains/billing/`, separate packages). No new vertical layers are added.
+
+## Second-use rule
+
+| What happened | Action |
+| --- | --- |
+| Feature needed by another module | Promotion into `services/` |
+| Portable helper/UI needed by 2+ modules | Lift into `shared/` (appropriate group) |
+| Type from `public/` needed by 2+ modules | Move to `shared/domain` |
+
+`import type` is also a graph edge. Bypass via types won't work.
+
+Mount from composition root **does not count** as inbound and does not trigger promotion.
+
+## Promotion — a design moment
+
+When a feature gets inbound from another module, an API grown for one consumer becomes a contract for many. This is a deliberate step:
+
+1. Move to `services/<name>/`
+2. Revisit `public/` — what's actually needed outside
+3. Confirm `dma check` is green (`feature-has-inbound` no longer complains)
+
+## Module growth triggers
+
+| Signal | Action | Tooling |
+| --- | --- | --- |
+| Sibling files with shared basename prefix at stage 0 (`checkout.tsx` + `checkout.store.ts`) | Stage 1: folder + `public/` | `stage-growth` |
+| ~8+ internal files | Stage 2: ui/model/api segments | `stage-growth` |
+| Bloated `public/` | Stage 3: split module | Review (no doctor yet) |
+| Feature needed by a module | Promotion → `services/` | `feature-has-inbound` |
+| Cycle between modules | Port + wiring in `app`, or extract to shared | `no-cycle` |
+| Dense services subgraph | Horizontal split | `dense-services` |
+
+Thresholds are CLI defaults. v1 has no user config to change them.
+
+## `dma doctor` signals
+
+Soft hints. Exit code 0 — doesn't break CI.
+
+### shared-candidate
+
+A module file is imported by 2+ other modules. Often this is a healthy `services/*/public/*` surface. Before a lift into `shared/`, ask: is this product logic or a portable helper?
+
+### stage-growth
+
+Module structure lags size: a file module gained sibling files with the same basename prefix, or a folder has many files without `ui/` / `model/` / `api/` segments.
+
+### dense-services
+
+The `services/` subgraph looks dense — time to split by domain.
+
+### orphan-public
+
+A file in `public/` nobody imports — dead contract. Remove or make internal.
+
+More on the command — [dma doctor](/tooling/cli/doctor).
+
+When adopting DMA in an existing project, promotion and doctor signals go together with a phased plan — [Migration](/guides/migration).
+
+## What's next
+
+<Cards>
+  <Card title="Where to put a file" description="Algorithm at promotion time" href="/concepts/placement" />
+  <Card title="Modules & public API" description="Stages 0–4" href="/concepts/modules" />
+  <Card title="Migration" description="Phased adoption" href="/guides/migration" />
+  <Card title="Layers" description="Promotion and predicates" href="/concepts/layers" />
+  <Card title="Shared" description="When to lift into shared" href="/concepts/shared" />
+</Cards>

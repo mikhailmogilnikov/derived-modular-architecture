@@ -1,6 +1,82 @@
 ---
 title: "What is DMA"
-description: "What DMA is and why it exists."
+description: "Why the frontend needs rules you can verify in CI — and why “it works fine for us” usually doesn't last."
+icon: "Layers"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/start/what-is-dma).
+At the start of a project, the architecture is almost always “fine.” Imports are short, there are few folders, and everyone remembers the agreements. Six months to a year later, the picture is different: features pull on each other, `utils/` grows without bound, and in code review people argue about where to put a file — and each time whoever is loudest or most tired wins.
+
+The problem isn't that people are bad. The problem is that **without enforcement, rules live only in people's heads**. And heads change, deadlines press, and “just this once” becomes the norm.
+
+Derived Modular Architecture (DMA) is a way to structure frontend code so that the main constraints follow from project structure and imports, not from verbal agreements. And so they can be verified in CI — the same way as types or lint.
+
+## Why “it works fine for us” isn't an argument
+
+While the project is small, almost any scheme works. It won't break today — it will break when:
+
+- someone imports a neighboring feature “temporarily” — and three months later it's an invisible tangle;
+- shared code is extracted “for the future” — and you get a pile of helpers nobody cleans up;
+- dependencies are hidden behind `index.ts` re-exports — and nobody sees who actually depends on whom.
+
+Code review catches this selectively. On Friday evening — almost never. DMA is about making sure such things **don't depend on the reviewer's mood**.
+
+## What enforcement gives you
+
+Along with the rules comes a set of tools: `@derived-modular/cli` for CI, linter plugins (ESLint, Oxlint, Biome) for the editor, and the **agent skill** `dma` for Cursor and other assistants — see [AI & agents](/tooling/ai-agents).
+
+The idea is simple:
+
+- in the editor — fast feedback while you write code;
+- in CI — a hard gate before merge: if you broke a rule, the pipeline fails.
+
+Without this, DMA is just another folder guide. With enforcement — an agreement you can't “forget.”
+
+```bash
+npm install -D @derived-modular/cli
+npx @derived-modular/cli check .
+```
+
+How to install and what exactly gets caught — in [Quick start](/start/quick-start) and [Tooling overview](/tooling/overview). What matters more right now: **why** this exists at all.
+
+## What a project looks like
+
+DMA rules rest on a clear tree:
+
+```text
+src/
+├── app/         # routes, layout, screen wiring
+├── features/    # separate user flows
+├── services/    # shared across flows (appears later)
+└── shared/      # portable pieces: buttons, helpers, types
+```
+
+On different frameworks, `app/` may be `pages/` or `routes/` — the meaning is the same: a thin shell that assembles screens, not where all the logic lives.
+
+You don't need to create `services/` “for growth.” It appears on **promotion**: when **another module** must import this code (a single inbound edge from `features/*` or `services/*` is enough). Mount from `app/` / `pages/` / `routes/` does not trigger promotion. Until then, colocate the code next to its sole consumer.
+
+More on the tree — [Project layout](/start/project-layout).
+
+## A few simple rules
+
+Without the full glossary — the gist:
+
+1. Dependencies flow top to bottom: shell → flows → shared product logic → portable code.
+2. Features don't import each other directly — otherwise you quickly get a tangle.
+3. Outside a module, only what's explicitly exported is visible; no “barrel” re-exports that hide relationships.
+4. Don't extract code “for the future” — extract when a second consumer appears.
+
+In depth — [Four invariants](/concepts/invariants).
+
+## What DMA is not
+
+It's not a new framework and not a ban on thinking. React, Vue, Svelte, Astro — stay as they were. DMA doesn't decide how to slice the product into domains or which state library to pick.
+
+It solves something else: so basic module boundaries don't blur on their own while “everything still works.”
+
+## What's next
+
+<Cards>
+  <Card title="Quick start" description="Lay out src/ and wire up enforcement" href="/start/quick-start" />
+  <Card title="Four invariants" description="The rules in plain language" href="/concepts/invariants" />
+  <Card title="Tooling overview" description="CLI and linters" href="/tooling/overview" />
+</Cards>

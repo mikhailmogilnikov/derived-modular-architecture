@@ -1,6 +1,89 @@
 ---
 title: "ESLint"
-description: "The @derived-modular/eslint-plugin package."
+description: "@derived-modular/eslint-plugin — four architectural rules in the editor."
+icon: "ShieldCheck"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/tooling/eslint).
+`@derived-modular/eslint-plugin` gives fast feedback in the editor: a wrong import is highlighted on save, without waiting for CI.
+
+This is **not a replacement** for `dma check`. The plugin looks at one file at a time and does not see cycles in the graph. You still need the CLI in CI.
+
+## Installation
+
+```bash
+npm install -D @derived-modular/eslint-plugin eslint
+```
+
+Requires ESLint 9+ with flat config.
+
+## Minimal setup
+
+```js
+// eslint.config.js
+import dma from "@derived-modular/eslint-plugin";
+
+export default [
+  ...dma.configs.recommended,
+  {
+    settings: {
+      dma: {
+        srcRoot: "src",
+        compositionRoots: ["app", "pages", "routes"],
+      },
+    },
+  },
+];
+```
+
+The `recommended` preset enables all four rules at `error` level.
+
+## Rules
+
+| Rule | What it catches |
+| --- | --- |
+| `@derived-modular/layer-direction` | Import not downward through layers |
+| `@derived-modular/feature-to-feature` | Feature imports another feature |
+| `@derived-modular/public-api` | Cross-module import bypasses `*/public/*` |
+| `@derived-modular/no-barrel` | Barrel `index` with re-exports inside a module |
+
+## `settings.dma` options
+
+| Key | Default | Description |
+| --- | --- | --- |
+| `srcRoot` | `"src"` | Source root |
+| `compositionRoots` | `["app", "pages", "routes"]` | Composition root folders |
+
+The plugin resolves relative imports and `@/` → `srcRoot`. Complex aliases from tsconfig that ESLint does not resolve on its own may need extra host configuration. npm package imports are ignored.
+
+`pages/` and `routes/` are treated like `app/` — for Next.js App Router, Astro, TanStack Router, SvelteKit.
+
+## What ESLint does not cover
+
+| Concern | ESLint | dma check |
+| --- | --- | --- |
+| `no-cycle` | — | ✓ |
+| `feature-has-inbound` | — | ✓ |
+| `service-no-inbound` | — | ✓ |
+| `dma doctor` signals | — | ✓ |
+
+If ESLint is silent but `dma check` fails — that is normal. Run both.
+
+## Oxlint
+
+The same rules are available via [`@derived-modular/oxlint-plugin`](/tooling/oxlint) — JS plugins for Oxlint. Status: alpha.
+
+## Biome
+
+If your project uses Biome instead of ESLint — see [Biome](/tooling/biome). Coverage is weaker (GritQL heuristics), but `dma check` in CI is mandatory either way.
+
+## Example from the repository
+
+Live config — [examples/next-app/eslint.config.js](https://github.com/mikhailmogilnikov/derived-modular-architecture/blob/main/examples/next-app/eslint.config.js).
+
+## What's next
+
+<Cards>
+  <Card title="dma check" description="Full graph audit" href="/tooling/cli/check" />
+  <Card title="Tooling overview" description="How everything fits together" href="/tooling/overview" />
+  <Card title="CI" description="dma check in the pipeline" href="/tooling/ci" />
+</Cards>

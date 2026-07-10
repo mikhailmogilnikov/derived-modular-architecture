@@ -1,6 +1,109 @@
 ---
 title: "SvelteKit"
 description: "DMA with composition root in routes/ and Svelte 5 runes."
+icon: "Layers"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/guides/sveltekit).
+**SvelteKit + Svelte 5** example: breadth across features, promoted cart service, event wiring in `app-providers.svelte`.
+
+Sources: [examples/sveltekit-routes](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/sveltekit-routes).
+
+## Composition root = routes/
+
+DMA treats `src/routes/` as `app/`:
+
+```text
+src/routes/
+├── +layout.svelte       # import app.css, mount AppProviders
+├── +page.svelte         # thin shell — wiring only
+└── app-providers.svelte # theme tokens + event subscriptions
+```
+
+`+page.svelte` mounts `features/*/public/*` and stage-0 `profile.svelte`, `promo.svelte`.
+
+## Event wiring
+
+Checkout emits an event; app subscribes and calls a service:
+
+```svelte
+<!-- routes/app-providers.svelte -->
+<script>
+  import { onCheckoutCompleted } from "@/features/checkout/public/checkout.events";
+  import { clearCart } from "@/services/cart/public/cart";
+
+  onCheckoutCompleted(() => clearCart());
+</script>
+```
+
+No `checkout → cart` as a feature edge — app imports both modules downward. See [Cross-module wiring](/guides/cross-module-wiring).
+
+## Mini-shop flow
+
+1. **Catalog** — `catalog.store.ts` + `addCartItem` from cart service
+2. **Checkout** — cart service + `checkout.store.ts` (payment status)
+3. **AppProviders** — `checkoutCompleted` → `clearCart()`
+4. **Profile / Promo** — stage-0, shared `Card`
+
+## Svelte 5 runes
+
+| File | Runes |
+| --- | --- |
+| `profile.svelte` | `$state` |
+| `app-providers.svelte` | `$props`, `$effect` |
+| `button.svelte` | `$props` |
+
+Stores in `*.store.ts` — regular Svelte stores, auto-subscription via `$store`.
+
+## Where to put code
+
+| Question | Place |
+| --- | --- |
+| Route shell, layout? | `src/routes/` |
+| UI flow? | `features/<name>/public/*` |
+| Single-feature state? | `features/<name>/<name>.store.ts` |
+| 2+ modules? | `services/<name>/public/*` |
+| Portable helper/UI? | `shared/lib/`, `shared/ui/` |
+| Subscribers / ports? | `routes/app-providers.svelte` |
+
+Internals are imported **relative** from the `public/` file of the same feature.
+
+## Styles
+
+| Kind | Where |
+| --- | --- |
+| Global reset | `src/app.css` → `+layout.svelte` |
+| Design tokens | `app-providers.svelte` (`--color-*` on `.app-theme`) |
+| Route shell | scoped `<style>` in `+page.svelte` |
+| Feature page | scoped in `public/*.svelte` |
+| Shared UI | scoped in `shared/ui/*.svelte` |
+| Feature sheet | `checkout/checkout.css` → import from `public/` |
+
+Tokens in the provider shell — features and `shared/ui` read `var(--…)` without importing each other.
+
+## Tests
+
+Colocated `*.test.ts` (Vitest):
+
+- `catalog.store.test.ts` — store + `svelte/store`
+- `services/cart/public/cart.test.ts` — service API
+- `shared/lib/format-currency.test.ts` — pure helper
+
+`dma check` scans `*.test.ts` too — imports in tests follow the same rules. In the example, tests are colocated and import relative inside the module or via `public/`.
+
+## Commands
+
+```bash
+bun run dev
+bun run build
+bun run dma-check   # dma check .
+bun run lint        # oxlint + @derived-modular/oxlint-plugin
+bun run test
+```
+
+## What's next
+
+<Cards>
+  <Card title="Cross-module wiring" description="Events pattern" href="/guides/cross-module-wiring" />
+  <Card title="Oxlint plugin" description="Setup" href="/tooling/oxlint" />
+  <Card title="Vite + React" description="Canonical example" href="/guides/vite-react" />
+</Cards>

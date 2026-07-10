@@ -1,6 +1,100 @@
 ---
 title: "Monorepo"
-description: "dma check in monorepos: multiple apps, workspace packages, CI."
+description: "dma check in a monorepo: multiple apps, workspace packages, CI."
+icon: "Boxes"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/guides/monorepo).
+In v1 the CLI looks at **one app root per invocation**. Monorepo does not break DMA — only how you run checks and where `src/` lives changes.
+
+## One check — one app
+
+```bash
+npx @derived-modular/cli check apps/web
+npx @derived-modular/cli check apps/admin
+npx @derived-modular/cli check examples/vite-react
+```
+
+The path must point at the app root with `src/{app|pages|routes, features, services?, shared}`, not the monorepo root.
+
+`exit 2` with a missing `src/` message often means you passed the workspace root instead of an app package.
+
+## CI for multiple apps
+
+Options:
+
+### Job matrix
+
+```yaml
+strategy:
+  matrix:
+    app: [apps/web, apps/admin]
+steps:
+  - run: npx @derived-modular/cli check ${{ matrix.app }}
+```
+
+### Root script
+
+```bash
+for app in apps/web apps/admin; do
+  npx @derived-modular/cli check "$app" || exit 1
+done
+```
+
+Each app is a separate graph. Cycles between packages via workspace imports are **not** merged into one graph by `dma check` in v1 — an intentional v1 limitation.
+
+## Workspace packages (stage 4)
+
+When a module is consumed by **multiple apps**, extract it into a monorepo package:
+
+```text
+packages/
+└── cart/
+    ├── package.json      # exports point at public surface
+    └── src/
+        └── public/
+            └── cart.ts
+```
+
+Same rules: direct paths, no barrel inside the package. Enforcement via `exports` in `package.json` and app imports to the published surface.
+
+The app imports `@my-org/cart/public/cart` (or a path from `exports`) — as an external module lower in the layer stack, not as a feature.
+
+More on stage 4 — [Modules and public API](/concepts/modules).
+
+## Paths and tsconfig
+
+`@/` aliases resolve from the app's `tsconfig.json`, not the monorepo root tsconfig. Make sure `paths` are set in the package that owns `src/`.
+
+## Examples in this repository
+
+Each example is a workspace package under `examples/*`:
+
+```bash
+bun run build   # build CLI and plugins
+bun run --cwd examples/vite-react dma-check
+```
+
+In the DMA monorepo CI, checks run on examples as separate jobs — same pattern as `apps/*`.
+
+## Linters in monorepo
+
+ESLint / Biome / Oxlint configs are usually **per package**. `@derived-modular/*` plugins are wired in the config of the app where `src/` lives.
+
+Biome Grit plugins resolve paths from the project root; some monorepo / PnP layouts may have limitations — see [Biome](/tooling/biome).
+
+## Migrating a monorepo
+
+Don't enable `dma check` on all legacy at once. Strangler by app:
+
+1. One app (`apps/web`) — green `check`
+2. Others — later or with a separate plan
+
+See [Migration](/guides/migration).
+
+## What's next
+
+<Cards>
+  <Card title="CI" description="Wiring check into the pipeline" href="/tooling/ci" />
+  <Card title="dma check" description="Exit codes and rules" href="/tooling/cli/check" />
+  <Card title="Migration" description="Incremental adoption" href="/guides/migration" />
+</Cards>

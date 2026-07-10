@@ -1,6 +1,139 @@
 ---
-title: "Cross-Module Wiring"
+title: "Cross-module wiring"
 description: "How to connect features without feature → feature: props, events, ports."
+icon: "Unplug"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/guides/cross-module-wiring).
+A feature must not import another feature — hard rule. But the product still needs glue: catalog added to cart → show a notification, checkout completed → clear the cart.
+
+DMA's answer: the **composition root** connects modules by importing both sides downward.
+
+## Four mechanisms
+
+| Need | Mechanism |
+| --- | --- |
+| Code lower in the stack | Direct import `services/*/public/*` or `shared/` |
+| Notify without knowing subscribers | Event in emitter's `public/`; subscribe in `app/` |
+| Direct import would create a cycle | Port in `public/ports.ts` + bind in `app/` |
+| Visual composition only | Props / slots in composition root |
+
+## Props and callbacks (simplest)
+
+The composition root mounts both modules and passes a callback:
+
+```tsx
+// app/App.tsx
+import { CatalogPage } from "@/features/catalog/public/catalog-page";
+import { addNotification } from "@/features/notifications/public/notifications-api";
+
+<CatalogPage
+  onAddedToCart={(name) => addNotification(`Added ${name}`)}
+/>
+```
+
+- Graph: `app → catalog`, `app → notifications` — both downward
+- No `catalog → notifications` edge
+
+This pattern comes from the [vite-react example](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vite-react).
+
+## Events (event module)
+
+The emitter exports subscription from `public/`:
+
+```ts
+// features/checkout/public/checkout.events.ts
+type Listener = () => void;
+const listeners = new Set<Listener>();
+
+export const onCheckoutCompleted = (fn: Listener) => {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+};
+
+export const emitCheckoutCompleted = () => {
+  for (const fn of listeners) fn();
+};
+```
+
+The composition root subscribes and calls a service:
+
+```svelte
+<!-- routes/app-providers.svelte (SvelteKit example) -->
+<script>
+  import { onCheckoutCompleted } from "@/features/checkout/public/checkout.events";
+  import { clearCart } from "@/services/cart/public/cart";
+
+  onCheckoutCompleted(() => clearCart());
+</script>
+```
+
+See [sveltekit-routes example](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/sveltekit-routes).
+
+## Ports (when you need runtime bind)
+
+A port is an interface in `public/ports.ts`; the implementation is injected in `app/`:
+
+```ts
+// services/cart/public/ports.ts
+export type CartSeedPort = () => Product[];
+
+let seed: CartSeedPort | null = null;
+
+export const provideCartSeed = (port: CartSeedPort) => {
+  seed = port;
+};
+
+export const getCartSeed = () => seed?.() ?? [];
+```
+
+```astro
+---
+// app/shop-providers.astro (Astro example)
+import { provideCartSeed } from "@/services/cart/public/ports";
+import { demoCartSeed } from "@/app/cart-seed";
+
+provideCartSeed(demoCartSeed);
+---
+<slot />
+```
+
+Ports are **invisible** to the static graph — don't use them to bypass promotion (`feature-has-inbound`).
+
+## Providers / context (React, Vue)
+
+Cross-cutting context (session, theme) lives in `app/providers`:
+
+```tsx
+// app/providers.tsx
+"use client";
+import { SessionProvider } from "@/services/session/public/session-provider";
+
+export function Providers({ children }) {
+  return <SessionProvider>{children}</SessionProvider>;
+}
+```
+
+A feature reads via hook/`inject`, without importing another feature. Example — [next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app).
+
+## Anti-patterns
+
+| ✗ | Why |
+| --- | --- |
+| `catalog` imports `notifications` | feature → feature |
+| Global event bus in `shared/` with no owner | Unclear graph, hidden edges |
+| Port instead of promotion | Inbound from a module → should be `services/` |
+| All wiring logic in one god-feature | Breaks the leaf predicate |
+
+## What tooling checks
+
+- `feature-to-feature` — direct import between features
+- `no-cycle` — cycle through services/shared/app
+- `layer-direction` — modules must not import app
+
+## What's next
+
+<Cards>
+  <Card title="Layers" description="Why feature must not pull feature" href="/concepts/layers" />
+  <Card title="Modules and public API" description="public/, ports" href="/concepts/modules" />
+  <Card title="Vite + React" description="onAddedToCart in App" href="/guides/vite-react" />
+</Cards>

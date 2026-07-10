@@ -1,6 +1,104 @@
 ---
 title: "Shared"
-description: "Portable code: ui, lib, api, model, domain."
+description: "Portable code: ui, lib, api, model, domain groups and growth rules."
+icon: "Share2"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/concepts/shared).
+`shared/` is the only place in the project where grouping **by kind of code** makes sense. There are no features or product flows here — only horizontal capabilities that could live in any application.
+
+Everything in `shared/` is **public by default**. No `public/` folder needed — the layer exists to be imported.
+
+## Groups
+
+```text
+shared/
+├── ui/       # UI primitives — no product knowledge
+├── lib/      # pure helpers, infrastructure wrappers
+├── api/      # transport: base client, interceptors
+├── model/    # infra state: query client, env, flags
+└── domain/   # shared business types (optional)
+```
+
+| Group | Put | Don't put |
+| --- | --- | --- |
+| `ui/` | Buttons, inputs, layout primitives, icons | Components that know about orders/cart |
+| `lib/` | Dates, formatting, i18n, storage | Helper needed by one module only |
+| `api/` | Base HTTP/WS client, auth plumbing | Endpoints for a specific feature |
+| `model/` | Query client, route constants, env/config | Feature business state |
+| `domain/` | `User`, `Money`, branded ID | Types belonging to one module |
+
+## Direction inside shared
+
+Groups have different stability and import rights:
+
+```text
+domain → (nothing)
+lib    → domain
+api    → lib, domain
+model  → api, lib, domain
+ui     → lib, domain     (✗ api, ✗ model)
+```
+
+`ui` must not pull network or global product state — otherwise it stops being a portable primitive.
+
+## lib vs api vs feature api
+
+Three different places — a common confusion:
+
+| Code | Where | Why |
+| --- | --- | --- |
+| `get<T>()` over `fetch` | `shared/api/http.ts` | Transport without endpoint knowledge |
+| `fetchCatalogProducts()` | `features/catalog/catalog.api.ts` | One feature's endpoint; other modules don't import |
+| `formatCurrency()` | `shared/lib/format-currency.ts` | Pure helper, not network |
+
+If a second module calls the same **product** API (not transport) — promotion into `services/`, not `shared/api`.
+
+Example in [vite-react example](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vite-react).
+
+## Difference from module segments
+
+Names match (`ui`, `model`, `api`), but **rules differ**:
+
+- `features/checkout/ui` **may** import `features/checkout/model`
+- `shared/ui` **may not** import `shared/model`
+
+A module is an isolated island with its own internal rules. Shared is a common layer with strict portability.
+
+## How code lands in shared
+
+**Second-use rule:** don't extract “for the future.” A helper moves to `shared/` when **two or more modules** import it. Signal — `shared-candidate` in `dma doctor`.
+
+Exception: bootstrap infrastructure from day one (base API client, env, first UI primitives) if the whole app uses them.
+
+## Reverse path
+
+If a file in `shared/` has **one** consumer — move it back into the module. Colocation is cheaper than premature shared. This is a review decision; no dedicated doctor rule yet.
+
+## Growth inside a group
+
+Like modules, groups densify in place:
+
+```text
+shared/ui/button.tsx  →  shared/ui/button/  (when many files accumulate)
+```
+
+`ui` and `api` are the least stable shared residents; first candidates for package extraction (stage 4).
+
+## shared vs services boundary
+
+Shared — portable code. Services — product flow with inbound from modules. When in doubt — [Services vs Shared](/deep-dive/services-vs-shared).
+
+## What tooling checks
+
+| Rule | What it catches |
+| --- | --- |
+| `layer-direction` | Import from shared “upward” |
+| `shared-candidate` (doctor) | File imported by 2+ modules — time to consider a lift |
+
+## What's next
+
+<Cards>
+  <Card title="Code evolution" description="Second-use, promotion, doctor" href="/concepts/evolution" />
+  <Card title="Modules & public API" description="Module growth stages" href="/concepts/modules" />
+  <Card title="Services vs Shared" description="Deep dive on the boundary" href="/deep-dive/services-vs-shared" />
+</Cards>

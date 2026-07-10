@@ -1,6 +1,89 @@
 ---
 title: "Testing"
 description: "Where to colocate unit, integration, and e2e tests in a DMA project."
+icon: "FlaskConical"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/concepts/testing).
+DMA defines **placement** of tests relative to modules, but doesn't pick the runner, coverage thresholds, or pyramid. One rule: the test lives next to the code it protects.
+
+## Unit tests — colocate
+
+File `*.test.ts` (or `*.spec.ts`) — in the same folder as the implementation:
+
+```text
+features/checkout/
+├── checkout.store.ts
+├── checkout.store.test.ts      # store — internal
+└── public/
+    └── checkout-page.tsx
+
+services/cart/public/
+├── cart.ts
+└── cart.test.ts                # service public API
+
+shared/lib/
+├── format-currency.ts
+└── format-currency.test.ts
+```
+
+`dma check` **scans test files too** — imports in `*.test.ts` / `*.spec.ts` enter the same graph as production code. Same rules: `public-api`, `feature-to-feature`, `layer-direction`, and the rest.
+
+### What to test directly
+
+| Code | Test via |
+| --- | --- |
+| Internal store, composable | relative import in the same module |
+| `services/*/public/*` | import public file |
+| `shared/lib/*` | import helper |
+
+### What not to do
+
+- Import **another module's internals** from a test — the gate fails the same as in production. Test through `public/` or colocate the test inside the module with a relative import.
+- Root `__tests__/` for the whole project — tests don't move with the module on refactor.
+
+## Component tests
+
+SFC / React component tests — colocate next to the component:
+
+```text
+features/catalog/public/
+├── catalog-page.tsx
+└── catalog-page.test.tsx       # optional
+```
+
+Runner of choice: Vitest + Testing Library, `@vue/test-utils`, `@testing-library/svelte`. DMA examples' runnable tests are mostly pure TS (stores, services, lib) — no DOM harness.
+
+## Integration / route tests
+
+Thin composition root (`app/`, `routes/`) — place for wiring checks if needed. More often — a separate folder at the app root:
+
+```text
+apps/web/
+├── src/
+├── e2e/                        # Playwright, Cypress
+└── playwright.config.ts
+```
+
+E2E doesn't colocate inside `features/` — they cross multiple modules and routes.
+
+## Monorepo
+
+Unit tests stay in the app package (`apps/web/src/...`). Workspace package tests — inside the package. `dma check` runs **at app root**, not the whole monorepo in one call. See [Monorepo](/guides/monorepo).
+
+## Examples in the repo
+
+| Example | Runner | Colocate |
+| --- | --- | --- |
+| [vite-react](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vite-react) | Vitest | `*.test.ts` next to stores, cart, lib |
+| [next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app) | Bun test | stores + `format-currency` |
+| [sveltekit-routes](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/sveltekit-routes) | Vitest | stores, cart, lib |
+| [astro-pages](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/astro-pages) | Bun test | stores, cart, lib |
+| [vue-vite](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vue-vite) | Vitest | stores, composables, cart |
+
+## What's next
+
+<Cards>
+  <Card title="Where to put a file" description="Placement algorithm" href="/concepts/placement" />
+  <Card title="Modules & public API" description="Colocation inside a module" href="/concepts/modules" />
+  <Card title="Vite + React" description="Example with Vitest" href="/guides/vite-react" />
+</Cards>

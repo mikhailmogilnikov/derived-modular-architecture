@@ -1,6 +1,100 @@
 ---
-title: "Project Layout"
-description: "The src/ tree and composition roots."
+title: "Project layout"
+description: "The src/ tree, composition roots, and where to put code on different frameworks."
+icon: "FolderTree"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/start/project-layout).
+DMA isn't tied to one framework. The rules are the same; only the composition root folder name changes — where routes and layout mount modules.
+
+## Base tree
+
+```text
+src/
+├── app/         # composition root (Next.js App Router, Vite+React)
+├── features/    # leaf modules
+├── services/    # appears on promotion — don't create upfront
+└── shared/
+    ├── ui/
+    ├── lib/
+    ├── api/
+    ├── model/
+    └── domain/  # optional
+```
+
+## Composition roots
+
+Under `src/`, any of these folders is the **same layer** by DMA rules:
+
+| Folder | Typical framework |
+| --- | --- |
+| `app/` | Next.js App Router, Vite + React |
+| `pages/` | Astro, classic Next pages |
+| `routes/` | TanStack Router, SvelteKit |
+
+All of them:
+
+- mount modules through `*/public/*`;
+- are **not imported** by modules;
+- keep routes thin — import from `public/`, minimal logic.
+
+```tsx
+// src/app/checkout/page.tsx
+import { CheckoutPage } from "@/features/checkout/public/checkout-page";
+
+export default function Page() {
+  return <CheckoutPage />;
+}
+```
+
+If the project has multiple roots, prefer `app/`. Tooling picks `app` first on conflict.
+
+## Where to put what
+
+| You have… | Put it in… |
+| --- | --- |
+| Route, layout, providers | Composition root |
+| Screen / user flow | `features/<name>/public/` or stage-0 file |
+| State for one feature | Inside the feature, next to the consumer |
+| Logic needed by other modules (product) | `services/<name>/public/` |
+| Portable UI / helpers | `shared/ui/`, `shared/lib/` |
+| Base HTTP client, interceptors | `shared/api/` |
+| Endpoints for one feature | Inside the feature (`*.api.ts`) |
+| Wiring features / events | Composition root — props, providers, ports |
+| Unit tests | Next to the file (`*.test.ts`) |
+
+## Examples by framework
+
+The DMA repo has five clean examples with one product story (catalog, checkout, cart):
+
+| Example | Composition root | Stack |
+| --- | --- | --- |
+| [vite-react](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vite-react) | `src/app/` | Vite + React |
+| [next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app) | `src/app/` | Next.js |
+| [astro-pages](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/astro-pages) | `src/pages/` | Astro |
+| [sveltekit-routes](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/sveltekit-routes) | `src/routes/` | SvelteKit |
+| [vue-vite](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vue-vite) | `src/app/` | Vue 3 + Vite |
+
+Easiest to start with **vite-react** — runnable, with tests and the full module stage ladder.
+
+## Module stage ladder
+
+```text
+Stage 0   features/profile.tsx
+Stage 1   features/checkout/public/ + internals
+Promotion services/cart/public/     ← catalog + checkout import
+Lift      shared/lib/format-currency.ts  ← 2+ modules, no product logic
+```
+
+More — [Modules & public API](/concepts/modules) and [Code evolution](/concepts/evolution).
+
+## Path aliases
+
+CLI and the ESLint plugin resolve `@/` → `src/` from `tsconfig.json`. Make sure paths are configured at the app root, not the whole monorepo.
+
+## What's next
+
+<Cards>
+  <Card title="Quick start" description="Install and dma check" href="/start/quick-start" />
+  <Card title="Layers" description="Predicates for app, features, services, shared" href="/concepts/layers" />
+  <Card title="What is DMA" description="Introduction" href="/start/what-is-dma" />
+</Cards>

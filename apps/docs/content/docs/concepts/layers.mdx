@@ -1,6 +1,111 @@
 ---
 title: "Layers"
-description: "app, features, services, shared — definitions and predicates."
+description: "app, features, services, shared — what these layers are and how tooling determines module membership."
+icon: "GitBranch"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/concepts/layers).
+In DMA, a layer isn't a title you hang on a folder by feel. A layer is a **predicate**: a set of conditions verifiable from the file system and import graph.
+
+If a module matches the `features/` predicate — it's a feature. Inbound edges from other modules appear — time for `services/`. No need to argue rank: the graph already answered.
+
+## Default tree
+
+```text
+src/
+├── app/         # composition root
+├── features/    # no inbound edges from other modules
+├── services/    # has inbound edges + product flow
+└── shared/      # has inbound edges + portable code
+```
+
+`services/` **may not exist** at project start. Until any module gets inbound from another module, services isn't needed — rules that reference it simply don't fire.
+
+## Layer predicates
+
+| Layer | Condition |
+| --- | --- |
+| Composition root (`app/`, `pages/`, `routes/`) | Assembles modules; **no** module imports the composition root |
+| `features/` | No inbound edges from other **modules** (only mount from composition root) |
+| `services/` | Has inbound edges from modules **and** code implements a product flow |
+| `shared/` | Has inbound edges **and** code can move to another product unchanged |
+
+### services / shared boundary
+
+This is the only place human judgment remains. Heuristic:
+
+> Can this code live in another product without changes?
+
+- **Yes** → `shared/` (button, `formatCurrency`, HTTP client).
+- **No** → `services/` (cart, checkout flow, entity access rights for the product).
+
+More — [Services vs Shared](/deep-dive/services-vs-shared).
+
+## Composition root
+
+`app/`, `pages/`, `routes/` under `src/` mean the same thing: **assembly point**.
+
+- Mounts features and services through `*/public/*`
+- Mount **does not count** as an inbound edge for promotion — a route rendering `<CheckoutPage />` doesn't turn checkout into a service
+- Route files should be thin: import from `public/`, minimal logic
+
+```tsx
+// app/checkout/page.tsx — thin shell
+import { CheckoutPage } from "@/features/checkout/public/checkout-page";
+
+export default function Page() {
+  return <CheckoutPage />;
+}
+```
+
+If the project has multiple composition roots, prefer `app/`; tooling picks `app` first on conflict.
+
+## Dependency direction
+
+```text
+app/pages/routes  →  features/*/public, services/*/public, shared
+features            →  services/*/public, shared
+services            →  services/*/public, shared   (no cycles)
+shared              →  shared
+```
+
+Forbidden:
+
+- any import “upward” (from shared into features, etc.);
+- another module's internals — only `*/public/*`;
+- feature → feature import (need a shared service or shared code).
+
+### Feature does not import feature
+
+If checkout and catalog must share behavior — extract common logic into `services/` or a portable piece into `shared/`, don't pull imports between features.
+
+### Promotion: feature → service
+
+A feature with inbound edges from **other modules** violates the predicate. Such a module moves to `services/`. Signal: rule `feature-has-inbound`.
+
+The reverse is checked too: a service with no inbound edges from modules — `service-no-inbound` (demote or remove).
+
+<Callout type="info">
+  Why only two module layers (features + services), not four like FSD? → [Why two module layers](/deep-dive/why-two-layers)
+</Callout>
+
+## What tooling checks
+
+| Rule | What it catches |
+| --- | --- |
+| `layer-direction` | Import in the wrong direction |
+| `feature-to-feature` | Feature pulls another feature |
+| `public-api` | Cross-module import bypassing `*/public/*` |
+| `no-barrel` | Barrel `index` with re-exports inside a module |
+| `no-cycle` | Cycle in the module graph |
+| `feature-has-inbound` | Feature that other modules depend on |
+| `service-no-inbound` | Service with no real consumers among modules |
+
+Full graph audit — `dma check`. More in [dma check](/tooling/cli/check).
+
+## What's next
+
+<Cards>
+  <Card title="Modules & public API" description="Growth stages, public/ folder, segments" href="/concepts/modules" />
+  <Card title="Four invariants" description="Overview of all DMA rules" href="/concepts/invariants" />
+  <Card title="Deep Dive" description="Why the architecture is shaped this way" href="/deep-dive" />
+</Cards>

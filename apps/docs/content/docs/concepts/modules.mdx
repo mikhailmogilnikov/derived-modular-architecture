@@ -1,6 +1,135 @@
 ---
-title: "Modules and Public API"
-description: "Module stages, public/, direct imports."
+title: "Modules & public API"
+description: "Module growth stages, the public/ folder, segments, and cross-module import rules."
+icon: "Box"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/concepts/modules).
+A module in DMA is a folder (or single file) inside `features/` or `services/`. Rules are the same for both layers: only the layer predicate differs, not the internal structure.
+
+Main idea: a module grows **gradually**, without “rewrite everything from scratch” migrations. Each stage builds on the previous one.
+
+## Growth stages
+
+### Stage 0 — file module
+
+While the module is a single file — the whole file is the public surface:
+
+```text
+features/
+└── checkout.tsx
+```
+
+Import the file directly, no folder and no `index.ts`.
+
+### Stage 1 — flat folder
+
+**Sibling files with the same basename prefix** as the file module appear (e.g. `checkout.tsx` and `checkout.store.ts` in `features/`) — create a folder and `public/`:
+
+```text
+features/checkout/
+├── public/
+│   └── checkout-page.tsx
+├── use-cart-total.ts
+└── cart-row.tsx
+```
+
+Everything needed outside lives in `public/`. Internal files sit alongside, but other modules must not import them.
+
+### Stage 2 — segments
+
+When many files accumulate inside (rough guide — ~8+, signal `stage-growth` in `dma doctor`), split by role:
+
+```text
+features/checkout/
+├── public/     # entrypoints — flat folder
+├── ui/
+├── model/
+├── api/
+└── lib/        # helpers needed by 2+ segments in this module
+```
+
+| Segment | Contents |
+| --- | --- |
+| `public/` | Entrypoints, events, ports, external types |
+| `ui/` | Presentation components |
+| `model/` | State and domain logic for the module |
+| `api/` | Transport, DTO mapping |
+| `lib/` | Pure helpers for multiple segments |
+
+Recommended direction inside the module (enable when it gets in the way, not day one):
+
+```text
+public → ui, model, api, lib
+ui     → model, lib
+model  → api, lib
+api    → lib
+```
+
+Names match groups in `shared/`, but **rules differ**: `features/checkout/ui` may import that module's `model`, while `shared/ui` must not pull `shared/model`.
+
+### Stage 3 — split
+
+If `public/` has too many entrypoint implementations (rough guide ~8+) — **split the module**, don't nest `public/` inside `public/`. Until there's a doctor signal, this is a review decision.
+
+### Stage 4 — package
+
+Multiple apps consume the module → extract to a monorepo package. Same rules, enforcement via workspace package `exports`.
+
+## Public API
+
+Cross-module import — **only** into `*/public/*`, directly to a file:
+
+```ts
+// ✓
+import { CheckoutPage } from "@/features/checkout/public/checkout-page";
+
+// ✗ deep import into internals
+import { CartRow } from "@/features/checkout/ui/cart-row";
+
+// ✗ barrel
+import { CheckoutPage } from "@/features/checkout";
+```
+
+`public/` stays **flat**. Entrypoint implementation lives in `public/` and may import internal segments. A 1:1 re-export from an internal file is allowed, but by default write code directly in `public/`.
+
+At stage 0 the whole file is public; no `public/` folder needed.
+
+## Barrel files forbidden
+
+`index.ts` with re-exports inside a module — not allowed. Such a file hides the dependency graph. More — [Why no barrel files](/deep-dive/why-no-barrels).
+
+## Colocation inside a module
+
+- Tests `*.test.ts` — next to the file under test
+- Styles — next to the component
+- Types — next to the consumer; cross-module types — `public/*.types.ts` or `shared/domain` after second use
+- File names — kebab-case, meaning in the name: `use-cart-total.ts`, not `hook.ts`
+
+## Links between modules
+
+| Task | How |
+| --- | --- |
+| Use code from lower layers | Direct import `services/*/public/*` or `shared/` |
+| Event without knowing subscribers | Event in emitter's `public/`; subscribe below or wire in `app/` |
+| Direct import would cycle or step upward | Port in `public/ports.ts` + bind in composition root |
+| Visual composition only | Slots/props in composition root |
+
+Ports are a runtime dependency, invisible to the static graph. Keep them in `public/ports.ts` and don't use them to bypass promotion.
+
+## What tooling checks
+
+| Rule | What it catches |
+| --- | --- |
+| `public-api` | Import bypassing `public/` |
+| `no-barrel` | Barrel `index` with re-exports |
+| `stage-growth` (doctor) | Structure lags module size |
+
+## What's next
+
+<Cards>
+  <Card title="Where to put a file" description="Placement algorithm" href="/concepts/placement" />
+  <Card title="Code evolution" description="Second-use, promotion, doctor" href="/concepts/evolution" />
+  <Card title="Shared" description="Groups ui, lib, api, model, domain" href="/concepts/shared" />
+  <Card title="Testing" description="Colocate *.test.ts" href="/concepts/testing" />
+  <Card title="Layers" description="features vs services" href="/concepts/layers" />
+</Cards>

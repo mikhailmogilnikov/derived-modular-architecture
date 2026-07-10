@@ -1,6 +1,40 @@
 ---
 title: "Guides"
 description: "Practical how-tos: migration, module wiring, DMA on different frameworks."
+icon: "Map"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/guides).
+Guides are the "how to do it" for a specific stack. Concepts explain the rules; here you get step-by-step patterns with live examples from the DMA repository.
+
+<Callout type="info">
+  Haven't read the basics? Start with [Quick start](/start/quick-start) and [Project layout](/start/project-layout).
+</Callout>
+
+## Where to start
+
+<Cards>
+  <Card title="Migration" description="Adopt DMA in an existing project" href="/guides/migration" />
+  <Card title="Monorepo" description="Multiple apps, CI" href="/guides/monorepo" />
+  <Card title="Cross-module wiring" description="Events, ports, wiring in app" href="/guides/cross-module-wiring" />
+</Cards>
+
+## By framework
+
+Each guide uses the same mini-shop with a different composition root:
+
+| Guide | Composition root | Example in repo |
+| --- | --- | --- |
+| [Vite + React](/guides/vite-react) | `src/app/` | Runnable canon |
+| [Next.js](/guides/nextjs) | `src/app/` | App Router + RSC |
+| [Astro](/guides/astro) | `src/pages/` + `src/app/` | `.astro` frontmatter |
+| [SvelteKit](/guides/sveltekit) | `src/routes/` | Svelte 5 runes |
+| [Vue + Vite](/guides/vue) | `src/app/` | SFC + composables |
+
+All examples pass `dma check` — sources live in [examples](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples).
+
+## Common across stacks
+
+- Routes stay thin — import only from `*/public/*`
+- No `feature → feature`
+- `services/` is created on promotion, not upfront
+- CI: `dma check` + linter of your choice

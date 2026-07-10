@@ -1,6 +1,120 @@
 ---
 title: "dma doctor"
-description: "Soft evolution signals for local use."
+description: "Soft evolution signals for local work — without failing CI."
+icon: "Stethoscope"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/tooling/cli/doctor).
+`dma doctor` inspects the same graph as `check`, but looks for **growth signals**, not hard violations. By default exit code is 0 — you can run it on every commit without breaking CI.
+
+Think of doctor as an "architectural linter ahead of time": it hints at what to extract, promote, or split — before `check` starts complaining.
+
+## Usage
+
+```bash
+npx @derived-modular/cli doctor .
+npx @derived-modular/cli doctor . --format json
+npx @derived-modular/cli doctor . --format sarif
+```
+
+Same output formats as `check`: human, json, SARIF.
+
+## doctor vs check
+
+| | `dma check` | `dma doctor` |
+| --- | --- | --- |
+| Purpose | Hard rules | Evolution signals |
+| Blocks CI | Yes (exit 1) | No (exit 0) |
+| Repeats rule IDs from check | — | No |
+| When to run | CI, pre-push | Locally, once per sprint |
+
+Doctor **does not duplicate** `check` errors. If `check` is red — fix check first.
+
+## Signals
+
+### shared-candidate
+
+A module file is imported by **2+ other modules**.
+
+What to do: decide whether this is a product scenario (→ `services/`) or a portable helper (→ `shared/`). Do not lift to shared automatically — understand the code first.
+
+### stage-growth
+
+Module structure lags behind size:
+
+- file-module (stage 0) gained **sibling files with the same basename prefix** (e.g. `checkout.tsx` + `checkout.store.ts`) → create a folder and `public/`
+- many files without segments → add `ui/`, `model/`, `api/`
+
+Default threshold is about 8 files (`stage1FileCount`).
+
+### Example: stage-growth on checkout
+
+**Before** — stage 0, one UI file, but a store with the same prefix appeared next to it:
+
+```text
+features/
+├── checkout.tsx
+└── checkout.store.ts
+```
+
+`dma doctor` → `stage-growth`: file-module `checkout` gained a sibling with prefix `checkout`.
+
+**After** — stage 1:
+
+```text
+features/checkout/
+├── public/
+│   └── checkout-page.tsx
+├── checkout.store.ts
+└── checkout.shipping.ts
+```
+
+1. Create folder `features/checkout/`
+2. Move UI to `public/checkout-page.tsx`
+3. Store and helpers stay internal; `public/` imports them **relatively**
+4. Update imports in composition root to `@/features/checkout/public/checkout-page`
+5. `npx @derived-modular/cli check .` — green; `npx @derived-modular/cli doctor .` — `stage-growth` for checkout gone
+
+If files reach ~8+ without segments — add `ui/`, `model/`, `api/` (stage 2). See [Modules and public API](/concepts/modules).
+
+### dense-services
+
+The `services/` subgraph looks dense or deep. Time to split **horizontally** — domains, packages — not add new vertical layers.
+
+### orphan-public
+
+A file in `public/` is imported by nobody. Dead contract — remove it or make it internal.
+
+## Typical workflow
+
+```bash
+# morning
+npx @derived-modular/cli check .          # gate
+
+# before refactor
+npx @derived-modular/cli doctor .         # what to restructure
+
+# after a large PR
+npx @derived-modular/cli doctor . --format json > doctor.json
+```
+
+## Do not use doctor as a CI gate
+
+Signals are subjective: `shared-candidate` on healthy `services/*/public/*` is normal. Use doctor for **team conversation**, not to block merge.
+
+In CI, doctor only makes sense as an informational job (json artifact for a dashboard).
+
+## Related topics
+
+- [Code evolution](/concepts/evolution) — second-use, promotion, triggers
+- [dma check](/tooling/cli/check) — hard rules
+- [Tooling overview](/tooling/overview) — hybrid model
+
+## What's next
+
+<Cards>
+  <Card title="Where to put a file" description="Placement algorithm" href="/concepts/placement" />
+  <Card title="Code evolution" description="Where architecture grows" href="/concepts/evolution" />
+  <Card title="dma check" description="Violation reference" href="/tooling/cli/check" />
+  <Card title="CI" description="What to block in the pipeline" href="/tooling/ci" />
+  <Card title="Modules and public API" description="Growth stages" href="/concepts/modules" />
+</Cards>

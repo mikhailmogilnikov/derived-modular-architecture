@@ -1,6 +1,120 @@
 ---
 title: "Vite + React"
 description: "Canonical runnable DMA example on Vite + React."
+icon: "Zap"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/guides/vite-react).
+This is the **reference** DMA example: a runnable mini-shop, full import graph, colocated stores, promotion of cart → `services/`. Other framework guides are variations of the same story.
+
+Sources: [examples/vite-react](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vite-react).
+
+## Composition root
+
+DMA treats `src/app/` as the composition root — same role as `pages/` or `routes/` in other stacks.
+
+```text
+src/app/
+├── app.tsx         # nav, badges, feature mounts, prop wiring
+├── providers.tsx   # ThemeProvider from shared/ui
+└── app.css         # global styles only here
+```
+
+`app.tsx` imports **only** `*/public/*`:
+
+```tsx
+import { CatalogPage } from "@/features/catalog/public/catalog-page";
+import { addNotification } from "@/features/notifications/public/notifications-api";
+
+<CatalogPage
+  onAddedToCart={(name) => addNotification(`Added ${name}`)}
+/>
+```
+
+Catalog → notifications glue via props — see [Cross-module wiring](/guides/cross-module-wiring).
+
+## Mini-shop: who owns what
+
+| Module | State owner | Imports |
+| --- | --- | --- |
+| Catalog | `catalog.store.ts` (filters) | `services/cart`, `shared/*` |
+| Checkout | `checkout.store.ts` (delivery) | `services/cart`, `shared/*` |
+| Notifications | `notifications.store.ts` | `shared/*` |
+| Cart | `services/cart/public/cart.ts` | `shared/model` |
+| Profile | stage-0 `profile.tsx` | `shared/ui` |
+
+No `catalog → notifications` edge — only `app →` both modules.
+
+## Promotion: checkout → cart
+
+The cart did not start in `services/`. When catalog also needed `addCartItem`, cart was promoted:
+
+```text
+Before (1 consumer)              After (2 consumers)
+features/checkout/              features/catalog/public/ ──┐
+  checkout.store (cart)         features/checkout/public/ ─┼──► services/cart/public/cart.ts
+                                checkout.store (delivery only)
+```
+
+`dma check` sees inbound edges and confirms cart belongs in `services/`, not inside a feature.
+
+## Where to put code
+
+| Task | Folder | Example |
+| --- | --- | --- |
+| Screen mounted from app | `features/<name>/public/` or stage-0 `features/<name>.tsx` | `catalog-page.tsx` |
+| Single-feature state | colocated `*.store.ts` | `checkout.store.ts` |
+| Scenario for 2+ modules | `services/<name>/public/` | `cart.ts` |
+| UI primitive without product logic | `shared/ui/` | `button.tsx` |
+| Pure helper | `shared/lib/` | `format-currency.ts` |
+| Type for 2+ modules | `shared/model/` | `product.ts` |
+| Providers | `app/providers.tsx` | ThemeProvider |
+
+## Data fetching
+
+| Layer | File | Role |
+| --- | --- | --- |
+| Transport | `shared/api/http.ts` | Thin `get<T>()` |
+| Feature API | `features/catalog/catalog.api.ts` | Only catalog imports |
+| Demo data | `public/catalog.json` | Vite static |
+
+Other features do not import `catalog.api.ts`. Shared HTTP goes through `shared/api/http.ts`.
+
+## Styles
+
+| Approach | Where | Example |
+| --- | --- | --- |
+| Global CSS | `app/app.css` | reset, shell |
+| CSS Modules | next to `public/` entry | `catalog-page.module.css` |
+| Plain CSS | colocated in feature | `checkout-page.css` |
+| SCSS module | stage-0 feature | `profile.module.scss` |
+| CSS-in-JS | internal feature | `notifications.styles.ts` |
+
+Global styles — **only** in `app/`. Feature-specific skins do not belong in `shared/`.
+
+## Tests
+
+Colocated `*.test.ts` next to code (Vitest):
+
+- `catalog.store.test.ts` — internal store
+- `services/cart/public/cart.test.ts` — service public API
+- `shared/lib/format-currency.test.ts` — portable helper
+
+E2E (not in the example) — at app root (`e2e/`).
+
+## Commands
+
+```bash
+bun run dev
+bun run build
+bun run dma-check   # dma check .
+bun run lint        # ESLint + @derived-modular/eslint-plugin
+bun run test
+```
+
+## What's next
+
+<Cards>
+  <Card title="Cross-module wiring" description="onAddedToCart pattern" href="/guides/cross-module-wiring" />
+  <Card title="Next.js" description="Server vs Client boundary" href="/guides/nextjs" />
+  <Card title="Migration" description="Adopting in an existing project" href="/guides/migration" />
+</Cards>

@@ -1,6 +1,109 @@
 ---
 title: "Astro"
 description: "DMA with composition root in pages/ and frontmatter imports."
+icon: "Sparkles"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/guides/astro).
+Example for **Astro 5**: layers under `src/`, composition root in `src/pages/`, layout and providers in `src/app/`.
+
+Sources: [examples/astro-pages](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/astro-pages).
+
+## Two roots: pages and app
+
+| Folder | Role |
+| --- | --- |
+| `src/pages/` | Routes — thin, mount only |
+| `src/app/` | Layout, providers, seed — **not** routes |
+
+In `pages/` — only routable files (`index.astro`). `layout.astro` and `shop-providers.astro` live in `app/` so Astro does not create extra routes.
+
+## Thin route
+
+```astro
+---
+import CatalogPage from "@/features/catalog/public/catalog-page.astro";
+import ShopProviders from "@/app/shop-providers.astro";
+import Layout from "@/app/layout.astro";
+---
+
+<Layout title="DMA · Astro mini-shop">
+  <ShopProviders>
+    <CatalogPage />
+  </ShopProviders>
+</Layout>
+```
+
+Imports only downward: `features/*/public/*`, `services/*/public/*`, `shared/*`.
+
+## Frontmatter = module script
+
+The `---` block runs at build time:
+
+1. Import `*/public/*` and stage-0 modules
+2. Call service helpers before the template
+3. Pass data to children via props
+
+`dma check` and the Biome plugin parse imports from `.astro` frontmatter the same as from `.ts`.
+
+## Provider pattern
+
+`shop-providers.astro` binds a port before features render:
+
+```astro
+---
+import { provideCartSeed } from "@/services/cart/public/ports";
+import { demoCartSeed } from "@/app/cart-seed";
+
+provideCartSeed(demoCartSeed);
+---
+<slot />
+```
+
+Ports are invisible to the static graph — use for seed/cycle break, not to bypass promotion. More — [Cross-module wiring](/guides/cross-module-wiring).
+
+## State patterns
+
+1. **Colocated store** — `catalog.store.ts`, relative import from `public/`
+2. **Promoted service** — `services/cart/public/cart.ts` (catalog + checkout)
+3. **Provider port** — `ports.ts` + bind in `app/`
+
+## Where to put code
+
+| Task | Folder |
+| --- | --- |
+| Route shell | `src/pages/*.astro` |
+| Layout, providers | `src/app/` |
+| Feature screen | `features/<name>/public/<entry>.astro` |
+| Stage-0 module | `features/<name>.astro` |
+| 2+ consumers | `services/<name>/public/` |
+| Portable UI/lib | `shared/ui/`, `shared/lib/` |
+
+## Styles
+
+| Kind | Where |
+| --- | --- |
+| Scoped `<style>` | In the same `.astro` file |
+| Feature CSS | colocated `*.css` → import from `public/` |
+| CSS Modules | `public/*.module.css` |
+| Global | `styles/global.css` → import from `app/layout.astro` |
+
+Global CSS — only from the composition root.
+
+## Tooling
+
+```bash
+bun run build       # astro build
+bun run dma-check   # dma check .
+bun run lint        # biome + @derived-modular/biome-plugin
+bun run test
+```
+
+Biome plugin is **best-effort** (GritQL). No full path resolution or graph cycles. **Always** run `dma check` in CI.
+
+## What's next
+
+<Cards>
+  <Card title="Cross-module wiring" description="Ports and provide" href="/guides/cross-module-wiring" />
+  <Card title="Vite + React" description="Same mini-shop story" href="/guides/vite-react" />
+  <Card title="Biome plugin" description="Linter setup" href="/tooling/biome" />
+</Cards>

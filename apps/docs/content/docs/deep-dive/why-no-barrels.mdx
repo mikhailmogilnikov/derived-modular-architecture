@@ -1,6 +1,65 @@
 ---
 title: "Why No Barrel Files"
-description: "Why DMA forbids barrel re-exports."
+description: "Short answer: a barrel hides the graph. In depth — what breaks and what alternatives exist."
+icon: "PackageX"
 ---
 
-English version coming soon. Read the [Russian version](/ru/docs/deep-dive/why-no-barrels).
+## Short answer
+
+A barrel file (`index.ts` with `export { Foo } from './foo'`) hides real dependencies. The linter and `dma check` build the graph from import paths — through a barrel the graph lies. That is why DMA forbids barrels inside modules and requires direct imports into `*/public/*`.
+
+## What is a barrel
+
+```ts
+// features/checkout/public/index.ts  ✗
+export { CheckoutPage } from "./checkout-page";
+export { useCheckout } from "./use-checkout";
+```
+
+The consumer writes:
+
+```ts
+import { CheckoutPage } from "@/features/checkout/public";
+```
+
+Looks convenient. But the analyzer sees an import into `public/index.ts`, not into `checkout-page.tsx`. The real link between modules is lost.
+
+## What breaks
+
+**1. Dependency graph.** `dma check` cannot say precisely who depends on whom. Cycles and promotion (feature → service) are determined by edges — a barrel blurs edges.
+
+**2. Tree-shaking and the bundler.** A barrel often pulls in extra code: you imported one function and got the whole module.
+
+**3. Refactoring.** You renamed a file — every import through the barrel broke, even though there were only two direct consumers.
+
+**4. A false sense of API.** A barrel suggests "import anything from the folder." DMA does the opposite: it requires an explicit contract — each entrypoint is a separate file in a flat `public/`.
+
+## What DMA allows instead of a barrel
+
+A direct import into a file:
+
+```ts
+import { CheckoutPage } from "@/features/checkout/public/checkout-page";
+```
+
+At stage 0 (a single-file module) the whole file is public — import `checkout.tsx` directly.
+
+A 1:1 re-export from `public/` to an internal file is allowed as a symlink, but by default write the implementation directly in `public/`.
+
+## "But npm packages use index.ts"
+
+A package at the publication boundary (stage 4) is a different story: there `exports` in `package.json` is an explicit contract. Inside an application a module is not a package, and the graph must be transparent to tooling.
+
+## Alternatives we rejected
+
+| Approach | Why not |
+| --- | --- |
+| Barrel only in `public/` | Still hides which entrypoint each consumer pulls |
+| "Allow barrels but forbid cycles" | Cycles are invisible if the graph is inaccurate |
+| Auto-generated barrels | Another layer of magic that drifts from the file system |
+
+## Related topics
+
+- Rule in concepts: [Modules and public API](/concepts/modules)
+- Invariant: [Four invariants](/concepts/invariants) — "public API without barrels"
+- Tooling: `no-barrel` rule in [dma check](/tooling/cli/check) and [ESLint](/tooling/eslint)
