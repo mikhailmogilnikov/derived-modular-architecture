@@ -2,6 +2,8 @@
 
 File-scoped DMA rules for Oxlint via [JS plugins](https://oxc.rs/docs/guide/usage/linter/js-plugins.html) (alpha). Wraps [`@derived-modular/eslint-plugin`](../eslint-plugin) — same rule semantics. **Not** a substitute for [`@derived-modular/cli`](../cli) (`dma check`).
 
+Architecture: [DMA spec](../../spec/README.md).
+
 ## Install
 
 ```bash

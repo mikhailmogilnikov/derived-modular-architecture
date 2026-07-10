@@ -2,6 +2,8 @@
 
 CLI and analyzer for **Derived Modular Architecture (DMA)** — hard boundary checks for CI, plus soft evolution signals for local use.
 
+Architecture: [DMA spec](../../spec/README.md).
+
 Zero-config for a single app root:
 
 ```text

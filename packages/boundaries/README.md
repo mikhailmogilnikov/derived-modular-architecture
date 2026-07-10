@@ -2,6 +2,8 @@
 
 Pure path classifiers for [Derived Modular Architecture](https://github.com/mikhailmogilnikov/derived-modular-architecture). No filesystem graph, no ESLint — shared by `@derived-modular/cli` and `@derived-modular/eslint-plugin`.
 
+Architecture: [DMA spec](../../spec/README.md).
+
 ## Install
 
 Usually pulled in as a dependency. For custom tooling:

@@ -14,7 +14,7 @@ src/
 
 ## Spec
 
-Full synthesis: [docs/derived-modular.md](./docs/derived-modular.md)
+Normative architecture: [`spec/`](./spec/README.md) (single source of truth).
 
 **Four invariants**
 
@@ -121,7 +121,7 @@ Source: [skills/dma](./skills/dma) · [skills/README.md](./skills/README.md)
 | `packages/oxlint-plugin` | `@derived-modular/oxlint-plugin` |
 | `skills/dma` | installable agent skill |
 | `examples/` | framework examples — see [examples/README.md](./examples/README.md) |
-| `docs/` | architecture synthesis + design notes |
+| `spec/` | normative DMA architecture (EN) |
 
 ## Examples
 

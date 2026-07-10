@@ -4,6 +4,8 @@ Best-effort DMA rules for Biome (GritQL). **Not** a substitute for [`@derived-mo
 
 Same four concerns as ESLint, but pattern-based — no import resolution, no `@derived-modular/boundaries`. Prefer [`@derived-modular/eslint-plugin`](../eslint-plugin) when you can.
 
+Architecture: [DMA spec](../../spec/README.md).
+
 ## Install
 
 ```bash

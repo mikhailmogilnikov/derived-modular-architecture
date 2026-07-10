@@ -4,6 +4,8 @@ File-scoped [Derived Modular Architecture](https://github.com/mikhailmogilnikov/
 
 Uses [`@derived-modular/boundaries`](../boundaries) for path classification. **Not** a substitute for [`@derived-modular/cli`](../cli) (`dma check`) — graph rules and `doctor` stay in the CLI.
 
+Architecture: [DMA spec](../../spec/README.md).
+
 ## Install
 
 ```bash

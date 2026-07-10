@@ -46,7 +46,6 @@ Maintainers run `bun run version-packages` and `bun run release` when publishing
 
 - Link related issues when applicable.
 - Update README / package README if behavior or public API changes.
-- Do not commit `docs/` (gitignored design notes) unless explicitly requested.
 
 ## Code of conduct
 

@@ -1,6 +1,8 @@
 # DMA examples
 
-Copy-paste **clean** trees that demonstrate [Derived Modular Architecture](../docs/derived-modular.md) across frameworks. Every example exits 0 on `dma check .` — violations live in [`packages/cli/tests/fixtures`](../packages/cli/tests/fixtures), not here.
+Copy-paste **clean** trees that demonstrate [Derived Modular Architecture](../spec/README.md) across frameworks. Every example exits 0 on `dma check .` — violations live in [`packages/cli/tests/fixtures`](../packages/cli/tests/fixtures), not here.
+
+**Normative architecture:** [`../spec/`](../spec/README.md) (single source of truth). Examples illustrate; they do not redefine rules.
 
 ## Four invariants
 
@@ -35,7 +37,7 @@ DMA modules **grow in place** — you do not pre-create empty `services/` or `sh
 | --- | --- | --- | --- |
 | **0 — file module** | Single file at `features/<name>.tsx` (entire file is public) | Self-contained screen, no internal split yet | [vite-react `profile.tsx`](./vite-react/src/features/profile.tsx), [next-app `profile.tsx`](./next-app/src/features/profile.tsx), [vue-vite `profile.vue`](./vue-vite/src/features/profile.vue), [sveltekit `profile.svelte`](./sveltekit-routes/src/features/profile.svelte), [astro `profile.astro`](./astro-pages/src/features/profile.astro) |
 | **1 — dir module** | `features/<name>/` with `public/` entry + colocated internals | Flow grows: store, API, styles beside the screen | [vite-react `checkout/`](./vite-react/src/features/checkout/), [next-app `catalog/`](./next-app/src/features/catalog/), [astro `wishlist/`](./astro-pages/src/features/wishlist/) |
-| **→ services/** | `services/<name>/public/*` | **Second consumer** — 2+ modules import the same product scenario | [vite-react `cart`](./vite-react/src/services/cart/public/cart.ts) ← catalog + checkout; [next-app `cart`](./next-app/src/services/cart/public/cart.ts) ← catalog + checkout |
+| **→ services/** | `services/<name>/public/*` | **Another module** imports this product scenario (one inbound module edge → promote) | [vite-react `cart`](./vite-react/src/services/cart/public/cart.ts) ← catalog + checkout; [next-app `cart`](./next-app/src/services/cart/public/cart.ts) ← catalog + checkout |
 | **→ shared/** | `shared/lib/`, `shared/ui/`, `shared/model/` | Portable helper or primitive with **no product meaning**, used by 2+ modules | [vite-react `format-currency.ts`](./vite-react/src/shared/lib/format-currency.ts) — catalog, checkout, notifications; [next-app `button.tsx`](./next-app/src/shared/ui/button.tsx) — every feature |
 
 ```text
@@ -48,7 +50,7 @@ features/profile.tsx  →   features/checkout/              services/cart/public
                                                             (2+ modules, no product logic)
 ```
 
-**Colocation rule:** `checkout.store.ts` stays inside `features/checkout/` because only checkout reads shipping state. Cart moved to `services/cart/` because **catalog also calls `addToCart`** — inbound edges from two modules trigger the `services/` layer.
+**Colocation rule:** `checkout.store.ts` stays inside `features/checkout/` because only checkout reads shipping state. Cart moved to `services/cart/` because **catalog also calls `addToCart`** — an inbound edge from another module triggers the `services/` layer.
 
 See [vite-react README — Module evolution](./vite-react/README.md#module-evolution-checkout--cart) for the checkout → cart story with file references.
 
@@ -71,7 +73,7 @@ See [vite-react README — Module evolution](./vite-react/README.md#module-evolu
 | Route shell, layout, providers | Composition root (`app/`, `pages/`, `routes/`) | Thin mounts only — import `*/public/*` |
 | User-facing screen / flow | `features/<name>/public/` or stage-0 `features/<name>.*` | Leaf modules; no inbound from other features |
 | State for one feature only | Colocated `*.store.ts` inside that feature | Relative import from `public/` |
-| Logic reused by 2+ modules (product) | `services/<name>/public/` | Inbound edges → `services/` layer |
+| Logic reused by other modules (product) | `services/<name>/public/` | One inbound module edge → `services/` |
 | Portable UI / pure helpers / HTTP | `shared/ui/`, `shared/lib/`, `shared/model/` | No product scenarios; bottom layer |
 | Feature-specific API calls | `features/<name>/<name>.api.ts` | Internal until second consumer needs it |
 | Cross-module wiring / events | Composition root | Props, providers, ports — no `feature → feature` |

@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "layer-direction",
+      "severity": "error",
+      "surfaces": ["check", "lint"],
+      "doc": "layers.md#layer-direction"
+    },
+    {
+      "id": "feature-to-feature",
+      "severity": "error",
+      "surfaces": ["check", "lint"],
+      "doc": "layers.md#feature-to-feature"
+    },
+    {
+      "id": "public-api",
+      "severity": "error",
+      "surfaces": ["check", "lint"],
+      "doc": "modules.md#public-api"
+    },
+    {
+      "id": "no-barrel",
+      "severity": "error",
+      "surfaces": ["check", "lint"],
+      "doc": "modules.md#no-barrel"
+    },
+    {
+      "id": "no-cycle",
+      "severity": "error",
+      "surfaces": ["check"],
+      "doc": "layers.md#no-cycle"
+    },
+    {
+      "id": "feature-has-inbound",
+      "severity": "error",
+      "surfaces": ["check"],
+      "doc": "layers.md#feature-has-inbound"
+    },
+    {
+      "id": "service-no-inbound",
+      "severity": "error",
+      "surfaces": ["check"],
+      "doc": "layers.md#service-no-inbound"
+    },
+    {
+      "id": "shared-candidate",
+      "severity": "warning",
+      "surfaces": ["doctor"],
+      "doc": "evolution.md#shared-candidate"
+    },
+    {
+      "id": "stage-growth",
+      "severity": "warning",
+      "surfaces": ["doctor"],
+      "doc": "evolution.md#stage-growth"
+    },
+    {
+      "id": "dense-services",
+      "severity": "warning",
+      "surfaces": ["doctor"],
+      "doc": "evolution.md#dense-services"
+    },
+    {
+      "id": "orphan-public",
+      "severity": "info",
+      "surfaces": ["doctor"],
+      "doc": "evolution.md#orphan-public"
+    }
+  ]
+}

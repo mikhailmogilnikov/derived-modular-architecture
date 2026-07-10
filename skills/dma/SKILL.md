@@ -1,164 +1,117 @@
 ---
 name: dma
 description: >-
-  Applies Derived Modular Architecture (DMA): layer predicates, public API without
-  barrels, colocation, second-use promotions, and module evolution stages. Use when
-  placing or moving frontend files, designing modules, reviewing imports/structure,
-  migrating from FSD/ED, or working with `@derived-modular/cli` / `dma check` / `dma doctor` /
-  `src/{app,features,services,shared}`.
+  Applies Derived Modular Architecture (DMA) when placing or moving frontend
+  files under src/{app,pages,routes,features,services,shared}, reviewing imports,
+  promoting modules, choosing public API paths, migrating from FSD/ED, or running
+  dma check / dma doctor / @derived-modular/* linters. Prefer this over inventing
+  layers (widgets, entities) or barrels.
 license: MIT
 metadata:
   author: mikhailmogilnikov
   homepage: https://github.com/mikhailmogilnikov/derived-modular-architecture
 ---
 
-# Derived Modular Architecture (DMA)
+# DMA (agent skill)
 
-Rules are **derived from the filesystem and import graph**, then enforced by tooling — not taste.
+Rules come from the **filesystem + import graph**, enforced by tooling — not taste.
 
-Long-form spec: [docs/derived-modular.md](https://github.com/mikhailmogilnikov/derived-modular-architecture/blob/main/docs/derived-modular.md)  
-CLI: [`@derived-modular/cli`](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/cli)  
-ESLint: [`@derived-modular/eslint-plugin`](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/eslint-plugin) (file-scoped only — still run `dma check`)  
-Biome: [`@derived-modular/biome-plugin`](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/biome-plugin) (best-effort GritQL)  
-Oxlint: [`@derived-modular/oxlint-plugin`](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/oxlint-plugin) (same rules as ESLint via JS plugins)  
-Detail cheat sheets: [references/reference.md](references/reference.md)
-
-## Install (skills.sh)
-
-```bash
-npx skills add mikhailmogilnikov/derived-modular-architecture --skill dma
-```
-
-**Examples:** copy-paste starters live in [examples/](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples) — runnable Vite+React canon plus framework skeletons.
+**Normative SoT (read when unsure):** [spec/](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/spec)  
+**Examples:** [examples/](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples)  
+**Extra detail:** [references/reference.md](references/reference.md) (load only if needed)
 
 ## Hard gate
 
-Before creating/moving files under `src/`, run the **placement algorithm** below. Do not invent layers (`widgets`, `entities`, `pages`) or barrels (`index.ts` re-exports).
+Before creating/moving anything under `src/`:
 
-## Four invariants
-
-1. **Downward imports only:** `app → features → services → shared`
-2. **Public API without barrels:** cross-module → only `*/public/*` (direct file paths); stage-0 file modules are entirely public
-3. **Colocation by default:** code lives next to its only consumer until second use
-4. **Second-use rule:** never extract “for later”; second consumer → lift one level up
-
-Anything not machine-checkable is a wish, not a rule — except the last judgment: **product scenario vs portable infra** on the `services` / `shared` boundary.
-
-## Layer predicates
-
-| Layer | Predicate |
-| --- | --- |
-| `app/` | Composition root; mounts modules; nobody imports it. Also: `pages/`, `routes/` under `src/` (framework routers) |
-| `features/` | **No** inbound edges from other modules (only mounted from `app`) |
-| `services/` | **Has** inbound edges from modules **and** product scenarios |
-| `shared/` | Has inbound edges **and** no product scenarios (portable) |
-
-`services/` is created **lazily** on first promotion — never empty “for later”.
-
-Inbound edges count only from other **modules** (`features/*`, `services/*`). Mounts from `app/` do **not** promote a feature.
-
-Heuristic for `services` vs `shared`: “Could this code live unchanged in another product?” → yes `shared`, no `services`.
+1. Run the **placement algorithm** below.
+2. Do **not** invent FSD-style module layers (`widgets`, `entities`, or `pages`/`features` as taste ranks) or barrels (`index.ts` re-exports). `src/pages/` / `src/routes/` as **composition roots** are fine.
+3. Prefer direct paths to `*/public/*` (stage-0 file modules are entirely public).
 
 ## Placement algorithm
 
-Answer in order; stop at first match.
+Answer in order; **stop at first match**.
 
-1. **Composition / wiring / route shell?** → `app/` (thin framework route files mount `*/public/*`).
-2. **Used by 2+ modules already (measured)?**
-   - Product scenario → promote owning module to `services/` (or put new code there if it belongs to that module).
-   - Portable types/helpers/ui/transport → `shared/{domain,lib,ui,api,model}`.
-3. **Only one consumer module?** → colocate inside that module (internal file or segment).
-4. **New leaf UI/flow mounted only from app?** → `features/<name>` (stage 0 file or stage 1+ folder).
-5. **Another module must import this module?** → target must be in `services/` (promote + review `public/`). Never `feature → feature`.
-6. **Would the edge create a cycle or upward dependency?** → consumer port in `public/ports.ts` + bind in `app`. Do **not** use ports to dodge promotion.
+1. **Composition / wiring / route shell?** → composition root: `src/app/`, `src/pages/`, or `src/routes/` (thin mount of `*/public/*` only).
+2. **Another module must import this module (product scenario)?** → target MUST be in `services/` (promote + review `public/`). Never `feature → feature`. One inbound module edge is enough.
+3. **Portable helper/UI/type already imported by 2+ modules?** → `shared/{domain,lib,ui,api,model}` (second-use). Do not extract on first use.
+4. **Only one consumer module?** → colocate inside that module (internal file or segment).
+5. **New leaf UI/flow mounted only from composition root?** → `features/<name>` (stage 0 file or stage 1+ folder).
+6. **Edge would cycle or go upward?** → consumer `public/ports.ts` + bind in composition root. Do **not** use ports to dodge a legal direct import / promotion.
 
-### Inside a module (stages)
+### Quick predicates
 
-| Stage | Shape | Trigger |
-| --- | --- | --- |
-| 0 | `features/checkout.tsx` | new module |
-| 1 | `checkout/public/…` + flat internals | second related file |
-| 2 | add `ui/`, `model/`, `api/`, optional `lib/` | ~8 files or clear segment clusters |
-| 3 | split into sibling modules | `public/` has ~8+ **implementation** entrypoints (`*.types.ts`, `*.events.ts`, `ports.ts` do not count) |
-| 4 | packages / monorepo | multi-app reuse |
-
-- `public/` is always **flat**; growing it means **split the module**, not nest `public/`.
-- Prefer implementation **in** `public/`; 1:1 re-export from internals is allowed but not the default.
-- **No `index.*` barrels** in the project modules.
-- File names: kebab-case, meaningful without the folder (`use-cart-total.ts`, not `hook.ts`).
-
-### Cross-module links (pick by relation)
-
-| Relation | Mechanism |
+| Path | Predicate |
 | --- | --- |
-| Uses lower module | Direct import of its `public/` file |
-| Notifies unknown subscribers | Owner event in emitter `public/`; subscribe downward, else wire in `app` |
-| Cycle / upward | Port in consumer `public/ports.ts` + provider in `app` |
-| Visual composition only | Slots/props in `app`, no code edge |
+| `app/` / `pages/` / `routes/` | Mounts modules; modules MUST NOT import it |
+| `features/` | No inbound edges from other **modules** |
+| `services/` | Has inbound from modules + product scenarios (create folder only on first promotion) |
+| `shared/` | Portable infra/types — not product scenarios |
 
-`import type` **is** an edge (can force promotion or `shared/domain`).
+Inbound for promotion = edges from `features/*` or `services/*` only. Composition-root mounts do **not** promote.
 
-## Dependency rules (cheat sheet)
+`services` vs `shared` (last judgment): “Could this live unchanged in another product?” → yes `shared`, no `services`.
 
-```text
-app      → features/*/public, services/*/public, shared
-features → services/*/public, shared     # ✗ features → features
-services → services/*/public, shared     # DAG / no cycles
-shared   → shared only
-outside  → */public/* only (not module internals)
-```
-
-`shared` groups (same names as segments, different rights):
+### Import cheat sheet
 
 ```text
-domain → (nothing)
-lib    → domain
-api    → lib, domain
-model  → api, lib, domain
-ui     → lib, domain          # ✗ api, ✗ model
+app/pages/routes → features/*/public, services/*/public, shared
+features         → services/*/public, shared     # ✗ features → features
+services         → services/*/public, shared     # no cycles
+shared           → shared only
+outside module   → */public/* only (not ui/model/api internals)
 ```
 
-Inside a module (enable when painful):
-
-```text
-public → ui, model, api, lib
-ui     → model, lib
-model  → api, lib
-api    → lib
-```
+`import type` **is** an edge.
 
 ## Agent workflow
 
-1. Inspect existing `src/{app,features,services?,shared}` and real imports (not assumed layers).
-2. Place/move code via the algorithm; update import paths to **direct** `public/` files.
-3. If `@derived-modular/cli` is available, run:
-   - `dma check [path]` — hard errors must be fixed (exit `1`)
-   - `dma doctor [path]` — soft evolution signals (inform; don’t invent extra layers)
-4. Optional editor feedback:
-   - `@derived-modular/eslint-plugin` — stronger file-scoped rules
-   - `@derived-modular/biome-plugin` — best-effort GritQL heuristics
-   - `@derived-modular/oxlint-plugin` — same rules as ESLint via Oxlint JS plugins
-   - Neither replaces `dma check` (cycles / inbound predicates).
-5. Prefer JSON for automation: `dma check --format json`.
-6. Never “fix” violations with barrels, deep imports, empty `services/`, or ports that hide a legal direct import.
+1. **Inspect** real `src/{app|pages|routes,features,services?,shared}` and imports — do not assume FSD layers.
+2. **Place/move** via the algorithm; rewrite imports to **direct** public files.
+3. **Verify** if CLI is available:
+   ```bash
+   bun x dma check . --format json    # or: npx @derived-modular/cli check .
+   bun x dma doctor . --format json   # soft signals; do not invent layers from these
+   ```
+   Exit: `0` ok · `1` check errors (must fix) · `2` env/args.
+4. Use **editor linter plugins** when the project already has that linter (see below) — still run `dma check` in CI.
+5. Never “fix” with barrels, deep imports, empty `services/`, or ports that hide a legal downward import.
 
-## Antipatterns (refuse)
+## Linter plugins (editor / `lint` script)
 
-- Barrel `index.ts` re-export surfaces
+File-scoped only: `layer-direction`, `feature-to-feature`, `public-api`, `no-barrel`.  
+**Do not** treat them as a full audit — `no-cycle`, inbound predicates, and `doctor` exist only in the CLI.
+
+| Stack | Package | Notes |
+| --- | --- | --- |
+| ESLint flat config | `@derived-modular/eslint-plugin` | Strongest file-scoped; prefer when ESLint is present |
+| Oxlint | `@derived-modular/oxlint-plugin` | Same rules via JS plugins (alpha) |
+| Biome | `@derived-modular/biome-plugin` | GritQL heuristics — weaker, no full resolve |
+
+When configuring or reviewing lint setup, point at package READMEs / [examples/](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples) (each wires a matching adapter). Normative matrix: [spec/enforcement.md](https://github.com/mikhailmogilnikov/derived-modular-architecture/blob/main/spec/enforcement.md).
+
+## Refuse / rewrite
+
+- Barrel `index.ts` / `index.tsx` re-export surfaces (what `no-barrel` checks)
 - Nested / segmented `public/`
 - `feature → feature` or upward imports
 - Module in `services/` with **no** module inbound edges
 - Extract to `shared` on first use
 - Segments on stage 0–1
 - App-level central contract registry (barrel of the whole graph)
-- Port outside `public/ports.ts`, or port used to skip promotion
+- Port outside `public/ports.ts` (convention; CLI does not enforce the filename)
+- Treating `shared-candidate` on a healthy `services/*/public/*` as a hard error
+- “We’re fine, ESLint/Biome passed” without `dma check` in CI
 
-## Out of scope for DMA itself
+## When to open more context
 
-Domain slicing recipe, state-management library choice, test pyramid, microfrontends, framework SSR details — only **where** code lives and **how** imports run.
+| Need | Open |
+| --- | --- |
+| Normative rules / assumptions / out-of-scope | [spec/](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/spec) |
+| Stages, triggers, shared groups, migration shorts, CLI ruleIds | [references/reference.md](references/reference.md) |
+| Copy-paste layout + lint wiring | [examples/](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples) |
+| Intentional violations (tests only) | `packages/cli/tests/fixtures/` |
 
-## Additional resources
+## Out of scope
 
-- [references/reference.md](references/reference.md) — stages, triggers, shared groups, migration hints
-- Spec: https://github.com/mikhailmogilnikov/derived-modular-architecture/blob/main/docs/derived-modular.md
-- CLI: `npx @derived-modular/cli` / https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/cli
+Domain-cut recipe, state-library choice, test pyramid, microfrontends, framework SSR details — only **where** code lives and **how** imports run. See [spec/out-of-scope.md](https://github.com/mikhailmogilnikov/derived-modular-architecture/blob/main/spec/out-of-scope.md).
