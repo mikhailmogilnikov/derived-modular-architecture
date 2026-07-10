@@ -25,6 +25,8 @@
     "lint:examples": "turbo run lint --filter=\"./examples/*\"",
     "test:examples": "turbo run test --filter=\"./examples/*\"",
     "build:examples": "turbo run build --filter=\"./examples/vite-react\" --filter=\"./examples/vue-vite\" --filter=\"./examples/sveltekit-routes\" --filter=\"./examples/astro-pages\"",
+    "dev:docs": "turbo run dev --filter=@derived-modular/docs",
+    "build:docs": "turbo run build --filter=@derived-modular/docs",
     "fix": "ultracite fix",
     "commitlint": "commitlint --edit",
     "changeset": "changeset",

@@ -1,0 +1,28 @@
+---
+title: Derived Modular Architecture
+description: Rules derived from the filesystem and import graph, enforced by tooling.
+icon: Layers
+---
+
+Frontend architecture where **rules are derived from the filesystem and import graph**, then enforced by tooling — not taste.
+
+```text
+src/
+├── app/         # composition root (also: pages/, routes/)
+├── features/    # leaf modules
+├── services/    # modules with inbound edges (lazy)
+└── shared/      # portable ui / lib / api / model / domain
+```
+
+## Four invariants
+
+1. Downward imports only: `app → features → services → shared`
+2. Public API without barrels — cross-module imports hit `*/public/*`
+3. Colocation by default
+4. Second-use rule — lift only when a second consumer appears
+
+<Cards>
+  <Card title="Spec (source of truth)" href="https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/spec" />
+  <Card title="Examples" href="https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples" />
+  <Card title="CLI" href="https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/cli" />
+</Cards>
