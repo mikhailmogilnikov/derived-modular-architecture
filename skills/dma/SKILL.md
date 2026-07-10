@@ -29,6 +29,8 @@ Detail cheat sheets: [references/reference.md](references/reference.md)
 npx skills add mikhailmogilnikov/derived-modular-architecture --skill dma
 ```
 
+**Examples:** copy-paste starters live in [examples/](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples) — runnable Vite+React canon plus framework skeletons.
+
 ## Hard gate
 
 Before creating/moving files under `src/`, run the **placement algorithm** below. Do not invent layers (`widgets`, `entities`, `pages`) or barrels (`index.ts` re-exports).

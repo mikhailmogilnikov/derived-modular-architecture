@@ -1,0 +1,23 @@
+.checkout {
+	padding: 1.25rem;
+	border: 1px solid #e2e8f0;
+	border-radius: 0.5rem;
+	background: #f8fafc;
+}
+
+.checkout-step {
+	margin: 0 0 0.5rem;
+	color: #64748b;
+	font-size: 0.875rem;
+	text-transform: capitalize;
+}
+
+.checkout-total {
+	margin: 0.75rem 0 0.25rem;
+	font-size: 1.125rem;
+}
+
+.checkout-items {
+	margin: 0 0 1rem;
+	color: #64748b;
+}

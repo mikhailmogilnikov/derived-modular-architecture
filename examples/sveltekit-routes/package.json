@@ -1,0 +1,24 @@
+{
+  "name": "@derived-modular/example-sveltekit-routes",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "svelte-kit sync && vite build",
+    "dma-check": "dma check .",
+    "lint": "oxlint .",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@derived-modular/cli": "workspace:*",
+    "@derived-modular/oxlint-plugin": "workspace:*",
+    "@sveltejs/adapter-auto": "^6.0.0",
+    "@sveltejs/kit": "^2.21.0",
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "oxlint": "^1.73.0",
+    "svelte": "^5.33.0",
+    "typescript": "5.9.3",
+    "vite": "^6.0.0",
+    "vitest": "^3.2.4"
+  }
+}

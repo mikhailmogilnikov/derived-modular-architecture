@@ -1,0 +1,28 @@
+{
+  "name": "@derived-modular/example-vite-react",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "dma-check": "dma check .",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@derived-modular/cli": "workspace:*",
+    "@derived-modular/eslint-plugin": "workspace:*",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "eslint": "^9.39.0",
+    "sass": "^1.89.2",
+    "typescript": "5.9.3",
+    "vite": "^6.0.0",
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,19 @@
+{
+	"name": "@derived-modular/example-astro-pages",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "astro build",
+		"dev": "astro dev",
+		"dma-check": "dma check .",
+		"lint": "biome check .",
+		"test": "bun test"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.5.2",
+		"@derived-modular/biome-plugin": "workspace:*",
+		"@derived-modular/cli": "workspace:*",
+		"astro": "^5.7.10",
+		"typescript": "5.9.3"
+	}
+}

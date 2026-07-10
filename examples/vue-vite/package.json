@@ -1,0 +1,26 @@
+{
+	"name": "@derived-modular/example-vue-vite",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vue-tsc --noEmit && vite build",
+		"dma-check": "dma check .",
+		"lint": "biome check .",
+		"test": "vitest run"
+	},
+	"dependencies": {
+		"vue": "^3.5.13"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.5.2",
+		"@derived-modular/biome-plugin": "workspace:*",
+		"@derived-modular/cli": "workspace:*",
+		"@vitejs/plugin-vue": "^5.2.1",
+		"sass": "^1.85.0",
+		"typescript": "5.9.3",
+		"vite": "^6.0.0",
+		"vitest": "^3.0.5",
+		"vue-tsc": "^2.2.0"
+	}
+}

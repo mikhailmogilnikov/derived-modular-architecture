@@ -1,0 +1,6 @@
+.card {
+  padding: 1rem;
+  background: color-mix(in srgb, Canvas 96%, CanvasText 4%);
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+}

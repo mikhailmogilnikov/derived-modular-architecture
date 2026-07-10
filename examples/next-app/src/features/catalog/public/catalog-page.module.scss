@@ -1,0 +1,30 @@
+.catalog {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.productList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.productItem {
+  align-items: center;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.cartBadge {
+  color: #4b5563;
+  font-size: 0.875rem;
+}

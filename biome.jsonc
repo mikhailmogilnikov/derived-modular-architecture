@@ -11,7 +11,12 @@
       "!packages/cli/tests/fixtures",
       "!packages/biome-plugin",
       "!packages/eslint-plugin/tests/fixtures",
-      "!packages/oxlint-plugin/tests/fixtures"
+      "!packages/oxlint-plugin/tests/fixtures",
+      "!examples/astro-pages",
+      "!examples/next-app",
+      "!examples/sveltekit-routes",
+      "!examples/vite-react",
+      "!examples/vue-vite"
     ]
   },
   "overrides": [

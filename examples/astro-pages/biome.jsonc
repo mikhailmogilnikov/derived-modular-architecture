@@ -1,0 +1,19 @@
+{
+	"extends": ["@derived-modular/biome-plugin"],
+	"files": {
+		"includes": ["**", "!dist", "!!**/.astro"]
+	},
+	"overrides": [
+		{
+			"includes": ["**/*.astro"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noUnusedImports": "off",
+						"noUnusedVariables": "off"
+					}
+				}
+			}
+		}
+	]
+}

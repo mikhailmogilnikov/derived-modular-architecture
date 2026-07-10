@@ -16,7 +16,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "prepublishOnly": "bun run build",
-    "test": "bun run build && bun test",
+    "test": "bun test",
     "check-types": "tsc --noEmit"
   },
   "peerDependencies": {

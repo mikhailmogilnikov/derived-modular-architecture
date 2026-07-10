@@ -1,0 +1,20 @@
+---
+import { cartItemCount, cartTotal } from "@/services/cart/public/cart";
+import { formatCurrency } from "@/shared/lib/format-currency";
+import Button from "@/shared/ui/button.astro";
+import { checkoutStore } from "../checkout.store";
+import "../checkout-page.css";
+
+const total = cartTotal();
+const items = cartItemCount();
+---
+
+<section class="checkout" aria-labelledby="checkout-heading">
+	<h2 id="checkout-heading">Checkout</h2>
+	<p class="checkout-step">Step: {checkoutStore.step}</p>
+	<p class="checkout-total">
+		Total: <strong>{formatCurrency(total)}</strong>
+	</p>
+	<p class="checkout-items">Items in cart: {items}</p>
+	<Button label="Pay" />
+</section>

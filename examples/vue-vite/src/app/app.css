@@ -1,0 +1,32 @@
+:root {
+	--color-text: #0f172a;
+	--color-muted: #64748b;
+	--color-border: #e2e8f0;
+	--color-surface: #f1f5f9;
+	--color-panel: #fff;
+	--color-accent: #2563eb;
+	--color-accent-soft: #eff6ff;
+	--font-sans: system-ui, -apple-system, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	font-family: var(--font-sans);
+	line-height: 1.5;
+	color: var(--color-text);
+	background: var(--color-surface);
+}
+
+code {
+	font-size: 0.875em;
+}
+
+a {
+	color: var(--color-accent);
+}

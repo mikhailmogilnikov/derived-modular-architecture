@@ -1,0 +1,23 @@
+{
+	"extends": ["@derived-modular/biome-plugin"],
+	"files": {
+		"includes": ["**", "!dist"]
+	},
+	"overrides": [
+		{
+			"includes": ["**/*.vue"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noUnusedImports": "off",
+						"noUnusedVariables": "off"
+					},
+					"style": {
+						"useConst": "off",
+						"useVueMultiWordComponentNames": "off"
+					}
+				}
+			}
+		}
+	]
+}

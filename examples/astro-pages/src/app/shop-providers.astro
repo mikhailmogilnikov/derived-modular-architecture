@@ -1,0 +1,10 @@
+---
+import { initCart } from "@/services/cart/public/cart";
+import { provideCartSeed } from "@/services/cart/public/ports";
+import { demoCartSeed } from "./cart-seed";
+
+provideCartSeed(demoCartSeed);
+initCart();
+---
+
+<slot />

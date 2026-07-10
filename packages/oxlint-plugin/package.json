@@ -13,7 +13,7 @@
     "./configs/recommended.json": "./configs/recommended.json"
   },
   "scripts": {
-    "test": "bun run --cwd ../eslint-plugin build && bun test"
+    "test": "bun test"
   },
   "dependencies": {
     "@derived-modular/eslint-plugin": "workspace:*"

@@ -1,0 +1,15 @@
+.cardHeader {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-radius: 999px;
+}

@@ -1,0 +1,15 @@
+.checkout {
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+.total {
+  font-size: 1.125rem;
+}
+
+.meta {
+  font-size: 0.875rem;
+  color: #4b5563;
+}

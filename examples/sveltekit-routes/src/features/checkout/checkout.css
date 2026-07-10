@@ -1,0 +1,8 @@
+.checkout .total {
+  color: var(--color-accent);
+}
+
+.checkout .status[data-status="paid"] {
+  font-weight: 600;
+  color: var(--color-success);
+}

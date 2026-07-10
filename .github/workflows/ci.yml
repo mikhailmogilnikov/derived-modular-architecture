@@ -26,19 +26,19 @@ jobs:
         run: bun x ultracite check
 
       - name: Build packages
-        run: bun run dma:build
+        run: bun run build
 
-      - name: Test boundaries
-        run: bun test --cwd packages/boundaries
+      - name: Test packages
+        run: bun run test
 
-      - name: Test cli
-        run: bun test --cwd packages/cli
+      - name: DMA-check examples
+        run: bun run dma-check:examples
 
-      - name: Test eslint-plugin
-        run: bun run --cwd packages/eslint-plugin test
+      - name: Lint examples
+        run: turbo run lint --filter="./examples/*"
 
-      - name: Test biome-plugin
-        run: bun test --cwd packages/biome-plugin
+      - name: Test examples
+        run: turbo run test --filter="./examples/*"
 
-      - name: Test oxlint-plugin
-        run: bun run --cwd packages/oxlint-plugin test
+      - name: Build runnable examples
+        run: turbo run build --filter="./examples/vite-react" --filter="./examples/vue-vite" --filter="./examples/sveltekit-routes" --filter="./examples/astro-pages"

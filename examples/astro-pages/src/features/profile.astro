@@ -1,0 +1,55 @@
+---
+import Button from "@/shared/ui/button.astro";
+
+const user = {
+	name: "Alex Morgan",
+	email: "alex@example.com",
+	plan: "Pro",
+} as const;
+---
+
+<section class="profile-card" aria-labelledby="profile-heading">
+	<h2 id="profile-heading">Profile</h2>
+	<div class="profile-card__body">
+		<p class="profile-card__name">{user.name}</p>
+		<p class="profile-card__email">{user.email}</p>
+		<span class="profile-card__plan">{user.plan}</span>
+	</div>
+	<Button label="Edit profile" />
+</section>
+
+<style>
+	.profile-card {
+		padding: 1.25rem;
+		border: 1px solid #e2e8f0;
+		border-radius: 0.5rem;
+		background: #fff;
+	}
+
+	.profile-card__body {
+		margin-bottom: 1rem;
+	}
+
+	.profile-card__name {
+		margin: 0 0 0.25rem;
+		font-size: 1.125rem;
+		font-weight: 600;
+	}
+
+	.profile-card__email {
+		margin: 0 0 0.5rem;
+		color: #64748b;
+	}
+
+	.profile-card__plan {
+		display: inline-block;
+		padding: 0.125rem 0.5rem;
+		border-radius: 9999px;
+		background: #dbeafe;
+		color: #1d4ed8;
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+</style>

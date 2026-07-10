@@ -1,0 +1,41 @@
+.wishlist {
+	padding: 1.25rem;
+	border: 1px solid #e2e8f0;
+	border-radius: 0.5rem;
+	background: #fff;
+}
+
+.list {
+	margin: 0 0 1rem;
+	padding: 0;
+	list-style: none;
+	display: grid;
+	gap: 0.5rem;
+}
+
+.item {
+	display: flex;
+	justify-content: space-between;
+	padding: 0.5rem 0.75rem;
+	border-radius: 0.375rem;
+	background: #f8fafc;
+	font-size: 0.875rem;
+}
+
+.itemId {
+	font-family: ui-monospace, monospace;
+}
+
+.itemStatus {
+	color: #64748b;
+}
+
+.note {
+	margin: 0 0 1rem;
+	color: #94a3b8;
+	font-size: 0.8125rem;
+}
+
+.note code {
+	font-size: 0.75rem;
+}

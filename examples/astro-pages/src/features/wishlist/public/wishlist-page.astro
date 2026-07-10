@@ -1,0 +1,26 @@
+---
+import { formatCurrency } from "@/shared/lib/format-currency";
+import Button from "@/shared/ui/button.astro";
+import { wishlistStore } from "../wishlist.store";
+import { wishlistPageClasses as classes } from "../wishlist-page.classes";
+
+const saved = wishlistStore.savedIds.map((id) => ({ id }));
+---
+
+<section class={classes.root} aria-labelledby="wishlist-heading">
+	<h2 id="wishlist-heading">Wishlist</h2>
+	<ul class={classes.list}>
+		{
+			saved.map((entry) => (
+				<li class={classes.item}>
+					<span class={classes.itemId}>{entry.id}</span>
+					<span class={classes.itemStatus}>Saved</span>
+				</li>
+			))
+		}
+	</ul>
+	<p class={classes.note}>
+		Portable helper from <code>shared/lib</code>: {formatCurrency(12)}
+	</p>
+	<Button label="Share wishlist" />
+</section>

@@ -120,8 +120,22 @@ Source: [skills/dma](./skills/dma) · [skills/README.md](./skills/README.md)
 | `packages/biome-plugin` | `@derived-modular/biome-plugin` |
 | `packages/oxlint-plugin` | `@derived-modular/oxlint-plugin` |
 | `skills/dma` | installable agent skill |
+| `examples/` | framework examples — see [examples/README.md](./examples/README.md) |
 | `docs/` | architecture synthesis + design notes |
-| `apps/` | (reserved) example apps |
+
+## Examples
+
+Runnable canon and framework skeletons share one mini-shop domain (catalog, checkout, profile, cart). Each tree is **clean** — `dma check` exits 0.
+
+| Example | Stack | Composition root | Lint adapter | Runnable |
+| --- | --- | --- | --- | --- |
+| [vite-react](./examples/vite-react) | Vite + React | `src/app/` | ESLint | yes (`dev` / `build`) |
+| [next-app](./examples/next-app) | Next App Router | `src/app/` | ESLint | no (v1) |
+| [astro-pages](./examples/astro-pages) | Astro | `src/pages/` | Biome | yes (`build`) |
+| [sveltekit-routes](./examples/sveltekit-routes) | SvelteKit | `src/routes/` | Oxlint | yes (`build`) |
+| [vue-vite](./examples/vue-vite) | Vue + Vite | `src/app/` | Biome | yes (`dev` / `build`) |
+
+Tour: [examples/README.md](./examples/README.md)
 
 ## License
 

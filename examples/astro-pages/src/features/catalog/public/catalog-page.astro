@@ -1,0 +1,77 @@
+---
+import { addToCart } from "@/services/cart/public/cart";
+import { formatCurrency } from "@/shared/lib/format-currency";
+import Button from "@/shared/ui/button.astro";
+import { catalogStore } from "../catalog.store";
+
+const products = [
+	{ id: "sku-2", name: "Layer Lint Pack", price: 19 },
+	{ id: "sku-3", name: "Public API Mug", price: 12 },
+] as const;
+
+const visibleProducts =
+	catalogStore.selectedCategory === "all" ? products : products;
+
+for (const product of visibleProducts) {
+	addToCart(product);
+}
+---
+
+<section class="catalog" aria-labelledby="catalog-heading">
+	<h2 id="catalog-heading">Catalog</h2>
+	<p class="catalog-filter">Category: {catalogStore.selectedCategory}</p>
+	<ul class="catalog-list">
+		{
+			visibleProducts.map((product) => (
+				<li class="catalog-item">
+					<span class="catalog-item__name">{product.name}</span>
+					<span class="catalog-item__price">{formatCurrency(product.price)}</span>
+					<Button label="Add to cart" />
+				</li>
+			))
+		}
+	</ul>
+</section>
+
+<style>
+	.catalog {
+		padding: 1.25rem;
+		border: 1px solid #e2e8f0;
+		border-radius: 0.5rem;
+		background: #fff;
+	}
+
+	.catalog-filter {
+		margin: 0 0 0.75rem;
+		color: #64748b;
+		font-size: 0.875rem;
+	}
+
+	.catalog-list {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: grid;
+		gap: 0.75rem;
+	}
+
+	.catalog-item {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.75rem;
+		border: 1px solid #e2e8f0;
+		border-radius: 0.375rem;
+		background: #f8fafc;
+	}
+
+	.catalog-item__name {
+		flex: 1;
+		font-weight: 500;
+	}
+
+	.catalog-item__price {
+		color: #475569;
+	}
+</style>

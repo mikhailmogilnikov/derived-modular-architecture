@@ -1,0 +1,19 @@
+{
+  "name": "@derived-modular/example-next-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dma-check": "dma check .",
+    "lint": "eslint .",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@derived-modular/cli": "workspace:*",
+    "@derived-modular/eslint-plugin": "workspace:*",
+    "@types/react": "^19.0.0",
+    "eslint": "^9.39.0",
+    "react": "^19.0.0",
+    "sass": "^1.89.2",
+    "typescript": "5.9.3"
+  }
+}

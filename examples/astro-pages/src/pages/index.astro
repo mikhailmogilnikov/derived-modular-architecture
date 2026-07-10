@@ -1,0 +1,27 @@
+---
+import Layout from "@/app/layout.astro";
+import ShopProviders from "@/app/shop-providers.astro";
+import CatalogPage from "@/features/catalog/public/catalog-page.astro";
+import CheckoutPage from "@/features/checkout/public/checkout-page.astro";
+import Profile from "@/features/profile.astro";
+import WishlistPage from "@/features/wishlist/public/wishlist-page.astro";
+---
+
+<Layout title="DMA · Astro mini-shop">
+	<ShopProviders>
+		<header class="site-header">
+			<h1>DMA Astro mini-shop</h1>
+			<p>
+				Composition root at <code>src/pages/</code> — providers in
+				<code>src/app/shop-providers.astro</code>, features via public APIs.
+			</p>
+		</header>
+
+		<main class="site-main">
+			<CatalogPage />
+			<WishlistPage />
+			<CheckoutPage />
+			<Profile />
+		</main>
+	</ShopProviders>
+</Layout>

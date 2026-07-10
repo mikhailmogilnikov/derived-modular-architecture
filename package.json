@@ -12,24 +12,27 @@
   "name": "dma",
   "scripts": {
     "build": "turbo run build",
+    "test": "turbo run test",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "dma": "bun packages/cli/src/cli/main.ts",
-    "dma:build": "bun run --cwd packages/boundaries build && bun run --cwd packages/eslint-plugin build && bun run --cwd packages/cli build",
+    "dma:build": "turbo run build",
     "upgrade": "ncu -u",
     "check": "ultracite check",
+    "dma-check:examples": "turbo run dma-check --filter=\"./examples/*\"",
     "fix": "ultracite fix",
     "commitlint": "commitlint --edit",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "bun run dma:build && changeset publish",
+    "release": "turbo run build && changeset publish",
     "prepare": "lefthook install"
   },
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "examples/*"
   ],
   "private": true,
   "packageManager": "bun@1.3.14",

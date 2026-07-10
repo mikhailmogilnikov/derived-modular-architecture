@@ -1,0 +1,17 @@
+.input {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.field {
+  padding: 0.45rem 0.65rem;
+  color: inherit;
+  background: Canvas;
+  border: 1px solid var(--border);
+  border-radius: 0.45rem;
+}

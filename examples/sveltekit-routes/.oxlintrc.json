@@ -1,0 +1,5 @@
+{
+  "extends": [
+    "./node_modules/@derived-modular/oxlint-plugin/configs/recommended.json"
+  ]
+}
