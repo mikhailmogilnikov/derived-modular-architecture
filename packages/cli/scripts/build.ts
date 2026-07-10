@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { build, file } from "bun";
 
@@ -47,6 +47,7 @@ const bundled = (await file(cliPath).text())
   .replace(/^#!.*\n/, "")
   .replace(/^\/\/ @bun\n/, "");
 writeFileSync(cliPath, `#!/usr/bin/env node\n${bundled}`);
+chmodSync(cliPath, 0o755);
 
 const dts = spawnSync("bunx", ["tsc", "-p", "tsconfig.build.json"], {
   cwd: root,
