@@ -1,8 +1,13 @@
 import { RootProvider } from "fumadocs-ui/provider/next";
 import { GeistMono } from "geist/font/mono";
-import { GeistSans } from "geist/font/sans";
+import { Inter_Tight } from "next/font/google";
 import { getI18nProvider } from "@/shared/ui/layout-options";
 import "../global.css";
+
+const interTight = Inter_Tight({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-inter-tight",
+});
 
 export default async function Layout({
   children,
@@ -12,7 +17,7 @@ export default async function Layout({
 
   return (
     <html
-      className={`${GeistSans.variable} ${GeistMono.variable}`}
+      className={`${interTight.variable} ${GeistMono.variable}`}
       lang={lang}
       suppressHydrationWarning
     >

@@ -1,6 +1,5 @@
 {
   "title": "Концепции",
-  "defaultOpen": true,
   "pages": [
     "invariants",
     "layers",
