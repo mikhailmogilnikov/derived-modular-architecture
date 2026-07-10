@@ -120,7 +120,7 @@ Source: [skills/dma](./skills/dma) · [skills/README.md](./skills/README.md)
 | `packages/biome-plugin` | `@derived-modular/biome-plugin` |
 | `packages/oxlint-plugin` | `@derived-modular/oxlint-plugin` |
 | `skills/dma` | installable agent skill |
-| `apps/docs` | documentation site — TanStack Start + Fumadocs |
+| `apps/docs` | documentation site — Next.js + Fumadocs |
 | `examples/` | framework examples — see [examples/README.md](./examples/README.md) |
 | `spec/` | normative DMA architecture (EN) |
 

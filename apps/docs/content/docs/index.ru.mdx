@@ -1,0 +1,28 @@
+---
+title: Derived Modular Architecture
+description: Правила, выведенные из файловой системы и графа импортов, с проверкой инструментами.
+icon: Layers
+---
+
+Фронтенд-архитектура, где **правила выводятся из файловой системы и графа импортов**, а затем проверяются инструментами — а не вкусом.
+
+```text
+src/
+├── app/         # composition root
+├── features/    # leaf modules
+├── services/    # modules with inbound edges
+└── shared/      # portable ui / lib / api / model
+```
+
+## Четыре инварианта
+
+1. Импорты только вниз: `app → features → services → shared`
+2. Публичный API без barrel-файлов — межмодульные импорты идут в `*/public/*`
+3. Колокация по умолчанию
+4. Правило второго использования — выносить только при появлении второго потребителя
+
+<Cards>
+  <Card title="Spec (source of truth)" href="https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/spec" />
+  <Card title="Examples" href="https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples" />
+  <Card title="CLI" href="https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/packages/cli" />
+</Cards>

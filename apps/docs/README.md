@@ -1,6 +1,6 @@
 # @derived-modular/docs
 
-Documentation site for Derived Modular Architecture — TanStack Start + Fumadocs.
+Documentation site for Derived Modular Architecture — Next.js + Fumadocs.
 
 ```bash
 # from monorepo root
@@ -12,4 +12,23 @@ bun run dev
 
 Open http://localhost:3000/docs
 
-Content lives in `content/docs/`. Normative spec source: [`spec/`](../../spec/).
+## DMA layout
+
+```text
+src/
+├── app/                 # composition root (Next.js App Router)
+├── features/
+│   ├── home/public/
+│   └── docs-page/public/
+├── services/
+│   └── docs-content/public/
+└── shared/
+    ├── model/
+    └── ui/
+```
+
+Content: `content/docs/`. Normative spec: [`spec/`](../../spec/).
+
+```bash
+bun run dma-check
+```
