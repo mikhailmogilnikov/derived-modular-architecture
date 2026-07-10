@@ -19,42 +19,57 @@ const diagnosticsFor = (fixtureName: string) => {
 describe("runCheckRules", () => {
   test("layer-direction", () => {
     const diagnostics = diagnosticsFor("layer-violation");
-    expect(diagnostics.some((d) => d.ruleId === "layer-direction")).toBe(true);
+    const hit = diagnostics.find((d) => d.ruleId === "layer-direction");
+    expect(hit?.severity).toBe("error");
+    expect(hit?.file).toBeTruthy();
+    expect(hit?.help).toBeTruthy();
   });
 
   test("feature-to-feature", () => {
     const diagnostics = diagnosticsFor("feature-to-feature");
-    expect(diagnostics.some((d) => d.ruleId === "feature-to-feature")).toBe(
-      true
-    );
+    const hit = diagnostics.find((d) => d.ruleId === "feature-to-feature");
+    expect(hit?.severity).toBe("error");
+    expect(hit?.file?.endsWith("a.tsx")).toBe(true);
+    expect(hit?.range?.line).toBeGreaterThan(0);
   });
 
   test("public-api", () => {
     const diagnostics = diagnosticsFor("deep-import");
-    expect(diagnostics.some((d) => d.ruleId === "public-api")).toBe(true);
+    const hit = diagnostics.find((d) => d.ruleId === "public-api");
+    expect(hit?.severity).toBe("error");
+    expect(hit?.message.toLowerCase()).toContain("public");
   });
 
   test("no-barrel", () => {
     const diagnostics = diagnosticsFor("barrel");
-    expect(diagnostics.some((d) => d.ruleId === "no-barrel")).toBe(true);
+    const hit = diagnostics.find((d) => d.ruleId === "no-barrel");
+    expect(hit?.severity).toBe("error");
+    expect(hit?.file?.endsWith("index.ts")).toBe(true);
   });
 
   test("no-cycle", () => {
     const diagnostics = diagnosticsFor("cycle");
-    expect(diagnostics.some((d) => d.ruleId === "no-cycle")).toBe(true);
+    const hit = diagnostics.find((d) => d.ruleId === "no-cycle");
+    expect(hit?.severity).toBe("error");
+    expect(hit?.message.toLowerCase()).toContain("circular");
   });
 
   test("feature-has-inbound", () => {
     const diagnostics = diagnosticsFor("inbound-feature");
-    expect(diagnostics.some((d) => d.ruleId === "feature-has-inbound")).toBe(
-      true
-    );
+    const hit = diagnostics.find((d) => d.ruleId === "feature-has-inbound");
+    expect(hit?.severity).toBe("error");
+    expect(hit?.help?.toLowerCase()).toContain("services");
   });
 
   test("service-no-inbound", () => {
     const diagnostics = diagnosticsFor("service-no-inbound");
-    expect(diagnostics.some((d) => d.ruleId === "service-no-inbound")).toBe(
-      true
-    );
+    const hit = diagnostics.find((d) => d.ruleId === "service-no-inbound");
+    expect(hit?.severity).toBe("error");
+    expect(hit?.message.toLowerCase()).toContain("inbound");
+  });
+
+  test("clean fixture has no hard errors", () => {
+    const diagnostics = diagnosticsFor("clean");
+    expect(diagnostics.filter((d) => d.severity === "error")).toHaveLength(0);
   });
 });
