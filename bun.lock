@@ -14,15 +14,16 @@
     },
     "packages/dma": {
       "name": "@dma/cli",
-      "version": "0.0.1",
+      "version": "0.1.0",
       "bin": {
-        "dma": "./src/cli/main.ts",
+        "dma": "./dist/cli.js",
       },
       "dependencies": {
         "typescript": "5.9.3",
       },
       "devDependencies": {
         "@types/bun": "latest",
+        "@types/node": "latest",
       },
     },
   },
