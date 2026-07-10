@@ -5,5 +5,20 @@
     "ultracite/biome/tanstack",
     "ultracite/biome/vitest",
     "ultracite/biome/react"
+  ],
+  "files": {
+    "includes": ["!packages/dma/tests/fixtures"]
+  },
+  "overrides": [
+    {
+      "includes": ["packages/dma/src/index.ts"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noBarrelFile": "off"
+          }
+        }
+      }
+    }
   ]
 }

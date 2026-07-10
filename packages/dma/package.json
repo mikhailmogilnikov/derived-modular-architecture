@@ -1,0 +1,42 @@
+{
+  "name": "@dma/cli",
+  "version": "1.0.0",
+  "description": "Derived Modular Architecture checker and doctor CLI",
+  "type": "module",
+  "bin": {
+    "dma": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun ./scripts/build.ts",
+    "prepublishOnly": "bun run build",
+    "test": "bun test",
+    "check-types": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "typescript": "5.9.3"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "latest"
+  },
+  "keywords": [
+    "architecture",
+    "dma",
+    "lint",
+    "modules",
+    "cli"
+  ],
+  "license": "MIT"
+}

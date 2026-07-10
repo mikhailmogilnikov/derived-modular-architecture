@@ -13,13 +13,16 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
+    "dma": "bun packages/dma/src/cli/main.ts",
+    "dma:build": "bun run --cwd packages/dma build",
     "upgrade": "ncu -u",
     "check": "ultracite check",
     "fix": "ultracite fix",
     "prepare": "lefthook install"
   },
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "private": true,
   "engines": {
