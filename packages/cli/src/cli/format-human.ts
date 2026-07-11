@@ -61,6 +61,9 @@ const formatLocation = (diagnostic: Diagnostic, color: boolean): string => {
 const FEATURE_INBOUND_NAME_RE = /Feature "([^"]+)" has inbound/;
 const FEATURE_IMPORT_TARGET_RE = /imports feature "([^"]+)"/;
 
+const CHECK_FIXABLE_RULES = new Set(["no-barrel", "public-api"]);
+const DOCTOR_FIXABLE_RULES = new Set(["orphan-public"]);
+
 const formatPromoteTip = (
   diagnostics: Diagnostic[],
   color: boolean
@@ -93,6 +96,34 @@ const formatPromoteTip = (
     DIM,
     `tip  Auto-promote (dry-run first): ${commands}  ·  then add --apply`
   );
+};
+
+const formatFixTip = (
+  command: AnalyzeMode,
+  diagnostics: Diagnostic[],
+  color: boolean
+): string | null => {
+  const fixable =
+    command === "check" ? CHECK_FIXABLE_RULES : DOCTOR_FIXABLE_RULES;
+  const hasFixable = diagnostics.some((diagnostic) =>
+    fixable.has(diagnostic.ruleId)
+  );
+  if (!hasFixable) {
+    return null;
+  }
+  return paint(
+    color,
+    DIM,
+    `tip  Safe fixes: npx @derived-modular/cli ${command} --suggest  ·  then --fix`
+  );
+};
+
+const appendTips = (body: string, tips: (string | null)[]): string => {
+  const present = tips.filter((tip): tip is string => tip !== null);
+  if (present.length === 0) {
+    return body;
+  }
+  return `${body}\n${present.join("\n")}`;
 };
 
 const formatDiagnostic = (diagnostic: Diagnostic, color: boolean): string => {
@@ -223,12 +254,15 @@ const formatSingle = (
   const blocks = orderDiagnostics(diagnostics).map((diagnostic) =>
     formatDiagnostic(diagnostic, color)
   );
-  const tip = formatPromoteTip(diagnostics, color);
   const body = `${blocks.join("\n\n")}\n\n${summary}`;
-  return tip === null ? body : `${body}\n${tip}`;
+  return appendTips(body, [
+    formatPromoteTip(diagnostics, color),
+    formatFixTip(command, diagnostics, color),
+  ]);
 };
 
 const formatMulti = (
+  command: AnalyzeMode,
   diagnostics: Diagnostic[],
   projects: string[],
   color: boolean
@@ -259,9 +293,11 @@ const formatMulti = (
     infos,
     color
   );
-  const tip = formatPromoteTip(diagnostics, color);
   const body = `${header}\n${sections.join("\n")}\n${footer}`;
-  return tip === null ? body : `${body}\n${tip}`;
+  return appendTips(body, [
+    formatPromoteTip(diagnostics, color),
+    formatFixTip(command, diagnostics, color),
+  ]);
 };
 
 export const formatHuman = (
@@ -272,7 +308,7 @@ export const formatHuman = (
   const color = useColor();
   const projects = options?.projects;
   if (projects !== undefined && projects.length > 1) {
-    return formatMulti(diagnostics, projects, color);
+    return formatMulti(command, diagnostics, projects, color);
   }
   return formatSingle(command, diagnostics, color);
 };

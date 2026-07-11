@@ -70,6 +70,60 @@ describe("formatHuman", () => {
     }
   });
 
+  test("prints suggest/fix tip for no-barrel and public-api", () => {
+    process.env.NO_COLOR = "1";
+    try {
+      const out = formatHuman("check", [
+        {
+          message: 'Barrel re-export file in module "features/widget"',
+          ruleId: "no-barrel",
+          severity: "error",
+        },
+      ]);
+      expect(out).toContain(
+        "tip  Safe fixes: npx @derived-modular/cli check --suggest  ·  then --fix"
+      );
+      expect(out).not.toContain("doctor --suggest");
+    } finally {
+      delete process.env.NO_COLOR;
+    }
+  });
+
+  test("prints suggest/fix tip for orphan-public on doctor", () => {
+    process.env.NO_COLOR = "1";
+    try {
+      const out = formatHuman("doctor", [
+        {
+          file: "/tmp/dead.ts",
+          message: "Public export has no importers",
+          ruleId: "orphan-public",
+          severity: "info",
+        },
+      ]);
+      expect(out).toContain(
+        "tip  Safe fixes: npx @derived-modular/cli doctor --suggest  ·  then --fix"
+      );
+    } finally {
+      delete process.env.NO_COLOR;
+    }
+  });
+
+  test("omits suggest/fix tip when no fixable rules", () => {
+    process.env.NO_COLOR = "1";
+    try {
+      const out = formatHuman("check", [
+        {
+          message: "Deep cycle",
+          ruleId: "no-cycle",
+          severity: "error",
+        },
+      ]);
+      expect(out).not.toContain("Safe fixes");
+    } finally {
+      delete process.env.NO_COLOR;
+    }
+  });
+
   test("multi-root banners and footer", () => {
     process.env.NO_COLOR = "1";
     try {
