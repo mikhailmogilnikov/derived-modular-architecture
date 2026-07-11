@@ -74,11 +74,15 @@ outside module   → */public/* only (not ui/model/api internals)
 ## Agent workflow
 
 1. **Inspect** real `{srcRoot}/{app|pages|routes,features,services?,shared}` and imports — do not assume FSD layers. Check for `dma.config.*` first.
-2. **Bootstrap** (optional, existing projects safe — never overwrites):
+2. **Onboard (first apply — run to completion, don't stop after `init`):**
    ```bash
-   npx @derived-modular/cli init .
+   npx @derived-modular/cli init .   # missing dirs/config, scripts.dma, AGENTS.md block — never overwrites
    ```
-   Creates missing dirs/config, appends DMA block to `AGENTS.md` if markers absent. Run inside the app package in a monorepo.
+   Then finish what `init` leaves as no-ops (it writes an empty `defineConfig({})` and only *prints* linter hints):
+   - **Reflect real layout in `dma.config.*`.** Only write fields that differ from defaults (`srcRoot: "src"`, `compositionRoots: ["app","pages","routes"]`). E.g. TanStack/Remix `src/routes` already matches defaults → leave empty. Non-`src` root (Next.js root `app/`, `src/app`) or a single custom composition root → set `srcRoot` / `compositionRoots` explicitly. Monorepo without root `src/` → set `roots` (or rely on discovery).
+   - **Wire the linter the repo already uses — detect, don't add a new one:** `biome.json(c)` (or ultracite) → `@derived-modular/biome-plugin`; `eslint.config.*` / `.eslintrc*` → `@derived-modular/eslint-plugin`; `.oxlintrc.json` → `@derived-modular/oxlint-plugin`. Install that one, add it to the existing config (ESLint/Oxlint read `srcRoot`/`compositionRoots` from `dma.config.*`). No linter present → skip; do not introduce one.
+   - **CI:** ensure `dma check .` runs in CI (script `dma` was added by `init`).
+   Run inside the app package in a monorepo.
 3. **Place/move** via the algorithm; rewrite imports to **direct** public files.
 4. **Promote** when `feature-has-inbound` (or you know another module must import a folder feature):
    ```bash

@@ -1,6 +1,6 @@
 {
   "name": "@derived-modular/cli",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Derived Modular Architecture checker and doctor CLI",
   "type": "module",
   "bin": {

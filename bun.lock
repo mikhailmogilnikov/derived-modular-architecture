@@ -119,7 +119,7 @@
     },
     "packages/biome-plugin": {
       "name": "@derived-modular/biome-plugin",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "devDependencies": {
         "@biomejs/biome": "2.5.2",
         "@types/bun": "latest",
@@ -127,7 +127,7 @@
     },
     "packages/boundaries": {
       "name": "@derived-modular/boundaries",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "devDependencies": {
         "@types/bun": "latest",
         "@types/node": "latest",
@@ -136,7 +136,7 @@
     },
     "packages/cli": {
       "name": "@derived-modular/cli",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "bin": {
         "dma": "./dist/cli.js",
       },
@@ -152,7 +152,7 @@
     },
     "packages/eslint-plugin": {
       "name": "@derived-modular/eslint-plugin",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "dependencies": {
         "@derived-modular/boundaries": "workspace:*",
         "jiti": "^2.7.0",
@@ -169,7 +169,7 @@
     },
     "packages/oxlint-plugin": {
       "name": "@derived-modular/oxlint-plugin",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "dependencies": {
         "@derived-modular/eslint-plugin": "workspace:*",
       },

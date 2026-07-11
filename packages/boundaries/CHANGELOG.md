@@ -1,5 +1,11 @@
 # @derived-modular/boundaries
 
+## 1.2.2
+
+### Patch Changes
+
+- Republish with `bun publish` so internal `workspace:*` dependencies resolve to real semver on npm (installs outside this monorepo no longer fail).
+
 ## 1.2.1
 
 ## 1.2.0

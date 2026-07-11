@@ -30,8 +30,9 @@
     "fix": "ultracite fix",
     "commitlint": "commitlint --edit",
     "changeset": "changeset",
-    "version-packages": "changeset version",
-    "release": "turbo run build && changeset publish",
+    "version-packages": "changeset version && bun update",
+    "publish-packages": "bun ./scripts/publish-packages.ts",
+    "release": "turbo run build --filter='./packages/*' && bun run publish-packages",
     "prepare": "lefthook install"
   },
   "workspaces": [

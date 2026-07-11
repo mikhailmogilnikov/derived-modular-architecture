@@ -1,5 +1,13 @@
 # @derived-modular/oxlint-plugin
 
+## 1.2.2
+
+### Patch Changes
+
+- Republish with `bun publish` so internal `workspace:*` dependencies resolve to real semver on npm (installs outside this monorepo no longer fail).
+- Updated dependencies
+  - @derived-modular/eslint-plugin@1.2.2
+
 ## 1.2.1
 
 ### Patch Changes

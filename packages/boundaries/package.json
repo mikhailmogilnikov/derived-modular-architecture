@@ -1,6 +1,6 @@
 {
   "name": "@derived-modular/boundaries",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Pure path classifiers for Derived Modular Architecture",
   "type": "module",
   "files": [

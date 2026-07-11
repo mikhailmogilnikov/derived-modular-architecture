@@ -45,6 +45,10 @@ Pick affected `@derived-modular/*` packages and the semver bump. Commit the gene
 
 Maintainers run `bun run version-packages` and `bun run release` when publishing.
 
+`release` builds `packages/*`, packs with `bun pm pack` (rewrites `workspace:*` → real semver), then `npm publish`s the tarball (`scripts/publish-packages.ts`). Do **not** use bare `changeset publish` / `npm publish` on the package dir — that leaves `workspace:*` on npm and breaks installs in other repos.
+
+If npm 2FA is on: `NPM_OTP=123456 bun run release`.
+
 ## Pull requests
 
 - Link related issues when applicable.
