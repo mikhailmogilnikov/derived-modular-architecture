@@ -7,9 +7,10 @@ export default async function Layout({
   params,
 }: LayoutProps<"/[lang]/docs">) {
   const { lang } = await params;
+  const { links: _links, ...options } = baseOptions(lang);
 
   return (
-    <DocsLayout tree={source.getPageTree(lang)} {...baseOptions(lang)}>
+    <DocsLayout tree={source.getPageTree(lang)} {...options}>
       {children}
     </DocsLayout>
   );

@@ -6,6 +6,7 @@ import type { AnalyzeMode, Diagnostic } from "../core/types";
 import { formatHuman } from "./format-human";
 import { formatJson } from "./format-json";
 import { formatSarif } from "./format-sarif";
+import { runInit } from "./init";
 import { mergeOptions } from "./merge-options";
 import { parseCliArgs } from "./parse-args";
 import { resolveRoots } from "./resolve-roots";
@@ -44,6 +45,10 @@ const formatCliError = (message: string): string => {
 export const runCli = async (argv: string[]): Promise<number> => {
   try {
     const args = parseCliArgs(argv);
+    if (args.command === "init") {
+      return await runInit(args);
+    }
+
     const loaded = await loadConfig(args.path, args.config);
     const options = mergeOptions(args, loaded);
     const roots = resolveRoots(args, options);

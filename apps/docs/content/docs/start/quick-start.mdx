@@ -1,33 +1,56 @@
 ---
 title: "Quick start"
-description: "Lay out src/, wire up dma check, and confirm the architecture holds."
+description: "Install the CLI, bootstrap with dma init, run dma check, and wire CI."
 icon: "Rocket"
 ---
 
-This guide is the minimal path from an empty `src/` to working enforcement. We assume a TypeScript project with `src/` at the root.
+Minimal path from an empty or existing project to working DMA enforcement. We assume a TypeScript app with `src/` (or you create it via `init`).
 
-Using an AI agent? Copy the prompt — it'll suggest steps for integrating the architecture into your project.
+Using an AI agent? Copy the prompt — it suggests skill install, `dma init`, and verification steps for your repo.
 
 <AgentPromptButton />
 
-## 1. Lay out the tree
+## 1. Install the CLI
 
-Create the base structure:
+```bash
+npm install -D @derived-modular/cli
+```
+
+## 2. Bootstrap the layout
+
+From the **app package** directory (in a monorepo: `apps/web`, not the workspace root):
+
+```bash
+npx @derived-modular/cli init .
+```
+
+`init` is **safe on existing projects** — strict skip, never overwrites:
+
+| Creates (if missing) | Skips |
+| --- | --- |
+| `src/`, `features/`, `shared/` | Existing files and folders |
+| `app/` — unless `pages/` or `routes/` already exists | `dma.config.*`, `scripts.dma`, `AGENTS.md` markers |
+| `dma.config.ts`, `scripts.dma` in `package.json` | Lint configs |
+| DMA block in `AGENTS.md` (append-only) | `services/` |
+
+Resulting tree (minimal):
 
 ```text
 src/
 ├── app/          # or pages/, routes/ — composition root for your framework
 ├── features/
 └── shared/
-    ├── ui/
-    └── lib/
 ```
 
-Do **not** create `services/` upfront — it appears on the first promotion, when **another module** imports the code (inbound from `features/*` or `services/*`; mount from the composition root does not count).
+Do **not** create `services/` upfront — it appears on the first promotion when **another module** imports the code.
 
-More on the tree — [Project layout](/start/project-layout) and [Layers](/concepts/layers).
+More: [dma init](/tooling/cli/init) · [Project layout](/start/project-layout).
 
-## 2. Mount a feature from the composition root
+<Callout type="info">
+  Prefer manual layout? Create the same folders yourself. Optional `dma.config.*` — [dma.config](/tooling/cli/config).
+</Callout>
+
+## 3. Mount a feature from the composition root
 
 The composition root imports modules **only** through `public/`:
 
@@ -46,13 +69,7 @@ export default function Page() {
 }
 ```
 
-A feature may pull `services/*/public/*` and `shared/`, but not other features. A live example — [examples/next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app) in the DMA repo.
-
-## 3. Install the CLI
-
-```bash
-npm install -D @derived-modular/cli
-```
+A feature may pull `services/*/public/*` and `shared/`, but not other features. Live example — [examples/next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app).
 
 ## 4. Run the check
 
@@ -60,21 +77,19 @@ npm install -D @derived-modular/cli
 npx @derived-modular/cli check .
 ```
 
-If everything is clean — you'll see a summary with no errors. If not — the CLI shows the rule, file, and import that was violated.
+Single app with `src/` — one graph. Monorepo root without `src/` — the CLI discovers apps (or use `--roots`). Each root is a **separate** graph.
 
 Typical first errors:
 
 | Rule | What happened | What to do |
 | --- | --- | --- |
 | `public-api` | Import into `features/foo/model`, not `public/` | Export the symbol in `public/` or import from there |
-| `feature-to-feature` | Feature A imports feature B | Shared logic goes in `services/` or `shared/` |
+| `feature-to-feature` | Feature A imports feature B | Promote to `services/` or extract to `shared/` (second use) |
 | `layer-direction` | Import “upward”, e.g. from `shared` into `features` | Reverse the dependency |
 
-All rules — [dma check](/tooling/cli/check).
+All rules — [dma check](/tooling/cli/check). Monorepo — [Monorepo guide](/guides/monorepo).
 
 ## 5. Add to CI
-
-Minimal step — one command in the pipeline:
 
 ```bash
 npx @derived-modular/cli check . --format json
@@ -84,7 +99,7 @@ More — [CI](/tooling/ci).
 
 ## 6. (Optional) Linter in the editor
 
-For fast feedback on save:
+Fast feedback on save — **not** a substitute for `dma check`:
 
 ```bash
 npm install -D @derived-modular/eslint-plugin eslint
@@ -107,7 +122,7 @@ export default [
 ];
 ```
 
-The linter **does not replace** `dma check` — it doesn't see cycles or inbound predicates. ESLint setup — on the [ESLint](/tooling/eslint) page.
+ESLint can soft-load `srcRoot` / `compositionRoots` from `dma.config.*` when `settings.dma` is unset. Setup — [ESLint](/tooling/eslint).
 
 ## 7. Local growth signals
 
@@ -115,13 +130,13 @@ The linter **does not replace** `dma check` — it doesn't see cycles or inbound
 npx @derived-modular/cli doctor .
 ```
 
-`doctor` doesn't break CI (exit 0), but hints: time to extract to `shared`, split segments, promote a feature to a service. More — [dma doctor](/tooling/cli/doctor).
+`doctor` does not fail CI (exit 0) but hints when to extract to `shared`, split segments, or promote a feature to a service. More — [dma doctor](/tooling/cli/doctor).
 
 ## What's next
 
 <Cards>
   <Card title="Four invariants" description="Rules that hold the architecture" href="/concepts/invariants" />
   <Card title="Modules & public API" description="Module growth stages" href="/concepts/modules" />
-  <Card title="Tooling overview" description="CLI + linters" href="/tooling/overview" />
+  <Card title="dma init" description="Bootstrap layout and AGENTS.md" href="/tooling/cli/init" />
   <Card title="AI & agents" description="dma skill for Cursor" href="/tooling/ai-agents" />
 </Cards>

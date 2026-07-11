@@ -1,0 +1,53 @@
+---
+title: "dma init"
+description: "Bootstrap DMA folders, config, package script, and AGENTS.md without overwriting existing files."
+icon: "Rocket"
+---
+
+```bash
+npx @derived-modular/cli init [path]
+```
+
+`path` defaults to the current directory. **Single package/app only** — in a monorepo, run inside `apps/<name>` (or the package you want), not at the workspace root unless you intentionally want a root-level `src/`.
+
+## What it does
+
+Strict **create-if-missing** / append-only:
+
+| Artifact | Behavior |
+| --- | --- |
+| `{srcRoot}/` | Created if missing (default `src`) |
+| Composition root | Creates `app/` unless `pages/` or `routes/` already exists |
+| `features/`, `shared/` | Created if missing |
+| `services/` | **Not** created (appears on first promotion) |
+| `dma.config.ts` | Created only if no `dma.config.*` exists in that package |
+| `package.json` → `scripts.dma` | Adds `dma check .` if neither `dma` nor `dma:check` exists; reformats JSON with 2-space indent |
+| `AGENTS.md` | Creates or **appends** a DMA block between `<!-- dma:begin -->` / `<!-- dma:end -->` markers; never overwrites existing text |
+
+Does **not** touch ESLint / Biome / Oxlint configs — prints install hints to stdout instead.
+
+## Safety
+
+- Never overwrites existing files.
+- Idempotent: a second `init` skips everything already present.
+- If `AGENTS.md` already has a DMA-like `## … DMA` heading without markers, init skips append and warns.
+
+## Flags
+
+`init` does not accept `--format`, `--roots`, or `--include-packages`. Optional `--config` can point at a config file when resolving `srcRoot` for scaffolding.
+
+## Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| `0` | Success (including all-skipped) |
+| `2` | Bad args / unexpected IO failure |
+
+## Next steps
+
+```bash
+npm install -D @derived-modular/cli
+npx @derived-modular/cli check .
+```
+
+Optional editor rules: [ESLint](/tooling/eslint), [Oxlint](/tooling/oxlint), [Biome](/tooling/biome). Agent skill: [AI and agents](/tooling/ai-agents).

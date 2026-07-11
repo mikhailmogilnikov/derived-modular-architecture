@@ -4,7 +4,7 @@ description: >-
   Applies Derived Modular Architecture (DMA) when placing or moving frontend
   files under src/{app,pages,routes,features,services,shared}, reviewing imports,
   promoting modules, choosing public API paths, migrating from FSD/ED, configuring
-  dma.config.*, or running dma check / dma doctor / @derived-modular/* linters
+  dma.config.*, or running dma init / dma check / dma doctor / @derived-modular/* linters
   (including monorepo multi-root). Prefer this over inventing layers (widgets,
   entities) or barrels.
 license: MIT
@@ -69,8 +69,13 @@ outside module   → */public/* only (not ui/model/api internals)
 ## Agent workflow
 
 1. **Inspect** real `{srcRoot}/{app|pages|routes,features,services?,shared}` and imports — do not assume FSD layers. Check for `dma.config.*` first.
-2. **Place/move** via the algorithm; rewrite imports to **direct** public files.
-3. **Verify** if CLI is available:
+2. **Bootstrap** (optional, existing projects safe — never overwrites):
+   ```bash
+   npx @derived-modular/cli init .
+   ```
+   Creates missing dirs/config, appends DMA block to `AGENTS.md` if markers absent. Run inside the app package in a monorepo.
+3. **Place/move** via the algorithm; rewrite imports to **direct** public files.
+4. **Verify** if CLI is available:
    ```bash
    # single app (path with src/)
    npx @derived-modular/cli check . --format json
@@ -82,8 +87,8 @@ outside module   → */public/* only (not ui/model/api internals)
    npx @derived-modular/cli check . --include-packages
    ```
    Exit: `0` ok · `1` check errors (must fix) · `2` env/args/config.
-4. Use **editor linter plugins** when the project already has that linter (see below) — still run `npx @derived-modular/cli check` in CI.
-5. Never “fix” with barrels, deep imports, empty `services/`, or ports that hide a legal downward import.
+5. Use **editor linter plugins** when the project already has that linter (see below) — still run `npx @derived-modular/cli check` in CI.
+6. Never “fix” with barrels, deep imports, empty `services/`, or ports that hide a legal downward import.
 
 ## CLI: monorepo + config
 

@@ -27,6 +27,7 @@ npm install -D @derived-modular/cli
 Requires Node.js `>=18`.
 
 ```bash
+npx @derived-modular/cli init
 npx @derived-modular/cli check
 npx @derived-modular/cli doctor
 ```
@@ -34,6 +35,7 @@ npx @derived-modular/cli doctor
 ## Commands
 
 ```bash
+npx @derived-modular/cli init [path]           # scaffold dirs/config/AGENTS (strict skip)
 npx @derived-modular/cli check [path]          # hard rules (fails CI on errors)
 npx @derived-modular/cli doctor [path]         # evolution signals (exit 0 by default)
 npx @derived-modular/cli check --format json
@@ -43,6 +45,10 @@ npx @derived-modular/cli check --roots apps/web,apps/admin
 npx @derived-modular/cli check . --include-packages
 npx @derived-modular/cli check --config ./dma.config.ts
 ```
+
+### `init`
+
+Bootstraps a **single** package: missing `src/` layout (`app` unless `pages`/`routes` exist, plus `features`/`shared`), create-if-missing `dma.config.ts`, optional `scripts.dma`, append-only `AGENTS.md` DMA block. Never overwrites existing files. Does not wire linters (prints install hints). In a monorepo, run inside the app package. See docs: tooling → dma init.
 
 Invoke only via the package name — do not rely on a short global binary.
 
@@ -54,9 +60,9 @@ Optional project config: `dma.config.ts` | `.mts` | `.mjs` | `.js` | `.json` (up
 
 | Code | Meaning |
 | --- | --- |
-| `0` | OK — `check` found no errors; `doctor` always returns 0 unless the tool itself fails |
+| `0` | OK — `check` found no errors; `doctor` / `init` return 0 unless the tool itself fails |
 | `1` | `check` found architectural errors |
-| `2` | Environment failure (missing `src/`, unreadable tree, invalid tsconfig, bad args) |
+| `2` | Environment failure (missing `src/` for check/doctor, unreadable tree, invalid tsconfig, bad args) |
 
 ### Output formats
 

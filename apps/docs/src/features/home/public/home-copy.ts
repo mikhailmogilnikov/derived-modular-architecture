@@ -3,14 +3,18 @@ import { agentPromptCopy } from "@/shared/model/agent-prompt-copy";
 
 export const homeCopy = {
   en: {
-    badge: "Latest update: release v1.0.1",
+    badge: "Latest update: release v1.1.0",
     ctaAgentPrompt: agentPromptCopy.en.label,
     ctaAgentPromptTooltip: agentPromptCopy.en.tooltip,
-    ctaDocs: "What is DMA",
+    ctaCommand:
+      "npm i -D @derived-modular/cli && npx @derived-modular/cli init .",
+    ctaCommandCopied: "Copied",
+    ctaCommandCopy: "Copy command",
     ctaLead:
-      "The docs explain the idea. The agent prompt suggests steps to integrate the architecture into your codebase.",
-
-    ctaTitle: "Next — your project",
+      "Install the CLI, create the folder structure with one command, and check the architecture automatically — the same rules in your editor, your agent, and CI.",
+    ctaPrimary: "Quick start",
+    ctaSecondaryLink: "What is DMA",
+    ctaTitle: "Rules in code, not in chat",
     footerGitHubAria: "View on GitHub",
     footerNav: [
       {
@@ -153,14 +157,18 @@ export const homeCopy = {
     violationTitle: "Boundaries are checked, not debated",
   },
   ru: {
-    badge: "Последнее обновление: релиз v1.0.1",
+    badge: "Последнее обновление: релиз v1.1.0",
     ctaAgentPrompt: agentPromptCopy.ru.label,
     ctaAgentPromptTooltip: agentPromptCopy.ru.tooltip,
-    ctaDocs: "Что такое DMA",
+    ctaCommand:
+      "npm i -D @derived-modular/cli && npx @derived-modular/cli init .",
+    ctaCommandCopied: "Скопировано",
+    ctaCommandCopy: "Скопировать команду",
     ctaLead:
-      "Документация объяснит идею. Промпт для агента подскажет шаги по интеграции архитектуры в ваш код.",
-
-    ctaTitle: "Следующий шаг — ваш проект",
+      "Установите CLI, создайте структуру папок одной командой и проверяйте архитектуру автоматически — одни и те же правила в редакторе, у агента и при сборке.",
+    ctaPrimary: "Быстрый старт",
+    ctaSecondaryLink: "Что такое DMA",
+    ctaTitle: "Правила в коде, а не в чате",
     footerGitHubAria: "Открыть на GitHub",
     footerNav: [
       {

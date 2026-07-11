@@ -1,11 +1,11 @@
-import { ArrowRight, Layers } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { HomeAgentPromptButton } from "@/features/home/public/home-agent-prompt-button";
 import {
   getHomeLocale,
   homeCopy,
   moduleStageTrees,
 } from "@/features/home/public/home-copy";
+import { HomeCtaBlock } from "@/features/home/public/home-cta-block";
 import { HomeFooter } from "@/features/home/public/home-footer";
 import { HomeFrameworkIcons } from "@/features/home/public/home-framework-icons";
 import { HomeLayersGrid } from "@/features/home/public/home-layers-grid";
@@ -16,11 +16,6 @@ import { gitConfig } from "@/shared/model/app-config";
 
 const heroBadgeClass =
   "inline-flex items-center gap-1.5 font-medium text-fd-muted-foreground text-sm transition-colors hover:text-fd-foreground";
-
-const ctaPrimaryClass =
-  "inline-flex items-center gap-2.5 rounded-full bg-fd-primary px-7 py-3.5 font-medium text-base text-fd-primary-foreground transition-opacity hover:opacity-90";
-const ctaSecondaryClass =
-  "inline-flex items-center gap-2.5 rounded-full border border-fd-border px-7 py-3.5 font-medium text-base text-fd-foreground transition-colors hover:bg-fd-accent/50";
 
 export function HomePage({ lang }: { lang: string }) {
   const locale = getHomeLocale(lang);
@@ -50,18 +45,12 @@ export function HomePage({ lang }: { lang: string }) {
             <p className="mx-auto max-w-2xl text-fd-muted-foreground text-lg leading-relaxed">
               {content.heroLead}
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-1">
-              <Link
-                className={ctaPrimaryClass}
-                href={`/${lang}/docs/start/what-is-dma`}
-              >
-                <Layers className="size-5" />
-                {content.ctaDocs}
-              </Link>
-              <HomeAgentPromptButton
-                className={ctaSecondaryClass}
-                label={content.ctaAgentPrompt}
-                tooltip={content.ctaAgentPromptTooltip}
+            <div className="pt-1">
+              <HomeCtaBlock
+                content={content}
+                lang={lang}
+                locale={locale}
+                variant="hero"
               />
             </div>
           </div>
@@ -125,28 +114,12 @@ export function HomePage({ lang }: { lang: string }) {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-20 md:pb-28">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="mb-4 font-semibold text-3xl tracking-tight md:text-4xl">
-            {content.ctaTitle}
-          </h2>
-          <p className="mb-8 text-fd-muted-foreground leading-relaxed">
-            {content.ctaLead}
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            <Link
-              className={ctaPrimaryClass}
-              href={`/${lang}/docs/start/what-is-dma`}
-            >
-              <Layers className="size-5" />
-              {content.ctaDocs}
-            </Link>
-            <HomeAgentPromptButton
-              className={ctaSecondaryClass}
-              label={content.ctaAgentPrompt}
-              tooltip={content.ctaAgentPromptTooltip}
-            />
-          </div>
-        </div>
+        <HomeCtaBlock
+          content={content}
+          lang={lang}
+          locale={locale}
+          variant="closing"
+        />
       </section>
 
       <HomeFooter lang={lang} />

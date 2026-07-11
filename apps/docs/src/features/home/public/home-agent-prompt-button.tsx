@@ -2,7 +2,6 @@
 
 import { Bot, Check, Copy } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { agentPromptEn } from "@/features/home/public/home-agent-prompt";
 
 const TOOLTIP_VISIBLE_MS = 3500;
 const TOOLTIP_EXIT_MS = 180;
@@ -10,13 +9,17 @@ const TOOLTIP_EXIT_MS = 180;
 interface HomeAgentPromptButtonProps {
   className?: string;
   label: string;
+  prompt: string;
   tooltip: string;
+  wrapperClassName?: string;
 }
 
 export function HomeAgentPromptButton({
   className = "",
   label,
+  prompt,
   tooltip,
+  wrapperClassName = "relative inline-flex",
 }: HomeAgentPromptButtonProps) {
   const [copied, setCopied] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
@@ -38,7 +41,7 @@ export function HomeAgentPromptButton({
 
   const handleClick = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(agentPromptEn);
+      await navigator.clipboard.writeText(prompt);
       clearTimers();
       setIsExiting(false);
       setCopied(true);
@@ -56,10 +59,10 @@ export function HomeAgentPromptButton({
       setCopied(false);
       setIsExiting(false);
     }
-  }, [clearTimers]);
+  }, [clearTimers, prompt]);
 
   return (
-    <div className="relative inline-flex">
+    <div className={wrapperClassName}>
       <button className={className} onClick={handleClick} type="button">
         <Bot aria-hidden="true" className="size-5" />
         {label}

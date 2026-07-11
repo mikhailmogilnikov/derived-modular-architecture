@@ -1,8 +1,10 @@
 import { parseArgs } from "node:util";
 import type { AnalyzeMode } from "../core/types";
 
+export type CliCommand = AnalyzeMode | "init";
+
 export interface CliArgs {
-  command: AnalyzeMode;
+  command: CliCommand;
   config?: string;
   format: "human" | "json" | "sarif";
   includePackages: boolean;
@@ -14,6 +16,9 @@ export interface CliArgs {
 
 const isAnalyzeMode = (value: string): value is AnalyzeMode =>
   value === "check" || value === "doctor";
+
+const isCliCommand = (value: string): value is CliCommand =>
+  isAnalyzeMode(value) || value === "init";
 
 const isFormat = (value: string): value is CliArgs["format"] =>
   value === "human" || value === "json" || value === "sarif";
@@ -32,6 +37,17 @@ const flattenRoots = (values: string[] | undefined): string[] | undefined => {
     }
   }
   return roots.length > 0 ? roots : undefined;
+};
+
+const argvHasFlag = (argv: string[], names: string[]): boolean => {
+  for (const arg of argv) {
+    for (const name of names) {
+      if (arg === name || arg.startsWith(`${name}=`)) {
+        return true;
+      }
+    }
+  }
+  return false;
 };
 
 export const parseCliArgs = (argv: string[]): CliArgs => {
@@ -61,10 +77,27 @@ export const parseCliArgs = (argv: string[]): CliArgs => {
   }
 
   const [command, path = process.cwd()] = positionals;
-  if (!(command && isAnalyzeMode(command))) {
+  if (!(command && isCliCommand(command))) {
     throw new Error(
-      `Unknown command: ${command ?? "(missing)"}. Expected check or doctor.`
+      `Unknown command: ${command ?? "(missing)"}. Expected check, doctor, or init.`
     );
+  }
+
+  if (command === "init") {
+    if (argvHasFlag(argv, ["--format", "--roots", "--include-packages"])) {
+      throw new Error(
+        "init does not accept --format, --roots, or --include-packages."
+      );
+    }
+    return {
+      command: "init",
+      config: values.config,
+      format: "human",
+      includePackages: false,
+      includePackagesExplicit: false,
+      path,
+      roots: undefined,
+    };
   }
 
   const format = values.format ?? "human";

@@ -44,6 +44,7 @@ Normative architecture: [`spec/`](./spec/README.md) (single source of truth).
 
 ```bash
 npm install -D @derived-modular/cli
+npx @derived-modular/cli init
 npx @derived-modular/cli check
 npx @derived-modular/cli doctor --format json
 ```

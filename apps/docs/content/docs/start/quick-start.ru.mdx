@@ -1,33 +1,56 @@
 ---
 title: "Быстрый старт"
-description: "Разложите src/, подключите dma check и убедитесь, что архитектура держится."
+description: "Установите CLI, bootstrap через dma init, запустите dma check и подключите CI."
 icon: "Rocket"
 ---
 
-Этот гайд — минимальный путь от пустого `src/` до работающей проверки. Предполагаем TypeScript-проект с `src/` в корне.
+Минимальный путь от пустого или существующего проекта до работающей проверки DMA. Предполагаем TypeScript-приложение с `src/` (или создаёте его через `init`).
 
-Работаете с AI-агентом? Скопируйте промпт — он предложит шаги по интеграции архитектуры в ваш проект.
+Работаете с AI-агентом? Скопируйте промпт — он подскажет установку skill, `dma init` и шаги проверки для вашего репозитория.
 
 <AgentPromptButton />
 
-## 1. Разложите дерево
+## 1. Установите CLI
 
-Создайте базовую структуру:
+```bash
+npm install -D @derived-modular/cli
+```
+
+## 2. Bootstrap layout
+
+Из директории **app-пакета** (в monorepo: `apps/web`, а не корень workspace):
+
+```bash
+npx @derived-modular/cli init .
+```
+
+`init` **безопасен для существующих проектов** — strict skip, ничего не перезаписывает:
+
+| Создаёт (если нет) | Пропускает |
+| --- | --- |
+| `src/`, `features/`, `shared/` | Существующие файлы и папки |
+| `app/` — если ещё нет `pages/` или `routes/` | `dma.config.*`, `scripts.dma`, маркеры в `AGENTS.md` |
+| `dma.config.ts`, `scripts.dma` в `package.json` | Конфиги линтеров |
+| Блок DMA в `AGENTS.md` (только append) | `services/` |
+
+Итоговое дерево (минимальное):
 
 ```text
 src/
 ├── app/          # или pages/, routes/ — корень композиции вашего фреймворка
 ├── features/
 └── shared/
-    ├── ui/
-    └── lib/
 ```
 
-Папку `services/` **не создавайте заранее** — она появится при первой promotion, когда **другой модуль** импортирует код (входящих рёбер от `features/*` или `services/*`; монтирование из корня композиции не считается).
+Папку `services/` **не создавайте заранее** — она появится при первой promotion, когда **другой модуль** импортирует код.
 
-Подробнее о дереве — в [Структура проекта](/start/project-layout) и [Слои](/concepts/layers).
+Подробнее: [dma init](/tooling/cli/init) · [Структура проекта](/start/project-layout).
 
-## 2. Смонтируйте feature из корня композиции
+<Callout type="info">
+  Layout вручную? Создайте те же папки сами. Опционально `dma.config.*` — [dma.config](/tooling/cli/config).
+</Callout>
+
+## 3. Смонтируйте feature из корня композиции
 
 Корень композиции импортирует модули **только** через `public/`:
 
@@ -46,13 +69,7 @@ export default function Page() {
 }
 ```
 
-Feature может тянуть `services/*/public/*` и `shared/`, но не другие features. Пример живого проекта — [examples/next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app) в репозитории DMA.
-
-## 3. Установите CLI
-
-```bash
-npm install -D @derived-modular/cli
-```
+Feature может тянуть `services/*/public/*` и `shared/`, но не другие features. Пример — [examples/next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app).
 
 ## 4. Запустите проверку
 
@@ -60,21 +77,19 @@ npm install -D @derived-modular/cli
 npx @derived-modular/cli check .
 ```
 
-Если всё чисто — увидите сводку без ошибок. Если нет — CLI покажет правило, файл и импорт, который нарушен.
+Один app с `src/` — один граф. Корень monorepo без `src/` — CLI находит приложения (или `--roots`). Каждый root — **отдельный** граф.
 
 Типичные первые ошибки:
 
 | Правило | Что случилось | Что делать |
 | --- | --- | --- |
 | `public-api` | Импорт в `features/foo/model`, а не в `public/` | Вынесите символ в `public/` или импортируйте оттуда |
-| `feature-to-feature` | Feature A импортирует feature B | Общее — в `services/` или `shared/` |
+| `feature-to-feature` | Feature A импортирует feature B | Promotion в `services/` или `shared/` (second use) |
 | `layer-direction` | Импорт «вверх», например из `shared` в `features` | Разверните зависимость |
 
-Разбор всех правил — в [dma check](/tooling/cli/check).
+Разбор правил — [dma check](/tooling/cli/check). Monorepo — [гайд по monorepo](/guides/monorepo).
 
 ## 5. Добавьте в CI
-
-Минимальный шаг — одна команда в пайплайне:
 
 ```bash
 npx @derived-modular/cli check . --format json
@@ -84,7 +99,7 @@ npx @derived-modular/cli check . --format json
 
 ## 6. (Опционально) Линтер в редакторе
 
-Для быстрой обратной связи при сохранении файла:
+Быстрая обратная связь при сохранении — **не замена** `dma check`:
 
 ```bash
 npm install -D @derived-modular/eslint-plugin eslint
@@ -107,7 +122,7 @@ export default [
 ];
 ```
 
-Линтер **не заменяет** `dma check` — он не видит циклы и предикаты входящих рёбер. Настройка ESLint — на странице [ESLint](/tooling/eslint).
+ESLint может подхватить `srcRoot` / `compositionRoots` из `dma.config.*`, если `settings.dma` не задан. Настройка — [ESLint](/tooling/eslint).
 
 ## 7. Локальные сигналы роста
 
@@ -115,13 +130,13 @@ export default [
 npx @derived-modular/cli doctor .
 ```
 
-`doctor` не ломает CI (код выхода 0), но подсказывает: пора вынести в `shared`, раздуть сегменты, промоутить feature в service. Подробнее — [dma doctor](/tooling/cli/doctor).
+`doctor` не ломает CI (код 0), но подсказывает: вынести в `shared`, раздуть сегменты, промоутить feature в service. Подробнее — [dma doctor](/tooling/cli/doctor).
 
 ## Что дальше
 
 <Cards>
   <Card title="Четыре инварианта" description="Правила, которые держит архитектуру" href="/concepts/invariants" />
   <Card title="Модули и public API" description="Стадии роста модуля" href="/concepts/modules" />
-  <Card title="Обзор инструментов" description="CLI + линтеры" href="/tooling/overview" />
+  <Card title="dma init" description="Bootstrap layout и AGENTS.md" href="/tooling/cli/init" />
   <Card title="AI и агенты" description="Навык dma для Cursor" href="/tooling/ai-agents" />
 </Cards>

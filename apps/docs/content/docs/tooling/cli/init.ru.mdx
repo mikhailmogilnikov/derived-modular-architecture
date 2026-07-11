@@ -1,0 +1,53 @@
+---
+title: "dma init"
+description: "Bootstrap DMA-папок, конфига, скрипта в package.json и AGENTS.md без перезаписи существующих файлов."
+icon: "Rocket"
+---
+
+```bash
+npx @derived-modular/cli init [path]
+```
+
+`path` по умолчанию — текущая директория. Только **один** package/app: в monorepo запускайте внутри `apps/<name>`, а не в корне workspace (если только вы сами не хотите `src/` в корне).
+
+## Что делает
+
+Строгий **create-if-missing** / append-only:
+
+| Артефакт | Поведение |
+| --- | --- |
+| `{srcRoot}/` | Создаётся, если нет (по умолчанию `src`) |
+| Composition root | Создаёт `app/`, если уже нет `pages/` или `routes/` |
+| `features/`, `shared/` | Создаются, если нет |
+| `services/` | **Не** создаётся (появляется при первой promotion) |
+| `dma.config.ts` | Только если в пакете нет никакого `dma.config.*` |
+| `package.json` → `scripts.dma` | Добавляет `dma check .`, если нет `dma` и `dma:check`; JSON перезаписывается с отступом 2 |
+| `AGENTS.md` | Создаёт или **дописывает** блок DMA между маркерами `<!-- dma:begin -->` / `<!-- dma:end -->`; существующий текст не затирает |
+
+Конфиги ESLint / Biome / Oxlint **не** трогает — только подсказки в stdout.
+
+## Безопасность
+
+- Никогда не перезаписывает существующие файлы.
+- Идемпотентен: повторный `init` всё пропускает.
+- Если в `AGENTS.md` уже есть заголовок вида `## … DMA` без маркеров — append пропускается с предупреждением.
+
+## Флаги
+
+`init` не принимает `--format`, `--roots`, `--include-packages`. Опциональный `--config` можно передать для разрешения `srcRoot` при scaffold.
+
+## Коды выхода
+
+| Код | Значение |
+| --- | --- |
+| `0` | Успех (в том числе всё skipped) |
+| `2` | Плохие аргументы / неожиданная ошибка IO |
+
+## Дальше
+
+```bash
+npm install -D @derived-modular/cli
+npx @derived-modular/cli check .
+```
+
+Опциональные правила в редакторе: [ESLint](/tooling/eslint), [Oxlint](/tooling/oxlint), [Biome](/tooling/biome). Agent skill: [AI и агенты](/tooling/ai-agents).

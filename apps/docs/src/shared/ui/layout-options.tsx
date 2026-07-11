@@ -16,10 +16,19 @@ export const translations = i18n
     },
   });
 
+const docsLinkLabel = (locale: string): string =>
+  locale === "ru" ? "Документация" : "Docs";
+
 export function baseOptions(locale: string): BaseLayoutProps {
   return {
     githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
     i18n: true,
+    links: [
+      {
+        text: docsLinkLabel(locale),
+        url: `/${locale}/docs/start/what-is-dma`,
+      },
+    ],
     nav: {
       title: <NavBrand name={navBrandName} />,
       url: `/${locale}`,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import { getAgentPrompt } from "@/features/home/public/home-agent-prompt";
 import { HomeAgentPromptButton } from "@/features/home/public/home-agent-prompt-button";
 import { getAgentPromptCopy } from "@/shared/model/agent-prompt-copy";
 
@@ -16,6 +17,7 @@ export function DocsAgentPromptButton() {
       <HomeAgentPromptButton
         className={buttonClassName}
         label={copy.label}
+        prompt={getAgentPrompt(params.lang)}
         tooltip={copy.tooltip}
       />
     </div>
