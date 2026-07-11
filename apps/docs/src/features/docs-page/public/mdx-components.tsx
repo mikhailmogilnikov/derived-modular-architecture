@@ -1,11 +1,13 @@
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import type { MDXComponents } from "mdx/types";
+import { DocsAgentPromptButton } from "@/features/docs-page/public/docs-agent-prompt-button";
 import { I18nCard } from "@/shared/ui/i18n-card";
 import { I18nDocLink } from "@/shared/ui/i18n-doc-link";
 
 export function getMDXComponents(components?: MDXComponents) {
   return {
     ...defaultMdxComponents,
+    AgentPromptButton: DocsAgentPromptButton,
     a: I18nDocLink,
     Card: I18nCard,
     ...components,

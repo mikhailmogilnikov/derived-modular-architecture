@@ -1,11 +1,11 @@
 import type { FileTreeNode } from "@/features/home/public/home-file-tree";
+import { agentPromptCopy } from "@/shared/model/agent-prompt-copy";
 
 export const homeCopy = {
   en: {
     badge: "Latest update — release v1.0.1",
-    ctaAgentPrompt: "Agent prompt",
-    ctaAgentPromptTooltip:
-      "Copied! Paste into your agent chat — it'll suggest next steps for integrating the architecture into your project.",
+    ctaAgentPrompt: agentPromptCopy.en.label,
+    ctaAgentPromptTooltip: agentPromptCopy.en.tooltip,
     ctaDocs: "What is DMA",
     ctaLead:
       "The docs explain the idea. The agent prompt suggests steps to integrate the architecture into your codebase.",
@@ -153,9 +153,8 @@ export const homeCopy = {
   },
   ru: {
     badge: "Последнее обновление — релиз v1.0.1",
-    ctaAgentPrompt: "Промпт для агента",
-    ctaAgentPromptTooltip:
-      "Скопировано! Вставьте в чат агента — он предложит дальнейшие шаги по интеграции архитектуры в проект.",
+    ctaAgentPrompt: agentPromptCopy.ru.label,
+    ctaAgentPromptTooltip: agentPromptCopy.ru.tooltip,
     ctaDocs: "Что такое DMA",
     ctaLead:
       "Документация объяснит идею. Промпт для агента — предложит шаги по интеграции архитектуры в ваш код.",
