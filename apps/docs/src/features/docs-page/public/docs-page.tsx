@@ -90,6 +90,7 @@ export function generateDocsMetadata({
         en: `/en${docsRoute}/${slugPath}`,
         ru: `/ru${docsRoute}/${slugPath}`,
         "x-default": `/en${docsRoute}/${slugPath}`,
+        zh: `/zh${docsRoute}/${slugPath}`,
       },
     },
     description,

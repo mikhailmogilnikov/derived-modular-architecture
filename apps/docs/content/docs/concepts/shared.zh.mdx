@@ -1,0 +1,104 @@
+---
+title: "Shared"
+description: "可移植代码：ui、lib、api、model、domain 分组及成长规则。"
+icon: "Share2"
+---
+
+`shared/` 是项目中 **按代码种类分组** 唯一说得通的地方。这里没有 feature 或产品流程——只有可放进任意应用的横向能力。
+
+`shared/` 里的一切 **默认公开**。不需要 `public/` 文件夹——这一层就是为了被导入。
+
+## 分组
+
+```text
+shared/
+├── ui/       # UI primitives — no product knowledge
+├── lib/      # pure helpers, infrastructure wrappers
+├── api/      # transport: base client, interceptors
+├── model/    # infra state: query client, env, flags
+└── domain/   # shared business types (optional)
+```
+
+| 分组 | 放什么 | 不要放什么 |
+| --- | --- | --- |
+| `ui/` | 按钮、输入框、layout 原语、图标 | 了解订单/购物车的组件 |
+| `lib/` | 日期、格式化、i18n、storage | 只有一个模块需要的 helper |
+| `api/` | 基础 HTTP/WS client、auth 管道 | 某个 feature 的 endpoint |
+| `model/` | Query client、路由常量、env/config | Feature 业务状态 |
+| `domain/` | `User`、`Money`、branded ID | 只属于一个模块的类型 |
+
+## shared 内部方向
+
+各组稳定性与导入权限不同：
+
+```text
+domain → (nothing)
+lib    → domain
+api    → lib, domain
+model  → api, lib, domain
+ui     → lib, domain     (✗ api, ✗ model)
+```
+
+`ui` 不能拉网络或全局产品状态——否则就不再是可移植原语。
+
+## lib vs api vs feature api
+
+三个不同位置——常见混淆点：
+
+| 代码 | 位置 | 原因 |
+| --- | --- | --- |
+| 基于 `fetch` 的 `get<T>()` | `shared/api/http.ts` | 传输层，不知 endpoint |
+| `fetchCatalogProducts()` | `features/catalog/catalog.api.ts` | 单个 feature 的 endpoint；其他模块不导入 |
+| `formatCurrency()` | `shared/lib/format-currency.ts` | 纯 helper，非网络 |
+
+第二个模块调用同一 **产品** API（非传输层）——提升到 `services/`，不是 `shared/api`。
+
+示例见 [vite-react example](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vite-react)。
+
+## 与模块 segment 的区别
+
+名字相同（`ui`、`model`、`api`），但 **规则不同**：
+
+- `features/checkout/ui` **可以** 导入 `features/checkout/model`
+- `shared/ui` **不能** 导入 `shared/model`
+
+模块是孤岛，有自己的内部规则。shared 是公共层，可移植性要求严格。
+
+## 代码如何进入 shared
+
+**Second-use 规则（第二次使用规则）：** 不要「为未来」抽取。helper 移到 `shared/` 当 **两个及以上模块** 导入它。信号——`dma doctor` 中的 `shared-candidate`。
+
+例外：从第一天就引导基础设施（基础 API client、env、首批 UI 原语），如果整个应用都用它们。
+
+## 反向路径
+
+如果 `shared/` 里某文件 **只有** 一个消费者——移回模块内部。Colocation 比过早 shared 更便宜。这是 review 决策；尚无专用 doctor 规则。
+
+## 组内成长
+
+像模块一样，组也在原地变密：
+
+```text
+shared/ui/button.tsx  →  shared/ui/button/  (when many files accumulate)
+```
+
+`ui` 和 `api` 是 shared 里最不稳定的居民；package 提取（stage 4）的首批候选。
+
+## shared vs services 边界
+
+Shared——可移植代码。Services——有模块入边的产品流程。拿不准——[Services vs Shared](/deep-dive/services-vs-shared)。
+
+## 工具检查什么
+
+| 规则 | 抓什么 |
+| --- | --- |
+| `layer-direction` | 从 shared「向上」导入 |
+| `shared-candidate` (doctor) | 被 2+ 模块导入的文件——该考虑 lift |
+
+## 下一步
+
+<Cards>
+  <Card title="代码演进" description="Second-use、promotion、doctor" href="/concepts/evolution" />
+  <Card title="模块与公共 API" description="模块成长阶段" href="/concepts/modules" />
+  <Card title="Services vs Shared" description="边界深度解读" href="/deep-dive/services-vs-shared" />
+</Cards>

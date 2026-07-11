@@ -1,0 +1,82 @@
+---
+title: "什么是 DMA"
+description: "为什么前端需要可在 CI 中验证的规则——以及为什么「我们这样用没问题」通常撑不了多久。"
+icon: "Layers"
+---
+
+项目刚起步时，架构几乎总是「没问题」。导入路径很短，文件夹不多，大家也都记得约定。半年到一年后，情况就变了：features 互相拉扯，`utils/` 无限膨胀，代码评审里争论文件该放哪——每次往往是嗓门最大或最累的人说了算。
+
+问题不在于人不行。问题在于 **没有强制校验时，规则只活在人的脑子里**。而人会换、deadline 会压下来，「就这一次」会变成常态。
+
+Derived Modular Architecture (DMA)（派生式模块化架构）是一种组织前端代码的方式：主要约束来自项目结构和导入关系，而不是口头约定。并且可以在 CI 中验证——就像类型检查或 lint 一样。
+
+## 为什么「我们这样用没问题」站不住脚
+
+项目还小的时候，几乎任何结构都能用。今天不会崩——会在以下情况崩：
+
+- 有人「临时」导入相邻 feature——三个月后变成看不见的乱麻；
+- 把共享代码抽出来「以备将来」——结果堆出一堆没人清理的 helper；
+- 依赖藏在 `index.ts` 的 re-export 后面——没人看得清谁真正依赖谁。
+
+Code review 只能零星抓到这些。周五晚上——几乎抓不到。DMA 要做的就是让这类问题 **不取决于 reviewer 的心情**。
+
+## 强制校验能带来什么
+
+规则之外还有一套工具：`@derived-modular/cli` 用于 CI，linter 插件（ESLint、Oxlint、Biome）用于编辑器，以及面向 Cursor 等助手的 **agent skill** `dma`——见 [AI & agents](/tooling/ai-agents)。
+
+思路很简单：
+
+- 编辑器里——写代码时快速反馈；
+- CI 里——合并前的硬门槛：违反规则，流水线就失败。
+
+没有这些，DMA 只是又一份文件夹指南。有了强制校验——就是一份你「忘不掉」的约定。
+
+```bash
+npm install -D @derived-modular/cli
+npx @derived-modular/cli check .
+```
+
+如何安装、具体会抓什么——见 [快速开始](/start/quick-start) 和 [工具概览](/tooling/overview)。此刻更重要的是：**为什么**要有这些。
+
+## 项目长什么样
+
+DMA 规则建立在一棵清晰的目录树上：
+
+```text
+src/
+├── app/         # routes, layout, screen wiring
+├── features/    # separate user flows
+├── services/    # shared across flows (appears later)
+└── shared/      # portable pieces: buttons, helpers, types
+```
+
+不同框架下 `app/` 可能是 `pages/` 或 `routes/`——含义相同：组装屏幕的薄壳，而不是所有逻辑的家。
+
+不必为了「成长」提前创建 `services/`。它在 **提升（promotion）** 时出现：当 **另一个模块** 必须导入这段代码时（来自 `features/*` 或 `services/*` 的单条入边（inbound edge）就够了）。从 `app/` / `pages/` / `routes/` 挂载不会触发 promotion。在此之前，把代码 colocate 在唯一消费者旁边。
+
+更多关于目录树——[项目布局](/start/project-layout)。
+
+## 几条简单规则
+
+不展开完整术语表——要点如下：
+
+1. 依赖自上而下流动：shell → flows → shared product logic → portable code。
+2. features 不直接互相导入——否则很快变成乱麻。
+3. 模块外只能看到显式导出的内容；不要用「barrel」re-export 隐藏关系。
+4. 不要「为未来」抽代码——第二个消费者出现时再抽。
+
+深入讲解——[四条不变量](/concepts/invariants)。
+
+## DMA 不是什么
+
+它不是新框架，也不是禁止思考。React、Vue、Svelte、Astro——照旧。DMA 不决定如何把产品切成领域，也不替你选状态库。
+
+它解决的是另一件事：在「一切还能跑」的时候，基本模块边界不会自己糊掉。
+
+## 下一步
+
+<Cards>
+  <Card title="快速开始" description="搭建 src/ 并接入强制校验" href="/start/quick-start" />
+  <Card title="四条不变量" description="用通俗语言讲规则" href="/concepts/invariants" />
+  <Card title="工具概览" description="CLI 与 linter" href="/tooling/overview" />
+</Cards>

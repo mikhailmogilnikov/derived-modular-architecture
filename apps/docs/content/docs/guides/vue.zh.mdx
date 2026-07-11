@@ -1,0 +1,130 @@
+---
+title: "Vue + Vite"
+description: "Vue 3 上的 DMA：SFC、composables、provide/inject。"
+icon: "Component"
+---
+
+可运行的 **Vue 3 + Vite** 示例：组合根 `src/app/`、SFC 模块、就近放置的 composables、`provide`/`inject` 用于横切上下文。
+
+源码：[examples/vue-vite](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vue-vite)。
+
+## 组合根
+
+```text
+src/app/
+├── App.vue            # nav, badges, mount */public/*
+├── AppProviders.vue   # provide(shopThemeKey, …)
+└── app.css            # global reset + CSS variables
+```
+
+`App.vue` 通过 emit → 公共 API 连接 catalog 与 notifications——无 `feature → feature`：
+
+```vue
+<CatalogPage @added-to-cart="onAddedToCart" />
+```
+
+```ts
+import { addNotification } from "@/features/notifications/public/notifications-api";
+```
+
+## Composables 规则
+
+Composables 留在 feature 文件夹，直到**第二个模块**导入相同逻辑：
+
+| Composable | 位置 | 原因 |
+| --- | --- | --- |
+| `use-catalog-search.ts` | `features/catalog/` | 仅 catalog |
+| `use-checkout.ts` | `features/checkout/` | 仅 checkout |
+| `use-notifications.ts` | `features/notifications/` | 仅 notifications |
+
+提升（promotion）：产品状态 → `services/`，纯 helper → `shared/lib`。
+
+## provide / inject
+
+横切主题——在 app 中，而非 feature：
+
+```vue
+<!-- AppProviders.vue -->
+<script setup>
+import { provide } from "vue";
+import { shopThemeKey } from "@/shared/domain/shop-theme";
+
+provide(shopThemeKey, { accent: "teal" });
+</script>
+```
+
+```vue
+<!-- features/profile.vue -->
+<script setup>
+import { inject } from "vue";
+import { shopThemeKey } from "@/shared/domain/shop-theme";
+
+const theme = inject(shopThemeKey);
+</script>
+```
+
+注入 key 放在 `shared/domain/`——可移植，无产品逻辑。
+
+## SFC 边界
+
+| 文件 | 层 |
+| --- | --- |
+| `App.vue` | `app/`——只挂载 `*/public/*` |
+| `AppProviders.vue` | `app/`——provide 上下文 |
+| `catalog-page.vue` | feature `public/`——相对路径 → composables |
+| `profile.vue` | stage-0——`inject` |
+| `cart.ts` | service——与框架无关 |
+
+`public/` 通过**相对路径**导入内部（`../use-catalog.ts`）。跨模块——`@/` 别名指向 `*/public/*`。
+
+## 代码放哪里
+
+| 任务 | 文件夹 |
+| --- | --- |
+| 外壳、布局 | `src/app/` |
+| 产品屏幕 | `features/<name>/public/<page>.vue` |
+| Feature composable | feature 内就近放置 |
+| 2+ 消费者 | `services/<name>/public/` |
+| UI 原语 | `shared/ui/` |
+| 注入 key | `shared/domain/` |
+| 类型 | `shared/model/` |
+
+## 样式
+
+| 类型 | 位置 |
+| --- | --- |
+| 全局基线 | `app/app.css` |
+| 外壳布局 | `App.vue` `<style scoped>` |
+| Feature 页面 | `public/*.vue` scoped 或 CSS Modules |
+| SCSS（可选） | `profile.vue` `<style lang="scss" scoped>` |
+| 共享 UI | `shared/ui/*.vue` scoped |
+
+CSS Modules：`catalog-page.module.css` + `<style module src="…">`。
+
+## 测试
+
+就近放置的 `*.test.ts`（Vitest，`environment: "node"`）：
+
+- `use-catalog-search.test.ts`
+- `checkout.store.test.ts`
+- `services/cart/public/cart.test.ts`
+
+组件测试——可选，使用 `@vue/test-utils`。
+
+## 命令
+
+```bash
+bun run dev
+bun run build
+bun run dma-check   # dma check .
+bun run lint        # biome + @derived-modular/biome-plugin
+bun run test
+```
+
+## 下一步
+
+<Cards>
+  <Card title="跨模块接线" description="Emit + app 接线" href="/guides/cross-module-wiring" />
+  <Card title="Vite + React" description="相同的 mini-shop" href="/guides/vite-react" />
+  <Card title="模块" description="public/ 与 colocation" href="/concepts/modules" />
+</Cards>

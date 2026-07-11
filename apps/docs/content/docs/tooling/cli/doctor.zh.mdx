@@ -1,0 +1,130 @@
+---
+title: "dma doctor"
+description: "面向本地工作的软演进信号 — 不会让 CI 失败。"
+icon: "Stethoscope"
+---
+
+`dma doctor` 检查与 `check` 相同的图，但寻找的是**增长信号**，而非硬性违规。默认退出码为 0 — 可在每次提交时运行而不破坏 CI。
+
+可将 doctor 视为「提前的架构 linter」：在 `check` 开始报错之前，提示该提取、提升或拆分什么。
+
+## 用法
+
+```bash
+npx @derived-modular/cli doctor .
+npx @derived-modular/cli doctor . --format json
+npx @derived-modular/cli doctor . --format sarif
+npx @derived-modular/cli doctor . --suggest   # orphan-public 删除计划
+npx @derived-modular/cli doctor . --fix      # 删除孤立的 public 文件
+```
+
+输出格式与 `check` 相同：human、json、SARIF。
+
+## doctor 与 check
+
+| | `dma check` | `dma doctor` |
+| --- | --- | --- |
+| 用途 | 硬性规则 | 演进信号 |
+| 阻塞 CI | 是（退出 1） | 否（退出 0） |
+| 重复 check 的 rule ID | — | 否 |
+| 何时运行 | CI、pre-push | 本地、每迭代一次 |
+
+Doctor **不会重复** `check` 的错误。若 `check` 为红 — 先修 check。
+
+## 信号
+
+### shared-candidate
+
+某模块文件被 **2+ 个其他模块**导入。
+
+`help` 按文件当前层给出下一步[放置](/concepts/placement)建议：
+
+- 在 `features/` 下 → 提升到 `services/<name>/public/`（放置 #2）
+- 在 `services/` 下 → 若是产品流则保留，否则提取到 `shared/{ui,lib,…}`（放置 #2–3）
+- 在 `shared/` 下 → 已是 shared；保持可移植性有意为之（放置 #3）
+
+不要自动上移到 shared — 先理解代码。
+
+### stage-growth
+
+模块结构落后于体量。`help` 将修复与放置共置关联：
+
+- 文件模块（stage 0）出现**同名前缀的兄弟文件**（如 `checkout.tsx` + `checkout.store.ts`）→ 建文件夹 + `public/`（放置 #4–5）
+- 多文件但无段（segment）→ 添加 `ui/`、`model/`、`api/`（放置 #4）
+
+默认阈值约 8 个文件（`stage1FileCount`）。
+
+### 示例：checkout 上的 stage-growth
+
+**之前** — stage 0，一个 UI 文件，但旁边出现了同前缀的 store：
+
+```text
+features/
+├── checkout.tsx
+└── checkout.store.ts
+```
+
+`dma doctor` → `stage-growth`：文件模块 `checkout` 出现了前缀为 `checkout` 的兄弟文件。
+
+**之后** — stage 1：
+
+```text
+features/checkout/
+├── public/
+│   └── checkout-page.tsx
+├── checkout.store.ts
+└── checkout.shipping.ts
+```
+
+1. 创建文件夹 `features/checkout/`
+2. 将 UI 移到 `public/checkout-page.tsx`
+3. Store 与辅助代码保持内部；`public/` 用**相对路径**导入它们
+4. 在组合根中将导入更新为 `@/features/checkout/public/checkout-page`
+5. `npx @derived-modular/cli check .` — 绿；`npx @derived-modular/cli doctor .` — checkout 的 `stage-growth` 消失
+
+若文件达到约 8+ 仍无段（segment）— 添加 `ui/`、`model/`、`api/`（stage 2）。见[模块与公共 API](/concepts/modules)。
+
+### dense-services
+
+`services/` 子图显得密集或层级深。该做**横向**拆分 — 按域、按包 — 而非新增纵向层。
+
+### orphan-public
+
+`public/` 中的文件无人导入。死契约 — 删除或改为内部。
+
+`--suggest` / `--fix` 仅在图显示**完全无导入方**（含模块内部）时可**删除**此类文件。仅支持单一项目根。
+
+## 典型工作流
+
+```bash
+# 早晨
+npx @derived-modular/cli check .          # 门禁
+
+# 重构前
+npx @derived-modular/cli doctor .         # 该重组什么
+
+# 大 PR 之后
+npx @derived-modular/cli doctor . --format json > doctor.json
+```
+
+## 不要用 doctor 作 CI 门禁
+
+信号带主观性：健康的 `services/*/public/*` 上出现 `shared-candidate` 很正常。doctor 用于**团队讨论**，而非阻塞合并。
+
+在 CI 中，doctor 仅适合作为信息性任务（json 产物供看板使用）。
+
+## 相关主题
+
+- [代码演进](/concepts/evolution) — second-use、提升（promotion）、触发器
+- [dma check](/tooling/cli/check) — 硬性规则
+- [工具概览](/tooling/overview) — 混合模型
+
+## 下一步
+
+<Cards>
+  <Card title="文件放哪里" description="放置算法" href="/concepts/placement" />
+  <Card title="代码演进" description="架构如何生长" href="/concepts/evolution" />
+  <Card title="dma check" description="违规参考" href="/tooling/cli/check" />
+  <Card title="CI" description="流水线中应阻塞什么" href="/tooling/ci" />
+  <Card title="模块与公共 API" description="增长阶段" href="/concepts/modules" />
+</Cards>

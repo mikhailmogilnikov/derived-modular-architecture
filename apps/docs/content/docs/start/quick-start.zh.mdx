@@ -1,0 +1,142 @@
+---
+title: "快速开始"
+description: "安装 CLI、用 dma init 引导布局、运行 dma check，并接入 CI。"
+icon: "Rocket"
+---
+
+从空项目或现有项目到可用的 DMA 强制校验，最短路径如下。假设是带 `src/` 的 TypeScript 应用（或通过 `init` 创建）。
+
+在用 AI agent？复制提示词——它会为你的仓库建议 skill 安装、`dma init` 和验证步骤。
+
+<AgentPromptButton />
+
+## 1. 安装 CLI
+
+```bash
+npm install -D @derived-modular/cli
+```
+
+## 2. 引导布局
+
+在 **应用包** 目录下执行（monorepo 中是 `apps/web`，不是 workspace 根目录）：
+
+```bash
+npx @derived-modular/cli init .
+```
+
+`init` **对现有项目安全**——严格跳过，从不覆盖：
+
+| 缺失则创建 | 跳过 |
+| --- | --- |
+| `src/`、`features/`、`shared/` | 已有文件和文件夹 |
+| `app/`——除非已有 `pages/` 或 `routes/` | `dma.config.*`、`scripts.dma`、`AGENTS.md` 标记 |
+| `dma.config.ts`、`package.json` 中的 `scripts.dma` | Lint 配置 |
+| `AGENTS.md` 中的 DMA 块（仅追加） | `services/` |
+
+结果目录树（最小）：
+
+```text
+src/
+├── app/          # or pages/, routes/ — composition root for your framework
+├── features/
+└── shared/
+```
+
+**不要** 提前创建 `services/`——在 **另一个模块** 首次导入该代码时才会出现。
+
+更多：[dma init](/tooling/cli/init) · [项目布局](/start/project-layout)。
+
+<Callout type="info">
+  想手动布局？自己创建相同文件夹即可。可选 `dma.config.*` —— [dma.config](/tooling/cli/config)。
+</Callout>
+
+## 3. 从组合根（composition root）挂载 feature
+
+组合根 **只** 通过 `public/` 导入模块：
+
+```tsx
+// src/app/page.tsx
+import { CatalogPage } from "@/features/catalog/public/catalog-page";
+import { CheckoutPage } from "@/features/checkout/public/checkout-page";
+
+export default function Page() {
+  return (
+    <div>
+      <CatalogPage />
+      <CheckoutPage />
+    </div>
+  );
+}
+```
+
+feature 可以拉取 `services/*/public/*` 和 `shared/`，但不能拉其他 feature。在线示例——[examples/next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app)。
+
+## 4. 运行检查
+
+```bash
+npx @derived-modular/cli check .
+```
+
+单个带 `src/` 的应用——一张导入图（import graph）。monorepo 根目录没有 `src/`——CLI 会发现应用（或用 `--roots`）。每个 root 是 **独立** 的图。
+
+常见首批错误：
+
+| 规则 | 发生了什么 | 怎么办 |
+| --- | --- | --- |
+| `public-api` | 导入进了 `features/foo/model`，而不是 `public/` | 在 `public/` 导出符号，或从那里导入 |
+| `feature-to-feature` | Feature A 导入 feature B | 提升到 `services/`，或抽到 `shared/`（second use） |
+| `layer-direction` | 导入「向上」，例如从 `shared` 到 `features` | 反转依赖方向 |
+
+全部规则——[dma check](/tooling/cli/check)。Monorepo——[Monorepo 指南](/guides/monorepo)。
+
+## 5. 加入 CI
+
+```bash
+npx @derived-modular/cli check . --format json
+```
+
+更多——[CI](/tooling/ci)。
+
+## 6.（可选）编辑器中的 linter
+
+保存时快速反馈——**不能** 替代 `dma check`：
+
+```bash
+npm install -D @derived-modular/eslint-plugin eslint
+```
+
+```js
+// eslint.config.js
+import dma from "@derived-modular/eslint-plugin";
+
+export default [
+  ...dma.configs.recommended,
+  {
+    settings: {
+      dma: {
+        srcRoot: "src",
+        compositionRoots: ["app", "pages", "routes"],
+      },
+    },
+  },
+];
+```
+
+未设置 `settings.dma` 时，ESLint 可从 `dma.config.*` 软加载 `srcRoot` / `compositionRoots`。配置——[ESLint](/tooling/eslint)。
+
+## 7. 本地成长信号
+
+```bash
+npx @derived-modular/cli doctor .
+```
+
+`doctor` 不会让 CI 失败（exit 0），但会提示何时抽到 `shared`、拆分 segment，或将 feature 提升为 service。更多——[dma doctor](/tooling/cli/doctor)。
+
+## 下一步
+
+<Cards>
+  <Card title="四条不变量" description="撑住架构的规则" href="/concepts/invariants" />
+  <Card title="模块与公共 API" description="模块成长阶段" href="/concepts/modules" />
+  <Card title="dma init" description="引导布局与 AGENTS.md" href="/tooling/cli/init" />
+  <Card title="AI & agents" description="面向 Cursor 的 dma skill" href="/tooling/ai-agents" />
+</Cards>

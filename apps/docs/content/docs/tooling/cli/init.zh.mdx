@@ -1,0 +1,53 @@
+---
+title: "dma init"
+description: "初始化 DMA 文件夹、配置、package 脚本与 AGENTS.md，不覆盖已有文件。"
+icon: "Rocket"
+---
+
+```bash
+npx @derived-modular/cli init [path]
+```
+
+`path` 默认为当前目录。**仅单包/单应用** — 在 monorepo 中应在 `apps/<name>`（或目标包）内运行，而非工作区根，除非你刻意要在根级创建 `src/`。
+
+## 作用
+
+严格的**缺失则创建** / 仅追加：
+
+| 产物 | 行为 |
+| --- | --- |
+| `{srcRoot}/` | 缺失则创建（默认 `src`） |
+| 组合根 | 创建 `app/`，除非已存在 `pages/` 或 `routes/` |
+| `features/`、`shared/` | 缺失则创建 |
+| `services/` | **不**创建（首次提升时出现） |
+| `dma.config.ts` | 仅当该包中不存在任何 `dma.config.*` 时创建 |
+| `package.json` → `scripts.dma` | 若既无 `dma` 也无 `dma:check`，则添加 `dma check .`；以 2 空格缩进重新格式化 JSON |
+| `AGENTS.md` | 在 `<!-- dma:begin -->` / `<!-- dma:end -->` 标记之间创建或**追加** DMA 块；从不覆盖已有正文 |
+
+**不会**修改 ESLint / Biome / Oxlint 配置 — 改为在 stdout 打印安装提示。
+
+## 安全性
+
+- 从不覆盖已有文件。
+- 幂等：第二次 `init` 会跳过一切已存在项。
+- 若 `AGENTS.md` 已有类似 DMA 的 `## … DMA` 标题但无标记，`init` 跳过追加并警告。
+
+## 标志
+
+`init` 不接受 `--format`、`--roots` 或 `--include-packages`。可选 `--config` 可在解析脚手架用的 `srcRoot` 时指向配置文件。
+
+## 退出码
+
+| 码 | 含义 |
+| --- | --- |
+| `0` | 成功（含全部跳过） |
+| `2` | 参数错误 / 意外 IO 失败 |
+
+## 后续步骤
+
+```bash
+npm install -D @derived-modular/cli
+npx @derived-modular/cli check .
+```
+
+可选编辑器规则：[ESLint](/tooling/eslint)、[Oxlint](/tooling/oxlint)、[Biome](/tooling/biome)。Agent skill：[AI 与 agent](/tooling/ai-agents)。

@@ -1,0 +1,111 @@
+---
+title: "分层"
+description: "app、features、services、shared——这些层是什么，工具如何判定模块归属。"
+icon: "GitBranch"
+---
+
+在 DMA 中，层不是凭感觉贴在文件夹上的标签。层是一个 **谓词**：可从文件系统和导入图验证的一组条件。
+
+模块匹配 `features/` 谓词——就是 feature。出现来自其他模块的入边——该进 `services/`。不必争论 rank：导入图已经回答。
+
+## 默认目录树
+
+```text
+src/
+├── app/         # composition root
+├── features/    # no inbound edges from other modules
+├── services/    # has inbound edges + product flow
+└── shared/      # has inbound edges + portable code
+```
+
+`services/` **项目开始时可以不存在**。在任一模块收到来自另一模块的入边之前，不需要 services——引用它的规则 **不会** 触发。
+
+## 层谓词
+
+| 层 | 条件 |
+| --- | --- |
+| 组合根（`app/`、`pages/`、`routes/`） | 组装模块；**没有** 模块导入组合根 |
+| `features/` | 无来自其他 **模块** 的入边（只有从组合根挂载） |
+| `services/` | 有来自模块的入边 **且** 代码实现产品流程 |
+| `shared/` | 有入边 **且** 代码可原样移到另一产品 |
+
+### services / shared 边界
+
+这是唯一仍靠人工判断的地方。启发式：
+
+> 这段代码换到另一个产品，要不要改？
+
+- **是** → `shared/`（按钮、`formatCurrency`、HTTP client）。
+- **否** → `services/`（cart、checkout 流程、产品的实体访问权限）。
+
+更多——[Services vs Shared](/deep-dive/services-vs-shared)。
+
+## 组合根（composition root）
+
+`src/` 下的 `app/`、`pages/`、`routes/` 含义相同：**组装点**。
+
+- 通过 `*/public/*` 挂载 feature 和 service
+- 挂载 **不算** promotion 的入边——渲染 `<CheckoutPage />` 的路由不会把 checkout 变成 service
+- 路由文件应薄：从 `public/` 导入，逻辑最少
+
+```tsx
+// app/checkout/page.tsx — thin shell
+import { CheckoutPage } from "@/features/checkout/public/checkout-page";
+
+export default function Page() {
+  return <CheckoutPage />;
+}
+```
+
+项目有多个组合根时，优先 `app/`；工具冲突时先选 `app`。
+
+## 依赖方向
+
+```text
+app/pages/routes  →  features/*/public, services/*/public, shared
+features            →  services/*/public, shared
+services            →  services/*/public, shared   (no cycles)
+shared              →  shared
+```
+
+禁止：
+
+- 任何「向上」导入（从 shared 到 features 等）；
+- 其他模块的内部——只有 `*/public/*`；
+- feature → feature 导入（需要 shared service 或 shared 代码）。
+
+### Feature 不导入 feature
+
+Checkout 和 catalog 要共享行为——把公共逻辑抽到 `services/` 或可移植片段到 `shared/`，不要在 feature 间拉导入。
+
+### Promotion：feature → service
+
+有来自 **其他模块** 入边的 feature 违反谓词。这类模块移到 `services/`。信号：规则 `feature-has-inbound`。
+
+也会查反向：service 没有来自模块的入边——`service-no-inbound`（降级或删除）。
+
+<Callout type="info">
+  为什么只有两个模块层（features + services），不像 FSD 四个？→ [为何只有两层模块](/deep-dive/why-two-layers)
+</Callout>
+
+## 工具检查什么
+
+| 规则 | 抓什么 |
+| --- | --- |
+| `layer-direction` | 错误方向的导入 |
+| `feature-to-feature` | Feature 拉另一个 feature |
+| `public-api` | 绕过 `*/public/*` 的跨模块导入 |
+| `no-barrel` | 模块内带 re-export 的 barrel `index` |
+| `no-cycle` | 模块图中的循环 |
+| `feature-has-inbound` | 被其他模块依赖的 feature |
+| `service-no-inbound` | 模块间没有真实消费者的 service |
+
+完整图审计——`dma check`。更多见 [dma check](/tooling/cli/check)。
+
+## 下一步
+
+<Cards>
+  <Card title="模块与公共 API" description="成长阶段、public/ 文件夹、segment" href="/concepts/modules" />
+  <Card title="四条不变量" description="全部 DMA 规则概览" href="/concepts/invariants" />
+  <Card title="深度解读" description="架构为何如此设计" href="/deep-dive" />
+</Cards>

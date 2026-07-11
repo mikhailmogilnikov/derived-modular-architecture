@@ -1,0 +1,75 @@
+---
+title: "工具概览"
+description: "混合强制校验模型：CLI 中完整图，编辑器中快速反馈。"
+icon: "Wrench"
+---
+
+DMA **混合**校验架构：CLI 中做重量级图审计，linter 中提供轻量级单文件提示。
+
+无法被机器检查的规则，最终都会无人遵守。因此核心是 `npx @derived-modular/cli check`，而不是「配好 ESLint 就完事」。
+
+## 两个层面
+
+| 工具 | 运行位置 | 角色 |
+| --- | --- | --- |
+| `npx @derived-modular/cli check` | CI、pre-push | 硬门槛：图、环、入边谓词 |
+| `npx @derived-modular/cli doctor` | 本地 | 软性成长信号（退出码 0） |
+| 智能体 skill `dma` | Cursor、Claude Code、… | 面向 LLM 的放置算法与禁止项 |
+| ESLint / Oxlint / Biome | 编辑器、`lint` 脚本 | 四条文件级规则 |
+
+**CI 中务必运行 `npx @derived-modular/cli check`。** Linter 是速度补充，不能替代 CLI。
+
+## 覆盖矩阵
+
+| 规则 | dma check | dma doctor | ESLint / Oxlint | Biome |
+| --- | --- | --- | --- | --- |
+| `layer-direction` | ✓ | — | ✓ | 启发式 |
+| `feature-to-feature` | ✓ | — | ✓ | 启发式 |
+| `public-api` | ✓ | — | ✓ | 启发式 |
+| `no-barrel` | ✓ | — | ✓ | 启发式 |
+| `no-cycle` | ✓ | — | — | — |
+| 入边谓词 | ✓ | — | — | — |
+| 演进信号 | — | ✓ | — | — |
+
+环与「有入边的 feature 必须是 service」属于**图**属性。Linter 一次只看一个文件，看不到完整导入图，因此这些规则只在 CLI 中。
+
+<Callout type="info">
+  为什么单靠 linter 不够 → [为什么需要 CLI，而不只是 linter](/deep-dive/why-cli-not-only-linters)。
+</Callout>
+
+## 包
+
+| 包 | 用途 |
+| --- | --- |
+| `@derived-modular/cli` | `check` + `doctor` |
+| `@derived-modular/eslint-plugin` | ESLint flat config |
+| `@derived-modular/oxlint-plugin` | Oxlint 同款规则 |
+| `@derived-modular/biome-plugin` | GritQL 启发式（较弱） |
+| `@derived-modular/boundaries` | CLI 与 ESLint 共享的路径分类 |
+| Skill `dma`（[skills/dma](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/skills/dma)） | 智能体 skill — 非 npm 包；`npx skills add … --skill dma` |
+
+## 推荐工作流
+
+1. **本地：** 保存时跑 ESLint（或 Biome/Oxlint）— 抓住明显错误的导入
+2. **推送前：** `npx @derived-modular/cli check .`
+3. **不定期：** `npx @derived-modular/cli doctor .` — 看看该抽取或提升什么
+4. **CI 中：** `npx @derived-modular/cli check . --format json`（或 SARIF 用于 GitHub Code Scanning）
+
+## 如何选择
+
+| 情况 | 建议 |
+| --- | --- |
+| 已有 ESLint 9+ flat config | `@derived-modular/eslint-plugin` |
+| Biome 作为统一 linter/formatter | `@derived-modular/biome-plugin` + CI 中仍要跑 `dma check` |
+| Oxlint 追求速度 | `@derived-modular/oxlint-plugin`（alpha） |
+| 仅 CI、不用编辑器 | `@derived-modular/cli` 即可 |
+
+## 下一步
+
+<Cards>
+  <Card title="AI 与智能体" description="面向 Cursor 的 dma skill 与 CLI JSON" href="/tooling/ai-agents" />
+  <Card title="dma check" description="CI 硬校验" href="/tooling/cli/check" />
+  <Card title="dma doctor" description="演进信号" href="/tooling/cli/doctor" />
+  <Card title="ESLint" description="编辑器插件" href="/tooling/eslint" />
+  <Card title="CI" description="流水线集成" href="/tooling/ci" />
+</Cards>

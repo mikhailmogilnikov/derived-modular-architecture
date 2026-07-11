@@ -1,0 +1,60 @@
+---
+title: "dma promote"
+description: "安全地将文件夹 feature 移到 services/ 并重写导入（默认 dry-run）。"
+icon: "ArrowUpFromLine"
+---
+
+```bash
+npx @derived-modular/cli promote <module> [path]
+npx @derived-modular/cli promote <module> [path] --apply
+```
+
+将**文件夹** feature `features/<name>/` → `services/<name>/`，并重写解析到该模块内的导入字面量。在触发 `feature-has-inbound`（另一模块导入了该 feature）时使用。
+
+## 安全性
+
+| 防护 | 行为 |
+| --- | --- |
+| 默认 | **Dry-run（试运行）** — 打印移动 + 重写计划；磁盘不变 |
+| `--apply` | 写入所必需 |
+| 模块类型 | 仅带 `public/` 的文件夹；stage-0 文件模块会被拒绝 |
+| 目标 | 若 `services/<name>` 已存在则中止 |
+| 范围 | 单应用包（存在 `src/`）；非多根 |
+| 事后检查 | apply 后重新运行 `dma check`；**新**错误或残留的 `feature-has-inbound` → **回滚**快照 |
+
+**不会**修剪 `public/` 或发明 port — 成功提升后请手动复查 API。见[代码演进](/concepts/evolution)。
+
+## 示例
+
+```bash
+# 仅计划
+npx @derived-modular/cli promote features/promo
+
+# 写入 + 校验
+npx @derived-modular/cli promote promo --apply
+npx @derived-modular/cli promote promo apps/web --apply --config ./dma.config.ts
+```
+
+`<module>` 可为 `promo`、`features/promo` 或 `src/features/promo`。
+
+## 标志
+
+- `--apply` — 写入变更
+- `--config <file>` — 用于 `srcRoot` 的布局配置
+
+**不接受** `--format`、`--roots` 或 `--include-packages`。
+
+## 退出码
+
+| 码 | 含义 |
+| --- | --- |
+| `0` | Dry-run 成功，或 apply + 事后检查成功 |
+| `2` | 预检失败、重写失败或已回滚的 apply |
+
+## 下一步
+
+<Cards>
+  <Card title="dma check" description="硬性规则（含 feature-has-inbound）" href="/tooling/cli/check" />
+  <Card title="代码演进" description="何时提升" href="/concepts/evolution" />
+  <Card title="dma doctor" description="软增长信号" href="/tooling/cli/doctor" />
+</Cards>

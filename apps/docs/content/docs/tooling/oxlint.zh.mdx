@@ -1,0 +1,65 @@
+---
+title: "Oxlint"
+description: "@derived-modular/oxlint-plugin JS 插件 — 与 ESLint 相同规则，面向 Oxlint。"
+icon: "Zap"
+---
+
+`@derived-modular/oxlint-plugin` 将 `@derived-modular/eslint-plugin` 的规则封装为 Oxlint JS 插件。语义相同、速度更高 — Oxlint 针对大型代码库的快速 lint 做了优化。
+
+状态：**alpha**。Oxlint JS 插件 API 仍可能变化。
+
+与其他 linter 一样 — **不能替代** `dma check`。
+
+## 安装
+
+```bash
+npm install -D @derived-modular/oxlint-plugin oxlint
+```
+
+Peer dependency：`oxlint >= 1.0.0`。
+
+## 配置
+
+```jsonc
+// .oxlintrc.json
+{
+  "extends": ["./node_modules/@derived-modular/oxlint-plugin/configs/recommended.json"]
+}
+```
+
+规则以 `dma/*` 前缀提供，例如 `dma/no-barrel`、`dma/layer-direction`。
+
+## 覆盖范围
+
+| 规则 | Oxlint | dma check |
+| --- | --- | --- |
+| `layer-direction` | ✓ | ✓ |
+| `feature-to-feature` | ✓ | ✓ |
+| `public-api` | ✓ | ✓ |
+| `no-barrel` | ✓ | ✓ |
+| `no-cycle` | — | ✓ |
+| 入边谓词 | — | ✓ |
+| `dma doctor` | — | ✓ |
+
+Oxlint 与 ESLint 使用相同的 `@derived-modular/boundaries` — 文件级规则精度与 ESLint 插件相当，而非 Biome 启发式。
+
+## Oxlint 与 ESLint
+
+| | Oxlint | ESLint |
+| --- | --- | --- |
+| 速度 | 大仓库更快 | 标准 |
+| DMA 插件成熟度 | Alpha | 稳定 |
+| 图规则 | 无（与 ESLint 相同） | 无 |
+| 适用场景 | 已用 Oxlint、要速度 | 默认选择 |
+
+## 仅用 Biome 的项目
+
+若 linter 只有 Biome — 见 [Biome](/tooling/biome)。通常不必同时用 Oxlint 与 Biome。
+
+## 下一步
+
+<Cards>
+  <Card title="ESLint" description="稳定替代方案" href="/tooling/eslint" />
+  <Card title="dma check" description="CI 必需" href="/tooling/cli/check" />
+  <Card title="工具概览" description="混合模型" href="/tooling/overview" />
+</Cards>

@@ -1,0 +1,14 @@
+{
+  "title": "指南",
+  "pages": [
+    "index",
+    "migration",
+    "monorepo",
+    "cross-module-wiring",
+    "vite-react",
+    "nextjs",
+    "astro",
+    "sveltekit",
+    "vue"
+  ]
+}

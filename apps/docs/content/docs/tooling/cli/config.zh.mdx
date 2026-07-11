@@ -1,0 +1,88 @@
+---
+title: "dma.config"
+description: "可选项目配置：srcRoot、组合根与 monorepo 根。"
+icon: "Settings"
+---
+
+零配置仍是默认。仅当需要非默认 `src/` 布局或共享 monorepo 根时，才添加 `dma.config.*`。
+
+## 格式
+
+同目录下先匹配先生效：
+
+1. `dma.config.ts`
+2. `dma.config.mts`
+3. `dma.config.mjs`
+4. `dma.config.js`
+5. `dma.config.json`
+
+CLI 从位置参数 `path` **向上**查找，直到找到配置文件。用 `--config <file>` 覆盖。
+
+## 配置结构
+
+```ts
+import { defineConfig } from "@derived-modular/cli";
+
+export default defineConfig({
+  srcRoot: "src", // default
+  compositionRoots: ["app", "pages", "routes"], // default
+  roots: ["apps/web", "apps/admin"], // optional; relative to config file dir
+  includePackages: false, // optional
+});
+```
+
+| 字段 | 默认 | 含义 |
+| --- | --- | --- |
+| `srcRoot` | `"src"` | 各包根下的源码目录 |
+| `compositionRoots` | `["app","pages","routes"]` | 在 `srcRoot` 下视为组合根的文件夹 |
+| `roots` | — | 显式 DMA 根（等同 `--roots`） |
+| `includePackages` | `false` | 包含无组合根的库包 |
+
+未知键会被拒绝（退出 `2`）。
+
+## 优先级
+
+1. 内置默认  
+2. 配置文件  
+3. CLI 标志（`--roots`、`--include-packages`、`--config`）
+
+`--include-packages` 仅在 argv 上**出现该标志时**覆盖配置。
+
+## 示例
+
+### 自定义源码文件夹
+
+```json
+{
+  "srcRoot": "source",
+  "compositionRoots": ["pages"]
+}
+```
+
+### Monorepo 根
+
+```ts
+import { defineConfig } from "@derived-modular/cli";
+
+export default defineConfig({
+  roots: ["apps/web", "apps/admin"],
+});
+```
+
+```bash
+npx @derived-modular/cli check .
+# 无配置文件时的等价命令：
+npx @derived-modular/cli check --roots apps/web,apps/admin
+```
+
+## Linter
+
+ESLint / Oxlint（`@derived-modular/eslint-plugin`）在 `settings.dma` 未设置时，从 `dma.config.*` 读取 **`srcRoot`** 与 **`compositionRoots`**（插件设置优先）。Biome **尚不**读取 `dma.config`。
+
+## 下一步
+
+<Cards>
+  <Card title="dma check" description="规则与退出码" href="/tooling/cli/check" />
+  <Card title="Monorepo" description="多根发现" href="/guides/monorepo" />
+  <Card title="CI" description="流水线接入" href="/tooling/ci" />
+</Cards>

@@ -1,0 +1,72 @@
+---
+title: "Biome"
+description: "@derived-modular/biome-plugin 的 GritQL 启发式，面向 Biome 项目。"
+icon: "ScanSearch"
+---
+
+`@derived-modular/biome-plugin` 通过 GritQL 模式为 Biome 增加四条 DMA 架构规则。若 Biome 已是唯一的 linter 与 formatter，会很方便。
+
+这是**尽力而为**：插件看导入字符串，不构建完整图。[ESLint 插件](/tooling/eslint) 更准 — 它用 `@derived-modular/boundaries` 与正确的路径解析。
+
+CI 中仍需要 `dma check`。
+
+## 安装
+
+```bash
+npm install -D @derived-modular/biome-plugin
+```
+
+## 配置
+
+```jsonc
+// biome.jsonc
+{
+  "extends": ["@derived-modular/biome-plugin"],
+  "files": {
+    "includes": ["**", "!dist"]
+  }
+}
+```
+
+插件启用四条 GritQL 规则：`layer-direction`、`feature-to-feature`、`public-api`、`no-barrel`。
+
+## 覆盖范围
+
+| 规则 | Biome | ESLint | dma check |
+| --- | --- | --- | --- |
+| `layer-direction` | 启发式 | ✓ | ✓ |
+| `feature-to-feature` | 启发式 | ✓ | ✓ |
+| `public-api` | 启发式 | ✓ | ✓ |
+| `no-barrel` | 启发式 | ✓ | ✓ |
+| `no-cycle` | — | — | ✓ |
+| 入边谓词 | — | — | ✓ |
+
+## 限制
+
+**无导入解析。** 插件匹配 `@/` 与相对路径模式，但不完整读取 `tsconfig` 别名。复杂别名可能漏报或误报。
+
+**Grit 插件路径** 从项目根解析（`./node_modules/@derived-modular/biome-plugin/...`）。在扁平 `node_modules`（npm、bun）中较可靠；部分 monorepo / PnP 布局下 Biome 仍在改进共享配置支持。
+
+**无图规则。** 环与「有入边的 feature → service」— 仅 CLI。
+
+<Callout type="warn">
+  若能选 — 用 ESLint 插件。团队已全面用 Biome 且接受启发式时，再用 Biome。
+</Callout>
+
+## 适用场景
+
+| 情况 | 建议 |
+| --- | --- |
+| Biome 为统一工具链 | biome-plugin + CI 中 `dma check` |
+| 已有 ESLint | DMA 用 [ESLint](/tooling/eslint)，不必用 Biome |
+| 需要编辑器最高精度 | ESLint，而非 Biome |
+
+配置示例 — [examples/vue-vite/biome.jsonc](https://github.com/mikhailmogilnikov/derived-modular-architecture/blob/main/examples/vue-vite/biome.jsonc)。
+
+## 下一步
+
+<Cards>
+  <Card title="dma check" description="CI 中完整图审计" href="/tooling/cli/check" />
+  <Card title="工具概览" description="适配器对比" href="/tooling/overview" />
+  <Card title="Oxlint" description="Oxlint 替代方案" href="/tooling/oxlint" />
+</Cards>

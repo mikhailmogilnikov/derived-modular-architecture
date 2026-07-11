@@ -1,0 +1,123 @@
+---
+title: "AI 与智能体"
+description: "智能体 skill dma — Cursor 等助手的配置，以及配合 check --format json 的工作流。"
+icon: "Bot"
+---
+
+LLM 助手写代码很快，但常会按 FSD 风格「优化」架构：发明 `widgets/`、`entities/`、barrel `index.ts`，或 feature → feature 互相拉依赖。DMA 依赖**图与工具链**，而不是模型的主观喜好。
+
+**智能体 skill** 是给智能体的精简指令：放置算法、禁止项列表、规范链接。Skill **不能替代** `dma check` — 它在合并前引导智能体；CI 中的门槛仍是 CLI。
+
+## `dma` skill 包含什么
+
+仓库源码：[skills/dma](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/skills/dma)。
+
+| 章节 | 内容 |
+| --- | --- |
+| 放置算法 | 文件放哪 — 与 [文件放哪](/concepts/placement) 相同步骤 |
+| 导入速查 | 依赖方向、`*/public/*`、`import type` = 边 |
+| 智能体工作流 | 检查 → 放置/移动 → 用 CLI 验证 |
+| 拒绝 / 改写 | Barrel、feature→feature、过早的 `shared/`、用 port 绕过正当提升 |
+| Linter 矩阵 | ESLint / Oxlint / Biome — 文件级，非完整图 |
+| 何时深入阅读 | spec、reference.md、examples、fixtures |
+
+面向智能体的规范 SoT 是 [spec/](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/spec)。Skill 是压缩清单，不能替代规范。
+
+## 安装
+
+通过 [skills.sh](https://skills.sh/)（Cursor、Claude Code 及其他支持 skills 的主机）：
+
+```bash
+npx skills add mikhailmogilnikov/derived-modular-architecture --skill dma
+```
+
+列出仓库中的 skills：
+
+```bash
+npx skills add mikhailmogilnikov/derived-modular-architecture --list
+```
+
+### 手动配置
+
+将 `skills/dma` 文件夹复制或软链到编辑器的 skills 目录（例如 `~/.cursor/skills/dma` 或项目根目录的 `.cursor/skills/dma`）。`SKILL.md` 必须作为 skill 对智能体可用。
+
+## 推荐智能体工作流
+
+1. **读目录树** — 实际的 `src/{app\|pages\|routes,features,services?,shared}` 与导入；不要假设 FSD 层。
+2. **放置 / 移动** 按算法；导入走 **直接** 路径到 `*/public/*`。
+3. **用 CLI 验证**（若项目已安装该包）：
+
+```bash
+npx @derived-modular/cli check . --format json
+npx @derived-modular/cli doctor . --format json
+```
+
+| 退出码 | 含义 |
+| --- | --- |
+| `0` | 正常（`doctor` 可能有警告，不破坏 CI） |
+| `1` | `check` 发现违规 — 合并前修复 |
+| `2` | 环境：缺少 `src/`、tsconfig、参数无效 |
+
+4. **不要「修复」** barrel、深层导入、空的 `services/`，或用 port 绕过正当提升。
+5. **CI 中** 仍要跑 `check` — 智能体可能没跑 CLI，或漏掉边界情况。
+
+<Callout type="warn">
+  「智能体说架构没问题」不算理由。唯一硬门槛是 CI（以及推送前本地）中的 `npx @derived-modular/cli check`。
+</Callout>
+
+## 面向自动化的 JSON
+
+`--format json` 产出稳定报告（`version: 1`）— 便于 CI、脚本与智能体：
+
+```bash
+npx @derived-modular/cli check . --format json
+npx @derived-modular/cli doctor . --format json
+```
+
+`ruleId`、`severity`、`file`、`message` 字段与 [违规参考](/tooling/cli/check#violation-reference) 及 [doctor](/tooling/cli/doctor) 信号一致。
+
+SARIF 用于 GitHub Code Scanning；见 [CI](/tooling/ci)。
+
+## Skill + linter + CLI
+
+```text
+Agent (skill)     →  文件放哪、不要发明什么
+Editor (lint)     →  保存时四条文件级规则
+CI (dma check)    →  完整图、环、入边谓词
+```
+
+Skill 与 ESLint/Biome **看不到** `no-cycle` 和 `feature-has-inbound` — 只有 CLI 能。见 [工具概览](/tooling/overview) 与 [为什么需要 CLI，而不只是 linter](/deep-dive/why-cli-not-only-linters)。
+
+## 项目中的 AGENTS.md
+
+在你自己的仓库里，可以把关键规则抄进 `AGENTS.md`（校验命令、禁止 barrel）。`dma` skill 是带算法与拒绝清单的现成版本；若不想手动维护，直接用 skill。
+
+任何 DMA 项目的最低配置：
+
+```json
+{
+  "scripts": {
+    "dma-check": "npx @derived-modular/cli check ."
+  }
+}
+```
+
+CI 里加一行 — 见 [CI](/tooling/ci)。
+
+## Skill 不做什么
+
+| 不是 skill | 原因 |
+| --- | --- |
+| CI 门槛 | 只有带退出码的 `dma check` |
+| 领域切分选择 | Conway — 团队定；见 [DMA 不决定什么](/deep-dive/what-dma-does-not-do) |
+| 导入自动修复 | 手动重构 + 重跑 `check` |
+| 替代 spec | Skill 引用 spec；冲突时以工具链 + spec 为准 |
+
+## 下一步
+
+<Cards>
+  <Card title="文件放哪" description="面向人与智能体的算法" href="/concepts/placement" />
+  <Card title="dma check" description="JSON、ruleId、退出码" href="/tooling/cli/check" />
+  <Card title="工具概览" description="混合模型" href="/tooling/overview" />
+  <Card title="CI" description="流水线门槛" href="/tooling/ci" />
+</Cards>

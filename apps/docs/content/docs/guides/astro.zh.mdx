@@ -1,0 +1,109 @@
+---
+title: "Astro"
+description: "组合根在 pages/、通过 frontmatter 导入的 DMA。"
+icon: "Sparkles"
+---
+
+**Astro 5** 示例：`src/` 下的分层、组合根在 `src/pages/`、layout 与 providers 在 `src/app/`。
+
+源码：[examples/astro-pages](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/astro-pages)。
+
+## 两个根：pages 与 app
+
+| 文件夹 | 角色 |
+| --- | --- |
+| `src/pages/` | 路由——精简，只负责挂载 |
+| `src/app/` | Layout、providers、seed——**不是**路由 |
+
+`pages/` 中只有可路由文件（`index.astro`）。`layout.astro` 与 `shop-providers.astro` 放在 `app/`，以免 Astro 创建额外路由。
+
+## 精简路由
+
+```astro
+---
+import CatalogPage from "@/features/catalog/public/catalog-page.astro";
+import ShopProviders from "@/app/shop-providers.astro";
+import Layout from "@/app/layout.astro";
+---
+
+<Layout title="DMA · Astro mini-shop">
+  <ShopProviders>
+    <CatalogPage />
+  </ShopProviders>
+</Layout>
+```
+
+只向下导入：`features/*/public/*`、`services/*/public/*`、`shared/*`。
+
+## Frontmatter = 模块脚本
+
+`---` 块在构建时运行：
+
+1. 导入 `*/public/*` 与 stage-0 模块
+2. 在模板前调用 service helper
+3. 通过 props 向子组件传数据
+
+`dma check` 与 Biome 插件解析 `.astro` frontmatter 中的导入，与 `.ts` 相同。
+
+## Provider 模式
+
+`shop-providers.astro` 在 feature 渲染前绑定端口：
+
+```astro
+---
+import { provideCartSeed } from "@/services/cart/public/ports";
+import { demoCartSeed } from "@/app/cart-seed";
+
+provideCartSeed(demoCartSeed);
+---
+<slot />
+```
+
+端口对静态图不可见——用于 seed/打破循环，而非绕过提升（promotion）。更多——[跨模块接线](/guides/cross-module-wiring)。
+
+## 状态模式
+
+1. **就近放置的 store**——`catalog.store.ts`，从 `public/` 相对导入
+2. **提升后的 service**——`services/cart/public/cart.ts`（catalog + checkout）
+3. **Provider 端口**——`ports.ts` + 在 `app/` 中绑定
+
+## 代码放哪里
+
+| 任务 | 文件夹 |
+| --- | --- |
+| 路由外壳 | `src/pages/*.astro` |
+| Layout、providers | `src/app/` |
+| Feature 屏幕 | `features/<name>/public/<entry>.astro` |
+| Stage-0 模块 | `features/<name>.astro` |
+| 2+ 消费者 | `services/<name>/public/` |
+| 可移植 UI/lib | `shared/ui/`、`shared/lib/` |
+
+## 样式
+
+| 类型 | 位置 |
+| --- | --- |
+| Scoped `<style>` | 同一 `.astro` 文件内 |
+| Feature CSS | 就近放置的 `*.css` → 从 `public/` 导入 |
+| CSS Modules | `public/*.module.css` |
+| 全局 | `styles/global.css` → 从 `app/layout.astro` 导入 |
+
+全局 CSS——只从组合根导入。
+
+## 工具
+
+```bash
+bun run build       # astro build
+bun run dma-check   # dma check .
+bun run lint        # biome + @derived-modular/biome-plugin
+bun run test
+```
+
+Biome 插件为**尽力而为**（GritQL）。无完整路径解析或图循环检测。**务必**在 CI 中运行 `dma check`。
+
+## 下一步
+
+<Cards>
+  <Card title="跨模块接线" description="端口与 provide" href="/guides/cross-module-wiring" />
+  <Card title="Vite + React" description="相同的 mini-shop 故事" href="/guides/vite-react" />
+  <Card title="Biome 插件" description="Linter 配置" href="/tooling/biome" />
+</Cards>

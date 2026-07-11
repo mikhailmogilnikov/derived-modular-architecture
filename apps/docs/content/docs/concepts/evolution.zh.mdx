@@ -1,0 +1,99 @@
+---
+title: "代码演进"
+description: "架构如何在不重写的情况下成长：second-use、promotion、doctor 信号。"
+icon: "TrendingUp"
+---
+
+DMA 不是靠换一套架构来扩展。项目 **在原地变密**：谓词开始承载信息时，文件夹才出现。
+
+你不会为了「成长」建空的 `services/`。不会「以防万一」抽到 `shared/`。成长响应第二个消费者或工具信号。
+
+## 项目三阶段
+
+### 1. 起步
+
+```text
+src/
+├── app/          # or pages/, routes/
+├── features/
+└── shared/       # almost empty
+```
+
+没有 `services/`。所有模块都是叶子 feature。
+
+### 2. 首次 promotion
+
+某模块被 **另一个模块** 需要 → 创建 `services/`，移动模块，重新审视公共 API。从此 services 内部的循环检查才有意义。
+
+示例：catalog 调用 `addToCart`，checkout 也是——cart 从 feature 移到 `services/cart/`。
+
+### 3. 领域（services 变密后）
+
+密集的 services 子图或多团队 → **横向** 拆分（`domains/billing/`、独立 package）。不新增纵向层。
+
+## Second-use 规则（第二次使用规则）
+
+| 发生了什么 | 动作 |
+| --- | --- |
+| Feature 被另一个模块需要 | Promotion 到 `services/` |
+| 可移植 helper/UI 被 2+ 模块需要 | Lift 到 `shared/`（合适分组） |
+| 来自 `public/` 的类型被 2+ 模块需要 | 移到 `shared/domain` |
+
+`import type` 也是图上的边。不能靠类型绕过。
+
+从组合根挂载 **不算** 入边，不触发 promotion。
+
+## Promotion — 设计时刻
+
+Feature 收到来自其他模块的入边时，为单一消费者长大的 API 变成多方的契约。这是 **有意为之** 的一步：
+
+1. 移到 `services/<name>/`
+2. 审视 `public/`——外面真正需要什么
+3. 确认 `dma check` 全绿（`feature-has-inbound` 不再报错）
+
+## 模块成长触发器
+
+| 信号 | 动作 | 工具 |
+| --- | --- | --- |
+| Stage 0 出现同 basename 前缀的兄弟文件（`checkout.tsx` + `checkout.store.ts`） | Stage 1：文件夹 + `public/` | `stage-growth` |
+| ~8+ 内部文件 | Stage 2：ui/model/api segment | `stage-growth` |
+| `public/` 膨胀 | Stage 3：拆分模块 | 代码评审（尚无 doctor） |
+| Feature 被模块需要 | Promotion → `services/` | `feature-has-inbound` |
+| 模块间循环 | Port + 在 `app` 接线，或抽到 shared | `no-cycle` |
+| 密集 services 子图 | 横向拆分 | `dense-services` |
+
+阈值是 CLI 默认值。v1 无用户配置可改。
+
+## `dma doctor` 信号
+
+软提示。Exit code 0——不破坏 CI。
+
+### shared-candidate
+
+某模块文件被 2+ 其他模块导入。常常是健康的 `services/*/public/*` 表面。Lift 到 `shared/` 前先问：这是产品逻辑还是可移植 helper？
+
+### stage-growth
+
+模块结构落后于体量：文件模块长出同 basename 前缀的兄弟文件，或文件夹文件很多却没有 `ui/` / `model/` / `api/` segment。
+
+### dense-services
+
+`services/` 子图看起来很密——该按领域拆分。
+
+### orphan-public
+
+`public/` 里没人导入的文件——死契约。删除或改为内部。
+
+命令详情——[dma doctor](/tooling/cli/doctor)。
+
+在现有项目采用 DMA 时，promotion 与 doctor 信号配合分阶段计划——[迁移](/guides/migration)。
+
+## 下一步
+
+<Cards>
+  <Card title="文件放哪" description="Promotion 时的算法" href="/concepts/placement" />
+  <Card title="模块与公共 API" description="Stage 0–4" href="/concepts/modules" />
+  <Card title="迁移" description="分阶段采用" href="/guides/migration" />
+  <Card title="分层" description="Promotion 与谓词" href="/concepts/layers" />
+  <Card title="Shared" description="何时 lift 到 shared" href="/concepts/shared" />
+</Cards>

@@ -1,0 +1,135 @@
+---
+title: "模块与公共 API"
+description: "模块成长阶段、public/ 文件夹、segment，以及跨模块导入规则。"
+icon: "Box"
+---
+
+DMA 中的模块是 `features/` 或 `services/` 内的文件夹（或单个文件）。两层规则相同：只是层谓词不同，内部结构不变。
+
+核心思路：模块 **渐进** 成长，无需「从头重写」式迁移。每个阶段建立在上一阶段之上。
+
+## 成长阶段
+
+### Stage 0 — 文件模块
+
+模块还是单个文件时——整文件就是公共表面：
+
+```text
+features/
+└── checkout.tsx
+```
+
+直接导入该文件，无需文件夹和 `index.ts`。
+
+### Stage 1 — 扁平文件夹
+
+**与文件模块同 basename 前缀的兄弟文件** 出现（例如 `features/` 里的 `checkout.tsx` 和 `checkout.store.ts`）——创建文件夹和 `public/`：
+
+```text
+features/checkout/
+├── public/
+│   └── checkout-page.tsx
+├── use-cart-total.ts
+└── cart-row.tsx
+```
+
+外部需要的都在 `public/`。内部文件并列放置，但其他模块不得导入它们。
+
+### Stage 2 — segment
+
+内部文件很多时（粗估 ~8+，`dma doctor` 信号 `stage-growth`）——按角色拆分：
+
+```text
+features/checkout/
+├── public/     # entrypoints — flat folder
+├── ui/
+├── model/
+├── api/
+└── lib/        # helpers needed by 2+ segments in this module
+```
+
+| Segment | 内容 |
+| --- | --- |
+| `public/` | 入口点、事件、ports、外部类型 |
+| `ui/` | 展示组件 |
+| `model/` | 模块状态与领域逻辑 |
+| `api/` | 传输、DTO 映射 |
+| `lib/` | 多个 segment 共用的纯 helper |
+
+模块内推荐方向（碍事时再启用，不必第一天就上）：
+
+```text
+public → ui, model, api, lib
+ui     → model, lib
+model  → api, lib
+api    → lib
+```
+
+名字与 `shared/` 分组相同，但 **规则不同**：`features/checkout/ui` 可导入该模块的 `model`，而 `shared/ui` 不能拉 `shared/model`。
+
+### Stage 3 — 拆分
+
+`public/` 里 entrypoint 实现太多（粗估 ~8+）—— **拆分模块**，不要在 `public/` 里再嵌 `public/`。尚无 doctor 信号前，这是 review 决策。
+
+### Stage 4 — package
+
+多个应用消费该模块 → 提取为 monorepo package。规则相同，通过 workspace package `exports` 强制校验。
+
+## 公共 API
+
+跨模块导入—— **只** 进 `*/public/*`，直接指向文件：
+
+```ts
+// ✓
+import { CheckoutPage } from "@/features/checkout/public/checkout-page";
+
+// ✗ deep import into internals
+import { CartRow } from "@/features/checkout/ui/cart-row";
+
+// ✗ barrel
+import { CheckoutPage } from "@/features/checkout";
+```
+
+`public/` 保持 **扁平**。Entrypoint 实现放在 `public/`，可导入内部 segment。允许从内部文件 1:1 re-export，但默认直接在 `public/` 写代码。
+
+Stage 0 整文件公开；不需要 `public/` 文件夹。
+
+## 禁止 barrel 文件
+
+模块内带 re-export 的 `index.ts`——不允许。这类文件会隐藏导入图（import graph）。更多——[为何不用 barrel 文件](/deep-dive/why-no-barrels)。
+
+## 模块内 colocation
+
+- 测试 `*.test.ts`——紧挨被测文件
+- 样式——紧挨组件
+- 类型——紧挨消费者；跨模块类型——`public/*.types.ts` 或 second use 后的 `shared/domain`
+- 文件名——kebab-case，含义在名里：`use-cart-total.ts`，不是 `hook.ts`
+
+## 模块间连接
+
+| 任务 | 做法 |
+| --- | --- |
+| 使用更低层的代码 | 直接导入 `services/*/public/*` 或 `shared/` |
+| 不知订阅者的事件 | 事件放在 emitter 的 `public/`；下方订阅或在 `app/` 接线 |
+| 直接导入会循环或向上跨层 | `public/ports.ts` 中的 port + 在组合根绑定 |
+| 仅视觉组合 | 组合根中的 slots/props |
+
+Port 是运行时依赖，静态图看不见。放在 `public/ports.ts`，别用来绕过 promotion。
+
+## 工具检查什么
+
+| 规则 | 抓什么 |
+| --- | --- |
+| `public-api` | 绕过 `public/` 的导入 |
+| `no-barrel` | 带 re-export 的 barrel `index` |
+| `stage-growth` (doctor) | 结构落后于模块体量 |
+
+## 下一步
+
+<Cards>
+  <Card title="文件放哪" description="Placement 算法" href="/concepts/placement" />
+  <Card title="代码演进" description="Second-use、promotion、doctor" href="/concepts/evolution" />
+  <Card title="Shared" description="ui、lib、api、model、domain 分组" href="/concepts/shared" />
+  <Card title="测试" description="Colocate *.test.ts" href="/concepts/testing" />
+  <Card title="分层" description="features vs services" href="/concepts/layers" />
+</Cards>

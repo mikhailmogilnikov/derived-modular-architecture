@@ -1,0 +1,100 @@
+---
+title: "项目布局"
+description: "src/ 目录树、组合根（composition root），以及不同框架下代码该放哪。"
+icon: "FolderTree"
+---
+
+DMA 不绑定单一框架。规则相同；变的只是组合根文件夹名——路由和 layout 挂载模块的地方。
+
+## 基础目录树
+
+```text
+src/
+├── app/         # composition root (Next.js App Router, Vite+React)
+├── features/    # leaf modules
+├── services/    # appears on promotion — don't create upfront
+└── shared/
+    ├── ui/
+    ├── lib/
+    ├── api/
+    ├── model/
+    └── domain/  # optional
+```
+
+## 组合根（composition root）
+
+`src/` 下，以下任一文件夹在 DMA 规则中属于 **同一层**：
+
+| 文件夹 | 常见框架 |
+| --- | --- |
+| `app/` | Next.js App Router, Vite + React |
+| `pages/` | Astro, classic Next pages |
+| `routes/` | TanStack Router, SvelteKit |
+
+它们都：
+
+- 通过 `*/public/*` 挂载模块；
+- **不被** 模块导入；
+- 路由保持薄——从 `public/` 导入，逻辑最少。
+
+```tsx
+// src/app/checkout/page.tsx
+import { CheckoutPage } from "@/features/checkout/public/checkout-page";
+
+export default function Page() {
+  return <CheckoutPage />;
+}
+```
+
+项目有多个 root 时，优先 `app/`。工具冲突时会先选 `app`。
+
+## 放什么去哪
+
+| 你有… | 放在… |
+| --- | --- |
+| 路由、layout、providers | Composition root |
+| 屏幕 / 用户流程 | `features/<name>/public/` 或 stage-0 文件 |
+| 单个 feature 的状态 | feature 内部，紧挨消费者 |
+| 其他模块需要的产品逻辑 | `services/<name>/public/` |
+| 可移植 UI / helper | `shared/ui/`、`shared/lib/` |
+| 基础 HTTP client、拦截器 | `shared/api/` |
+| 单个 feature 的 endpoint | feature 内部（`*.api.ts`） |
+| 连接 feature / 事件 | Composition root——props、providers、ports |
+| 单元测试 | 文件旁边（`*.test.ts`） |
+
+## 按框架的示例
+
+DMA 仓库有五个干净示例，同一产品故事（catalog、checkout、cart）：
+
+| 示例 | Composition root | 技术栈 |
+| --- | --- | --- |
+| [vite-react](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vite-react) | `src/app/` | Vite + React |
+| [next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app) | `src/app/` | Next.js |
+| [astro-pages](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/astro-pages) | `src/pages/` | Astro |
+| [sveltekit-routes](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/sveltekit-routes) | `src/routes/` | SvelteKit |
+| [vue-vite](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vue-vite) | `src/app/` | Vue 3 + Vite |
+
+最容易上手的是 **vite-react**——可运行，带测试和完整模块阶段阶梯。
+
+## 模块阶段阶梯
+
+```text
+Stage 0   features/profile.tsx
+Stage 1   features/checkout/public/ + internals
+Promotion services/cart/public/     ← catalog + checkout import
+Lift      shared/lib/format-currency.ts  ← 2+ modules, no product logic
+```
+
+更多——[Modules & public API](/concepts/modules) 和 [代码演进](/concepts/evolution)。
+
+## 路径别名
+
+CLI 和 ESLint 插件从 `tsconfig.json` 解析 `@/` → `src/`。确保路径在应用根配置，而不是整个 monorepo。
+
+## 下一步
+
+<Cards>
+  <Card title="快速开始" description="安装并运行 dma check" href="/start/quick-start" />
+  <Card title="分层" description="app、features、services、shared 的谓词" href="/concepts/layers" />
+  <Card title="什么是 DMA" description="简介" href="/start/what-is-dma" />
+</Cards>

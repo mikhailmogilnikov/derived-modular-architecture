@@ -1,0 +1,12 @@
+{
+  "title": "深度解析",
+  "pages": [
+    "index",
+    "why-no-barrels",
+    "why-two-layers",
+    "services-vs-shared",
+    "dma-vs-fsd",
+    "why-cli-not-only-linters",
+    "what-dma-does-not-do"
+  ]
+}

@@ -1,0 +1,139 @@
+---
+title: "跨模块接线"
+description: "如何在不产生 feature → feature 的情况下连接 feature：props、事件、端口。"
+icon: "Unplug"
+---
+
+feature 不得导入另一个 feature——硬性规则。但产品仍需要胶水：目录加入购物车 → 显示通知，结账完成 → 清空购物车。
+
+DMA 的答案：**组合根（composition root）** 通过向下导入两侧来连接模块。
+
+## 四种机制
+
+| 需求 | 机制 |
+| --- | --- |
+| 栈中更低的代码 | 直接导入 `services/*/public/*` 或 `shared/` |
+| 通知订阅方而不依赖其具体实现 | 在发射方的 `public/` 中定义事件；在 `app/` 中订阅 |
+| 直接导入会产生循环 | `public/ports.ts` 中的端口 + 在 `app/` 中绑定 |
+| 仅视觉组合 | 组合根中的 props / slots |
+
+## Props 与回调（最简单）
+
+组合根挂载两个模块并传入回调：
+
+```tsx
+// app/App.tsx
+import { CatalogPage } from "@/features/catalog/public/catalog-page";
+import { addNotification } from "@/features/notifications/public/notifications-api";
+
+<CatalogPage
+  onAddedToCart={(name) => addNotification(`Added ${name}`)}
+/>
+```
+
+- 图：`app → catalog`，`app → notifications`——均向下
+- 无 `catalog → notifications` 边
+
+该模式来自 [vite-react 示例](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vite-react)。
+
+## 事件（事件模块）
+
+发射方从 `public/` 导出订阅接口：
+
+```ts
+// features/checkout/public/checkout.events.ts
+type Listener = () => void;
+const listeners = new Set<Listener>();
+
+export const onCheckoutCompleted = (fn: Listener) => {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+};
+
+export const emitCheckoutCompleted = () => {
+  for (const fn of listeners) fn();
+};
+```
+
+组合根订阅并调用 service：
+
+```svelte
+<!-- routes/app-providers.svelte (SvelteKit example) -->
+<script>
+  import { onCheckoutCompleted } from "@/features/checkout/public/checkout.events";
+  import { clearCart } from "@/services/cart/public/cart";
+
+  onCheckoutCompleted(() => clearCart());
+</script>
+```
+
+见 [sveltekit-routes 示例](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/sveltekit-routes)。
+
+## 端口（需要运行时绑定时）
+
+端口是 `public/ports.ts` 中的接口；实现在 `app/` 中注入：
+
+```ts
+// services/cart/public/ports.ts
+export type CartSeedPort = () => Product[];
+
+let seed: CartSeedPort | null = null;
+
+export const provideCartSeed = (port: CartSeedPort) => {
+  seed = port;
+};
+
+export const getCartSeed = () => seed?.() ?? [];
+```
+
+```astro
+---
+// app/shop-providers.astro (Astro example)
+import { provideCartSeed } from "@/services/cart/public/ports";
+import { demoCartSeed } from "@/app/cart-seed";
+
+provideCartSeed(demoCartSeed);
+---
+<slot />
+```
+
+端口对静态图**不可见**——不要用它们绕过提升（promotion）（`feature-has-inbound`）。
+
+## Providers / context（React、Vue）
+
+横切上下文（session、theme）放在 `app/providers`：
+
+```tsx
+// app/providers.tsx
+"use client";
+import { SessionProvider } from "@/services/session/public/session-provider";
+
+export function Providers({ children }) {
+  return <SessionProvider>{children}</SessionProvider>;
+}
+```
+
+feature 通过 hook/`inject` 读取，无需导入另一个 feature。示例——[next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app)。
+
+## 反模式
+
+| ✗ | 原因 |
+| --- | --- |
+| `catalog` 导入 `notifications` | feature → feature |
+| `shared/` 中无归属的全局事件总线 | 图不清晰，隐藏入边 |
+| 用端口代替提升（promotion） | 模块有入边 → 应在 `services/` |
+| 所有接线逻辑集中在一个 god-feature | 破坏叶子谓词 |
+
+## 工具检查什么
+
+- `feature-to-feature`——feature 之间的直接导入
+- `no-cycle`——经 services/shared/app 的循环
+- `layer-direction`——模块不得导入 app
+
+## 下一步
+
+<Cards>
+  <Card title="分层" description="为何 feature 不得拉取 feature" href="/concepts/layers" />
+  <Card title="模块与公共 API" description="public/、端口" href="/concepts/modules" />
+  <Card title="Vite + React" description="App 中的 onAddedToCart" href="/guides/vite-react" />
+</Cards>

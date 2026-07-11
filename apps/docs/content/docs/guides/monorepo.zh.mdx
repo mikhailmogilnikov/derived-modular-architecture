@@ -1,0 +1,136 @@
+---
+title: "Monorepo"
+description: "monorepo 中的 dma check：多根发现、workspace 包、CI。"
+icon: "Boxes"
+---
+
+`dma check` / `dma doctor` 每个根分析**一棵** DMA `src/` 目录树。在 monorepo 中仍可指向单个 app，或从 workspace 根目录运行并由 CLI 发现各 app。
+
+## 一次检查——一个 app（仍然有效）
+
+```bash
+npx @derived-modular/cli check apps/web
+npx @derived-modular/cli check apps/admin
+npx @derived-modular/cli check examples/vite-react
+```
+
+路径必须指向带有 `src/{app|pages|routes, features, services?, shared}` 的 app 根。
+
+## 从 monorepo 根目录多根检查
+
+若 `path` **没有** `src/`，CLI 会发现 DMA 根并分别检查：
+
+```bash
+npx @derived-modular/cli check .
+```
+
+**默认发现：** 带有 `src/` 和组合根（`app` | `pages` | `routes`）的 package。
+
+**候选如何找到：** 优先 npm/bun `package.json` workspaces 或 `pnpm-workspace.yaml`；否则浅层目录遍历（跳过 `node_modules`、`dist` 等）。
+
+### 标志
+
+```bash
+# explicit list (skips discovery; positional path ignored)
+npx @derived-modular/cli check --roots apps/web,apps/admin
+
+# also include library packages with src/{features|services|shared} but no composition root
+npx @derived-modular/cli check . --include-packages
+```
+
+或在 `dma.config.ts` 中配置（见 [dma.config](/tooling/cli/config)）：
+
+```ts
+import { defineConfig } from "@derived-modular/cli";
+
+export default defineConfig({
+  roots: ["apps/web", "apps/admin"],
+});
+```
+
+每个根是**独立的图**。workspace 包之间的导入**不会**合并——这是有意设计。
+
+退出码聚合：任一根 `check` 失败则为 `1`；未找到根或 `--roots` 某项无 `src/` 则为 `2`。
+
+## 多 app 的 CI
+
+### 从仓库根目录单 job
+
+```yaml
+- run: npx @derived-modular/cli check .
+```
+
+### Job 矩阵（按 app）
+
+```yaml
+strategy:
+  matrix:
+    app: [apps/web, apps/admin]
+steps:
+  - run: npx @derived-modular/cli check ${{ matrix.app }}
+```
+
+### 显式根列表
+
+```bash
+npx @derived-modular/cli check --roots apps/web,apps/admin
+```
+
+## Workspace 包（stage 4）
+
+当模块被**多个 app** 消费时，提取为 monorepo package：
+
+```text
+packages/
+└── cart/
+    ├── package.json      # exports point at public surface
+    └── src/
+        └── public/
+            └── cart.ts
+```
+
+规则相同：直接路径，包内无 barrel 文件。通过 `package.json` 的 `exports` 和 app 对发布面的导入进行强制校验。
+
+要对这类包（无组合根）运行 `dma check`，使用 `--include-packages` 或 `--roots packages/cart`。
+
+app 导入 `@my-org/cart/public/cart`（或 `exports` 中的路径）——作为分层栈中更低的外部模块，而非 feature。
+
+stage 4 更多内容——[模块与公共 API](/concepts/modules)。
+
+## 路径与 tsconfig
+
+`@/` 别名从 app 的 `tsconfig.json` 解析，而非 monorepo 根 tsconfig。确保在拥有 `src/` 的 package 中配置 `paths`。
+
+## 本仓库中的示例
+
+每个示例是 `examples/*` 下的 workspace package：
+
+```bash
+bun run build   # build CLI and plugins
+bun run --cwd examples/vite-react dma-check
+# or from repo root after build:
+npx @derived-modular/cli check --roots examples/vite-react
+```
+
+## Monorepo 中的 linter
+
+ESLint / Biome / Oxlint 配置通常**按 package**。`@derived-modular/*` 插件在存在 `src/` 的 app 配置中接入。
+
+Biome Grit 插件从项目根解析路径；部分 monorepo / PnP 布局可能有限制——见 [Biome](/tooling/biome)。
+
+## 迁移 monorepo
+
+不要一次性对所有遗留代码启用 `dma check`。按 app 绞杀（Strangler）：
+
+1. 一个 app（`apps/web`）——`check` 全绿
+2. 其余——稍后或单独计划
+
+见 [迁移](/guides/migration)。
+
+## 下一步
+
+<Cards>
+  <Card title="CI" description="将 check 接入流水线" href="/tooling/ci" />
+  <Card title="dma check" description="退出码与规则" href="/tooling/cli/check" />
+  <Card title="迁移" description="渐进式采用" href="/guides/migration" />
+</Cards>

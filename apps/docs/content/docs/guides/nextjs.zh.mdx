@@ -1,0 +1,123 @@
+---
+title: "Next.js"
+description: "App Router 上的 DMA：Server Components、Client 边界、providers。"
+icon: "AppWindow"
+---
+
+本示例展示 DMA 如何适配 Next.js App Router 的 **RSC 边界**。v1 不是完整可运行 app——源码足以运行 `dma check` 和 ESLint。
+
+源码：[examples/next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app)。
+
+## 目录树
+
+```text
+src/
+├── app/
+│   ├── layout.tsx       # Server — shell + <Providers>
+│   ├── page.tsx         # Server — thin route
+│   ├── providers.tsx    # Client — SessionProvider
+│   └── globals.scss
+├── features/
+│   ├── catalog/         # catalog.store + public/catalog-page
+│   ├── checkout/
+│   ├── search/
+│   └── profile.tsx      # stage 0
+├── services/
+│   ├── cart/public/
+│   └── session/public/
+└── shared/
+    ├── domain/
+    ├── lib/
+    └── ui/
+```
+
+方向：`app/pages/routes → features → services → shared`。Feature 之间互不导入。
+
+## Server 与 Client
+
+Next.js 默认为 Server Components。DMA 在**组合根**与 **feature 公共入口**之间划分边界：
+
+| 文件 | 边界 | 原因 |
+| --- | --- | --- |
+| `layout.tsx` | Server | HTML 外壳，无 hooks |
+| `page.tsx` | Server | 只挂载 `*/public/*` |
+| `providers.tsx` | Client（`"use client"`） | Context 需要 client 边界 |
+| `catalog-page.tsx` | Client | `onClick`、store |
+| `button.tsx` | Server-safe | 无 `"use client"`——经 feature 拉入 client bundle |
+
+```text
+app/layout.tsx          (Server)
+  └── app/providers.tsx (Client)
+        └── app/page.tsx        (Server)
+              ├── features/catalog/public/catalog-page.tsx   (Client)
+              ├── features/search/public/search-page.tsx     (Client)
+              └── features/profile.tsx                       (Client)
+```
+
+**模式：** `page.tsx` 保持精简的 server 组合根。交互逻辑在 feature 的 `public/` 入口。不要从 `page.tsx` 导入 `*.store.ts`。
+
+## 精简的 `page.tsx`
+
+```tsx
+import { CatalogPage } from "@/features/catalog/public/catalog-page";
+import { CheckoutPage } from "@/features/checkout/public/checkout-page";
+import { Profile } from "@/features/profile";
+import { SearchPage } from "@/features/search/public/search-page";
+```
+
+```tsx
+// ❌ never in app/
+import { catalogStore } from "@/features/catalog/catalog.store";
+```
+
+## app 中的 Providers
+
+横切上下文（session）——在 `app/providers.tsx`：
+
+```tsx
+"use client";
+import { SessionProvider } from "@/services/session/public/session-provider";
+
+export function Providers({ children }) {
+  return <SessionProvider>{children}</SessionProvider>;
+}
+```
+
+`profile.tsx` 读取 `useSession()`——provider 在 app 中挂载，而非 feature 中。
+
+## Services
+
+| 模块 | 消费者 | 角色 |
+| --- | --- | --- |
+| `cart` | catalog、checkout | `addToCart`、`cartTotal` |
+| `session` | profile（经 provider） | `SessionProvider` |
+
+`services/` 出现是因为**两个模块**都导入 cart——从 colocation 提升（promotion）而来。
+
+## 样式
+
+| 类型 | 位置 | 示例 |
+| --- | --- | --- |
+| 全局 | `app/globals.scss` | reset、外壳 |
+| SCSS module | 紧邻 `public/` 页面 | `catalog-page.module.scss` |
+| CSS module | 紧邻 `public/` 页面 | `checkout-page.module.css` |
+
+全局样式——只从 `layout.tsx` 导入。Feature 不导入全局样式。
+
+## 工具
+
+```bash
+bun run dma-check   # dma check .
+bun run lint        # eslint + compositionRoots: ["app", "pages", "routes"]
+bun run test
+```
+
+ESLint 捕获文件级错误（从 `page.tsx` 导入 store）。完整导入图——仅 `dma check`。
+
+## 下一步
+
+<Cards>
+  <Card title="Vite + React" description="可运行的 canon" href="/guides/vite-react" />
+  <Card title="跨模块接线" description="Providers 与事件" href="/guides/cross-module-wiring" />
+  <Card title="项目布局" description="app 与 pages 与 routes" href="/start/project-layout" />
+</Cards>

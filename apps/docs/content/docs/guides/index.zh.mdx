@@ -1,0 +1,40 @@
+---
+title: "指南"
+description: "实用操作指南：迁移、模块接线、在不同框架上使用 DMA。"
+icon: "Map"
+---
+
+指南是针对特定技术栈的「怎么做」。概念章节解释规则；这里提供分步模式，并附带 DMA 仓库中的可运行示例。
+
+<Callout type="info">
+  还没读过基础内容？从[快速开始](/start/quick-start)和[项目布局](/start/project-layout)入手。
+</Callout>
+
+## 从哪里开始
+
+<Cards>
+  <Card title="迁移" description="在现有项目中采用 DMA" href="/guides/migration" />
+  <Card title="Monorepo" description="多应用、CI" href="/guides/monorepo" />
+  <Card title="跨模块接线" description="事件、端口、在 app 中接线" href="/guides/cross-module-wiring" />
+</Cards>
+
+## 按框架
+
+每份指南使用相同的 mini-shop，但组合根（composition root）不同：
+
+| 指南 | 组合根 | 仓库中的示例 |
+| --- | --- | --- |
+| [Vite + React](/guides/vite-react) | `src/app/` | 可运行的 canon |
+| [Next.js](/guides/nextjs) | `src/app/` | App Router + RSC |
+| [Astro](/guides/astro) | `src/pages/` + `src/app/` | `.astro` frontmatter |
+| [SvelteKit](/guides/sveltekit) | `src/routes/` | Svelte 5 runes |
+| [Vue + Vite](/guides/vue) | `src/app/` | SFC + composables |
+
+所有示例均通过 `dma check`——源码位于 [examples](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples)。
+
+## 各栈共通点
+
+- 路由保持精简——只从 `*/public/*` 导入
+- 禁止 `feature → feature`
+- `services/` 在提升（promotion）时创建，而非提前搭建
+- CI：`dma check` + 自选 linter

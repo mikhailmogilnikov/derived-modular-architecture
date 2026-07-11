@@ -33,6 +33,7 @@ export async function generateMetadata({
         en: "/en",
         ru: "/ru",
         "x-default": "/en",
+        zh: "/zh",
       },
     },
     applicationName: appName,

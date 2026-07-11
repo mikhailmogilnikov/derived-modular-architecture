@@ -1,0 +1,81 @@
+---
+title: "为什么需要 CLI，而不只靠 linter"
+description: "架构规则是图属性。单个文件看不到它们。"
+icon: "Network"
+---
+
+## 简短回答
+
+ESLint、Biome 和 Oxlint 看的是**单个文件**（或字符串 import 启发式）。循环、入边谓词和提升（promotion）是**整张图**的属性。这需要单独的分析器——`dma check`。
+
+编辑器里的 linter 仍然有用。但 CI 没有 CLI 就是架构防护栏上的洞。
+
+## linter 能看到什么
+
+DMA 按文件作用域的规则：
+
+- import 方向违反层规则（`layer-direction`）
+- feature → feature（`feature-to-feature`）
+- 绕过 `public/` 的 import（`public-api`）
+- 带 re-export 的 barrel `index`（`no-barrel`）
+
+ESLint 通过 `@derived-modular/boundaries` 和路径解析精确做到这些。Biome 用字符串模式的启发式。
+
+## linter 看不到什么
+
+| 规则 | 为什么需要图 |
+| --- | --- |
+| `no-cycle` | 循环是跨**多个文件**的路径 A→B→C→A |
+| `feature-has-inbound` | 入边是在**所有模块**上统计的，不是单个文件里的一次 import |
+| `service-no-inbound` | 没有消费者的 service 是子图属性 |
+| `dma doctor` | 整个项目的演进信号 |
+
+示例：循环 `services/billing` → `services/cart` → `services/inventory` → `services/billing`——每个文件里的一次 import 看起来都合法，而 `no-cycle` 只有看全图才能发现。或者 catalog 直接 import checkout——ESLint 能在文件里抓到 `feature-to-feature`，但入边谓词 `feature-has-inbound` 以及跨多个模块的链——只有 `check` 能处理。
+
+## DMA 的混合模型
+
+```text
+Editor     →  linter（快，按文件）
+CI         →  dma check（全图）
+Locally    →  dma doctor（软信号）
+```
+
+一个分析器（`@derived-modular/cli`）——单一事实来源。linter 是 `@derived-modular/boundaries` 上的薄适配层，不是第二套事实来源。
+
+<Callout type="warn">
+  「我们配好了 ESLint——架构没问题了」在 CI 里跑过 `dma check` 之前都是错觉。
+</Callout>
+
+## 为什么不用一个巨型 ESLint 规则
+
+理论上 ESLint 可以分析整个项目。实践中：
+
+- linter 为按文件工作和按文件缓存优化；
+- 每次保存全图扫描很贵；
+- 循环和入边是另一类算法，不是单个模块的 AST。
+
+DMA 刻意把图审计放进 CLI。linter 服务于 IDE 反馈循环。
+
+## 覆盖矩阵
+
+| 关注点 | ESLint | Biome | dma check |
+| --- | --- | --- | --- |
+| `layer-direction` | ✓ | 启发式 | ✓ |
+| `feature-to-feature` | ✓ | 启发式 | ✓ |
+| `public-api` | ✓ | 启发式 | ✓ |
+| `no-barrel` | ✓ | 启发式 | ✓ |
+| `no-cycle` | — | — | ✓ |
+| 入边谓词 | — | — | ✓ |
+| doctor | — | — | ✓ |
+
+## 实践建议
+
+1. 在编辑器里接入 [ESLint](/tooling/eslint)（或 [Biome](/tooling/biome) / [Oxlint](/tooling/oxlint)）
+2. 在 [CI](/tooling/ci) 中加入 `npx @derived-modular/cli check .`
+3. 每个 sprint 跑一次 `npx @derived-modular/cli doctor .` 看增长信号
+
+## 相关主题
+
+- [工具概览](/tooling/overview)
+- [dma check](/tooling/cli/check)
+- [四大不变量](/concepts/invariants)

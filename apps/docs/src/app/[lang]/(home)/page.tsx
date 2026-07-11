@@ -13,7 +13,7 @@ export async function generateMetadata({
   return {
     alternates: {
       canonical: `/${lang}`,
-      languages: { en: "/en", ru: "/ru", "x-default": "/en" },
+      languages: { en: "/en", ru: "/ru", "x-default": "/en", zh: "/zh" },
     },
     openGraph: { images: [image], title, url: `/${lang}` },
     twitter: { creator: twitterHandle, images: [image], title },

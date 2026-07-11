@@ -1,0 +1,89 @@
+---
+title: "Testing"
+description: "DMA 项目中单元、集成与 e2e 测试的 colocation 位置。"
+icon: "FlaskConical"
+---
+
+DMA 定义测试相对模块的 **放置** 规则，但不选 runner、覆盖率阈值或测试金字塔。一条规则：测试紧挨它保护的代码。
+
+## 单元测试 — colocate
+
+文件 `*.test.ts`（或 `*.spec.ts`）——与实现同文件夹：
+
+```text
+features/checkout/
+├── checkout.store.ts
+├── checkout.store.test.ts      # store — internal
+└── public/
+    └── checkout-page.tsx
+
+services/cart/public/
+├── cart.ts
+└── cart.test.ts                # service public API
+
+shared/lib/
+├── format-currency.ts
+└── format-currency.test.ts
+```
+
+`dma check` **也会扫描测试文件**——`*.test.ts` / `*.spec.ts` 中的导入与生产代码进入同一张导入图。规则相同：`public-api`、`feature-to-feature`、`layer-direction` 等。
+
+### 直接测什么
+
+| 代码 | 通过什么测 |
+| --- | --- |
+| 内部 store、composable | 模块内相对导入 |
+| `services/*/public/*` | 导入 public 文件 |
+| `shared/lib/*` | 导入 helper |
+
+### 不要做什么
+
+- 测试里导入 **其他模块的内部**——门槛与生产一样会失败。通过 `public/` 测，或在模块内用相对导入 colocate 测试。
+- 整个项目的根级 `__tests__/`——重构时测试不会跟着模块走。
+
+## 组件测试
+
+SFC / React 组件测试——colocate 在组件旁：
+
+```text
+features/catalog/public/
+├── catalog-page.tsx
+└── catalog-page.test.tsx       # optional
+```
+
+Runner 自选：Vitest + Testing Library、`@vue/test-utils`、`@testing-library/svelte`。DMA 示例里可运行的测试多为纯 TS（stores、services、lib）——无 DOM harness。
+
+## 集成 / 路由测试
+
+薄的组合根（`app/`、`routes/`）——需要时可放接线检查。更常见——应用根单独文件夹：
+
+```text
+apps/web/
+├── src/
+├── e2e/                        # Playwright, Cypress
+└── playwright.config.ts
+```
+
+E2E 不在 `features/` 内 colocate——它们跨多个模块和路由。
+
+## Monorepo
+
+单元测试留在应用包（`apps/web/src/...`）。Workspace package 的测试——在 package 内。`dma check` **每个 root 分析一张图**（应用或发现的 package）；monorepo 内图不合并。见 [Monorepo](/guides/monorepo)。
+
+## 仓库中的示例
+
+| 示例 | 运行器 | Colocate |
+| --- | --- | --- |
+| [vite-react](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vite-react) | Vitest | stores、cart、lib 旁的 `*.test.ts` |
+| [next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app) | Bun test | stores + `format-currency` |
+| [sveltekit-routes](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/sveltekit-routes) | Vitest | stores、cart、lib |
+| [astro-pages](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/astro-pages) | Bun test | stores、cart、lib |
+| [vue-vite](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vue-vite) | Vitest | stores、composables、cart |
+
+## 下一步
+
+<Cards>
+  <Card title="文件放哪" description="Placement 算法" href="/concepts/placement" />
+  <Card title="模块与公共 API" description="模块内 colocation" href="/concepts/modules" />
+  <Card title="Vite + React" description="带 Vitest 的示例" href="/guides/vite-react" />
+</Cards>

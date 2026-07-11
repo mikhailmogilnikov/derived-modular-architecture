@@ -18,11 +18,17 @@ export const siteMeta = {
       "DMA говорит людям и агентам, где живёт фронтенд-код, и проверяет границы через линтер, CLI и CI.",
     tagline: "Модульная архитектура для фронтенда",
   },
+  zh: {
+    description:
+      "DMA 告诉开发者和 AI 智能体前端代码应放在哪里，并通过 linter、CLI 和 CI 校验模块边界。",
+    tagline: "面向前端的模块化架构",
+  },
 } as const;
 
 export const ogLocale: Record<string, string> = {
   en: "en_US",
   ru: "ru_RU",
+  zh: "zh_CN",
 };
 
 export function getSiteMeta(locale: string) {

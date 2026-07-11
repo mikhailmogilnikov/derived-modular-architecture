@@ -1,0 +1,80 @@
+---
+title: "四条不变量"
+description: "DMA 在任何规模都强制执行的规则——从个人项目到 monorepo。"
+icon: "Shield"
+---
+
+DMA 中的不变量（invariant）是 **不依赖团队或项目体量** 的规则。四条这样的规则覆盖依赖方向、模块边界，以及代码如何随时间成长。
+
+若规则无法被工具验证——那是愿望，不是架构的一部分。一个例外：`services` 与 `shared` 的边界 **部分** 仍靠你的判断（见 [Layers](/concepts/layers)）。
+
+## 1. 只向下导入
+
+模块只从更低 rank 的层导入：
+
+```text
+app/pages/routes → features → services → shared
+```
+
+组合根（`app/`、`pages/`、`routes/`）组装应用。Features 互不知晓。Services 可依赖其他 services，但图保持无环。Shared——只在 shared 内部。
+
+**为什么：** 循环和「向上泄漏」是重构变贵的主因。方向固定，在图中可见。
+
+**工具检查：** 规则 `layer-direction`、`feature-to-feature`、`no-cycle`。
+
+## 2. 公共 API，不要 barrel 文件
+
+一个模块用另一个时，导入 **直接指向** `*/public/*` 内的文件：
+
+```ts
+// ✓
+import { CartPanel } from "@/features/cart/public/cart-panel";
+
+// ✗ barrel hides where the dependency really comes from
+import { CartPanel } from "@/features/cart/public";
+```
+
+小模块（stage 0）整文件可公开——无需 `public/` 文件夹。模块长出内部后，公共表面移入 `public/`。
+
+**为什么：** linter 和 `dma check` 从真实导入路径建导入图。带 re-export 的 barrel 会破坏该图。
+
+**工具检查：** `public-api`、`no-barrel`。
+
+<Callout type="info">
+  想深入——[为何不用 barrel 文件](/deep-dive/why-no-barrels)。
+</Callout>
+
+## 3. 默认 colocation
+
+新代码 **紧挨唯一消费者**，直到第二个出现。若 `format-date` 只在 checkout 需要，不要创建 `shared/format-date.ts`。
+
+**为什么：** 过早泛化会撑大 `shared/`、模糊模块边界。Colocation 让代码留在更好理解与删除的地方。
+
+**工具检查：** 部分——`dma doctor` 中的 `shared-candidate`，当 **同一文件** 已被 2+ 模块合法导入时（常在 lift 到 `shared/` 之后，或在 `services/*/public/*` 表面上）。
+
+## 4. Second-use 规则（第二次使用规则）
+
+只有 **第二个消费者** 出现时，才能把代码上移一层——不是「为未来」，不是「以防万一」。
+
+典型路径：
+
+1. Helper colocate 在 feature A 内——一个消费者。
+2. 同一段代码 feature B 也需要 → **先** 抽取（到 `shared/` 或 promotion 到 `services/`），不要 deep-import A 的内部。
+3. 若 B 直接导入 A 的内部——`check` 在 doctor 显示 `shared-candidate` 之前就因 `public-api` / `feature-to-feature` 失败。
+4. 合法第二个消费者出现后，`dma doctor` 可能在 shared 文件上提示 `shared-candidate`。
+
+**为什么：** 架构从实际使用成长，不是从预期。
+
+**工具检查：** `shared-candidate`、promotion 上的入边谓词。
+
+## 关于类型的重要细节
+
+`import type` 与普通导入一样算依赖。类型链接仍是链接。不能靠 `import type` 绕过规则。
+
+## 下一步
+
+<Cards>
+  <Card title="分层" description="如何判定 app、features、services、shared 的成员身份" href="/concepts/layers" />
+  <Card title="模块与公共 API" description="模块成长阶段与 public/ 文件夹" href="/concepts/modules" />
+  <Card title="代码演进" description="Promotion、doctor、second-use 实践" href="/concepts/evolution" />
+</Cards>

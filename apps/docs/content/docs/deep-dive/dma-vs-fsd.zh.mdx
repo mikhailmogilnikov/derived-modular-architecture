@@ -1,0 +1,65 @@
+---
+title: "DMA vs FSD"
+description: "Derived Modular Architecture 与 Feature-Sliced Design 的客观对比。"
+icon: "GitCompare"
+---
+
+FSD（Feature-Sliced Design）和 DMA 都在解决类似的问题——前端架构混乱。但切入方式不同：FSD 按**产品语义**切分，DMA 按机器可校验的**图谓词**切分。
+
+这不是「FSD 差、DMA 好」。这是两种不同的赌注。
+
+## 对比维度
+
+| | FSD | DMA |
+| --- | --- | --- |
+| 层边界 | 语义（entity、feature、widget…） | 谓词（入边、方向） |
+| Code review 争论 | 「这是 entity 还是 feature？」 | 「有入边吗？→ service」 |
+| 强制校验 | 约定、linter（成熟度不一） | `dma check` — CI 中全图校验 |
+| 模块层数 | 4–6+ | 2（features + services） |
+| Shared/kernel | 独立层 | `shared/` 分组 |
+| 项目起步 | 常一次性建好所有文件夹 | `services/` 惰性创建，shared 几乎为空 |
+| 上手 | 分类体系帮新人入门 | 话更少——更依赖图 |
+
+## FSD 更强的地方
+
+**语义化上手。** 对新人更友好：「所有跟用户相关的放 entities」。DMA 没有这种速查表——你看依赖关系。
+
+**大团队的丰富分类。** 产品成熟、角色分工明确（设计系统、平台、features）时，FSD 的命名层是共同语言。
+
+**生态。** FSD 存在更久——文章、示例、社区工具更多。
+
+## DMA 更强的地方
+
+**机器校验。** 四大不变量（方向、公共 API、就近放置、二次使用）和 CI 中七条硬性 `dma check` 规则。「这个 import 允许吗」的争论以退出码结束，而不是 Zoom 上吵一小时。
+
+**更少的层级争论。** 两层模块、可校验的义务——而不是六层里 widget/feature 边界全凭主观。
+
+**惰性增长。** 不必先建空的 `services/`、`entities/`、`widgets/`。文件夹在图说「该出现了」时才出现。
+
+**诚实的权衡。** 只有一条边界留给人——`services` vs `shared`。其余交给工具。
+
+## 能组合使用吗？
+
+实践中——在 DMA 谓词之上再叠 FSD 切片意义不大：你会得到两套冲突的规则。
+
+可以**借鉴思路**：feature 命名、就近放置、公共 API。DMA 不禁止 `catalog`、`checkout` 这样的文件夹名——它禁止的是 feature 互相 import。
+
+## DMA 适合谁
+
+- 厌倦没有客观标准的架构争论的团队
+- CI 必须捕获循环和提升（promotion）的项目
+- Monorepo 和长期维护的代码库，图比分类更重要
+
+## FSD 适合谁
+
+- 语义层已是共同语言的团队
+- 从第一天就严格做领域建模的产品
+- 机器强制校验不如上手体验重要的场景
+
+## 相关深度解析
+
+<Cards>
+  <Card title="为什么只有两层模块" description="抵御 4–6 层膨胀" href="/deep-dive/why-two-layers" />
+  <Card title="为什么需要 CLI，而不只靠 linter" description="图 vs 单文件" href="/deep-dive/why-cli-not-only-linters" />
+  <Card title="什么是 DMA" description="入门介绍" href="/start/what-is-dma" />
+</Cards>

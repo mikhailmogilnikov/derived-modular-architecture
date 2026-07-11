@@ -1,0 +1,127 @@
+---
+title: "迁移到 DMA"
+description: "如何在现有项目中采用 DMA，而无需一次性大改。"
+icon: "ArrowRightLeft"
+---
+
+迁移到 DMA 不是「一个冲刺重写一切」。这是渐进式收紧：先划定边界并接入检查，再根据图信号进行提升（promotion）和 shared 调整。
+
+## 阶段 0：明确目标
+
+你希望：
+
+- 在代码评审中不再为导入争论；
+- 在 CI 中捕获循环和 feature-to-feature 边；
+- 通过就近放置（colocation）成长，而非过早引入 `shared/`。
+
+如果 Confluence 上的风格指南已足够——DMA 可能过重。
+
+## 阶段 1：目录树与工具（第 1 天）
+
+1. 将 `src/` 整理为基线布局：
+
+```text
+src/
+├── app/          # or pages/, routes/
+├── features/
+└── shared/       # can be nearly empty
+```
+
+2. 安装 CLI：
+
+```bash
+npm install -D @derived-modular/cli
+```
+
+3. 接入 CI：
+
+```bash
+npx @derived-modular/cli check . --format json
+```
+
+4. 配置 linter（[ESLint](/tooling/eslint) 或 [Biome](/tooling/biome)）。
+
+首次运行 `dma check` 会呈现真实图景——长列表不必惊慌。
+
+## 阶段 2：组合根（第 1 周）
+
+**目标：** 路由和 layout 只导入 `*/public/*`。
+
+| 之前 | 之后 |
+| --- | --- |
+| `import { X } from '@/features/foo/internal'` | `import { X } from '@/features/foo/public/foo-page'` |
+| `page.tsx` 中的逻辑 | 精简外壳 + 从 feature 挂载 |
+
+在修复入口点之前，不要动模块内部。
+
+## 阶段 3：移除 feature → feature（第 2–3 周）
+
+典型的 DMA 前模式：
+
+```text
+features/catalog → features/checkout/internal
+```
+
+修复选项：
+
+1. **提升（promotion）**——产品代码放入 `services/`
+2. **上移到 shared**——无产品逻辑的可移植 helper
+3. **在 app 中接线**——props、事件、providers（[跨模块接线](/guides/cross-module-wiring)）
+
+每次重构后执行 `npx @derived-modular/cli check .`。
+
+## 阶段 4：公共 API 与 barrel 文件（第 3–4 周）
+
+- 移除模块内 barrel `index.ts` 的再导出
+- 将公共符号移至 `public/`，使用直接路径
+- 若模块为单文件，保留 stage-0 文件（`features/profile.tsx`）
+
+## 阶段 5：提升（promotion）与 shared（按信号）
+
+不要提前创建 `services/`。等待：
+
+- `check` 中出现 `feature-has-inbound`——该提升了
+- `doctor` 中出现 `shared-candidate`——考虑上移
+
+规划时每个 sprint 运行一次 `npx @derived-modular/cli doctor .`。
+
+## 大型代码库策略
+
+### 按 feature 绞杀（Strangler）
+
+选一个垂直域（如 checkout），按 DMA 布局，并通过独立 package/文件夹暂时将其余部分排除在 `dma check` 之外——**不要**全局禁用规则。
+
+### Monorepo
+
+`dma check` 每个根对应一张图；从 monorepo 根目录可使用 multi-root discover：
+
+```bash
+npx @derived-modular/cli check .
+npx @derived-modular/cli check apps/web
+npx @derived-modular/cli check --roots apps/web,apps/admin
+```
+
+详见 [Monorepo](/guides/monorepo)。
+
+### 遗留的 `utils/` 与 `components/`
+
+不要一次性全部重命名。新代码遵循 DMA。旧代码在第二次使用或编辑该文件时再动。
+
+## 就绪清单
+
+- [ ] 每个 PR 的 CI 中运行 `dma check`
+- [ ] 组合根只导入 `public/`
+- [ ] 无 feature → feature
+- [ ] 模块内无 barrel 文件
+- [ ] 编辑器中的 linter 用于快速反馈
+- [ ] 团队了解[代码演进](/concepts/evolution)和[文件放哪里](/concepts/placement)
+
+## 下一步
+
+<Cards>
+  <Card title="快速开始" description="从零开始" href="/start/quick-start" />
+  <Card title="Monorepo" description="CI 中的多个 app 根" href="/guides/monorepo" />
+  <Card title="代码演进" description="提升（promotion）与 doctor" href="/concepts/evolution" />
+  <Card title="跨模块接线" description="事件与端口" href="/guides/cross-module-wiring" />
+  <Card title="Vite + React" description="规范示例" href="/guides/vite-react" />
+</Cards>

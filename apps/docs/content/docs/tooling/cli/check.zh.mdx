@@ -1,0 +1,175 @@
+---
+title: "dma check"
+description: "面向 CI 的硬性依赖图检查 — 安装、用法与规则参考。"
+icon: "Terminal"
+---
+
+`dma check` 是 DMA 的主命令。它会为项目构建导入图并校验架构规则。若有违规 — 非零退出码，CI 失败。
+
+编辑器中的 linter 很有用，但**不能替代** `check`：循环、入边谓词和完整图只有 CLI 能看到。
+
+## 安装
+
+```bash
+npm install -D @derived-modular/cli
+```
+
+需要 Node.js 18+。
+
+仅通过包名运行：
+
+```bash
+npx @derived-modular/cli check
+npx @derived-modular/cli check .          # 显式指定项目根路径
+npx @derived-modular/cli check --format json
+npx @derived-modular/cli check --suggest  # 安全修复计划（不写入）
+npx @derived-modular/cli check --fix     # 应用安全修复，然后重新 check
+```
+
+在 `package.json` 中：
+
+```json
+{
+  "scripts": {
+    "dma-check": "npx @derived-modular/cli check ."
+  }
+}
+```
+
+默认情况下，CLI 会在你传入的路径下查找 `src/{app|pages|routes, features, services?, shared}` 目录树。
+
+## 退出码
+
+| 码 | 含义 |
+| --- | --- |
+| `0` | 无错误 |
+| `1` | 发现架构违规 |
+| `2` | 环境失败：缺少 `src/`、tsconfig 损坏、参数无效 |
+
+在 CI 中通常这样即可：
+
+```bash
+npx @derived-modular/cli check .
+```
+
+面向 GitHub Actions 和 agent — 使用 `--format json`（稳定报告 `version: 1`）。
+
+用 `NO_COLOR=1` 可禁用彩色输出。
+
+## 安全自动修复（`--suggest` / `--fix`）
+
+不凭空发明架构的机械性修复：
+
+| 标志 | 行为 |
+| --- | --- |
+| `--suggest` | 打印计划；不写入文件 |
+| `--fix` | 应用计划，然后重新运行 `check` |
+
+当前支持：
+
+- **`no-barrel`** — 将**单目标** barrel 的导入方改写为直接公共路径（与 ESLint autofix 思路相同）。barrel 文件本身不会删除。
+- **`public-api`** — 将深层导入改写为镜像的 `public/<same-relative-path>`，**仅当该文件已存在时**。
+
+需要单一项目根（非多根发现）。二者互斥。不会创建 `public/` 文件或运行 `promote`。
+
+## 检查内容
+
+| 规则 | 含义 |
+| --- | --- |
+| `layer-direction` | 导入只能向下：`app/pages/routes → features → services → shared` |
+| `feature-to-feature` | feature 不得导入另一个 feature |
+| `public-api` | 跨模块导入须经过 `*/public/*` |
+| `no-barrel` | 模块内不得有带 re-export 的 barrel `index` |
+| `no-cycle` | 模块图无环 |
+| `feature-has-inbound` | 有来自其他模块的入边的 feature → 必须位于 `services/` |
+| `service-no-inbound` | 在模块中无消费者的 service → 谓词违规 |
+
+入边**仅统计来自模块**（`features/*`、`services/*`）的边。来自 `app/`、`pages/`、`routes/` 的挂载不会触发提升（promotion）。
+
+规则上下文 — 见[四大不变量](/concepts/invariants)与[分层](/concepts/layers)。「文件放哪里」的算法 — [文件放哪里](/concepts/placement)。
+
+## 违规参考
+
+`check` 报告中典型的 `ruleId` 值及应对方式。
+
+| ruleId | 原因 | 典型修复 | 更多 |
+| --- | --- | --- | --- |
+| `feature-to-feature` | Feature 导入了另一个 feature | 提升（promotion）到 `services/`、上移到 `shared/`，或在组合根中接线 | [跨模块接线](/guides/cross-module-wiring)、[文件放哪里](/concepts/placement) |
+| `layer-direction` | 在层栈中向上导入（如 feature → `app/`） | 移除导入；通过组合根以 props/events 传递数据 | [分层](/concepts/layers) |
+| `public-api` | 跨模块导入绕过 `*/public/*` | 直接导入 `*/public/<file>`；模块内部仅用相对路径 | [模块](/concepts/modules) |
+| `no-barrel` | 模块内带 re-export 的 `index.ts` | 移除 barrel；导入具体文件 | [为何不用 barrel](/deep-dive/why-no-barrels) |
+| `no-cycle` | 模块图中存在环 | 提取到 `shared/`、提升（promotion）到 `services/`，或在 `app/` 中 port + bind | [跨模块接线](/guides/cross-module-wiring) |
+| `feature-has-inbound` | Feature 有来自其他模块的入边 | `dma promote <name> --apply`，然后复查 `public/` | [dma promote](/tooling/cli/promote) · [代码演进](/concepts/evolution) |
+| `service-no-inbound` | 在模块中无消费者的 service | 移回 feature 共置或删除空 service | [分层](/concepts/layers) |
+
+### 退出码 2（环境）
+
+| 症状 | 检查项 |
+| --- | --- |
+| 缺少 `src/` / 无 DMA 根 | 单应用：指向应用根。Monorepo 根：发现应找到各 app，或传入 `--roots` / `--include-packages` |
+| tsconfig 损坏 | 应用 tsconfig 中 `@/` 的 `paths` |
+| 参数无效 | `npx @derived-modular/cli check --help` |
+
+多应用根见 [Monorepo](/guides/monorepo)。
+
+## CLI 可分析的内容
+
+静态导入扫描范围：
+
+- `.ts`、`.tsx`、`.js`、`.jsx`、`.mjs`、`.cjs`
+- `.vue`、`.svelte`、`.astro`
+- `.md`、`.mdx` — 内容中的导入也会进入图（与文档应用和 MDX 组件相关）
+
+`import`、`export … from`、`import type`、动态 `import()` 和 `require()` 均计入 — 包括 `next/dynamic` 和 `React.lazy` 的目标。
+
+路径别名从 `tsconfig.json` 读取。
+
+## 输出格式
+
+| 格式 | 适用场景 |
+| --- | --- |
+| `human`（默认） | 本地开发 |
+| `json` | CI、脚本、AI agent |
+| `sarif` | GitHub Code Scanning |
+
+```bash
+npx @derived-modular/cli check --format sarif > dma.sarif
+```
+
+## check 与 doctor
+
+| | `dma check` | `dma doctor` |
+| --- | --- | --- |
+| 用途 | 硬性规则 | 软演进信号 |
+| 发现时的退出码 | `1` | `0`（默认） |
+| 运行位置 | CI、pre-push | 本地 |
+
+`doctor` 会提示 `shared-candidate`、`stage-growth`、`dense-services`、`orphan-public` — 但不重复 `check` 的错误。详见 [dma doctor](/tooling/cli/doctor) 页面。
+
+## Linter — 补充，非替代
+
+在编辑器中可启用 ESLint、Biome 或 Oxlint 的 DMA 插件。它们能按文件捕获部分规则，但**看不到**循环和入边谓词。
+
+<Callout type="warn">
+  在 CI 中务必运行 `npx @derived-modular/cli check`。Linter 用于 IDE 中的快速反馈。
+</Callout>
+
+所有适配器概览 — [工具概览](/tooling/overview)。
+
+## DMA monorepo 示例
+
+若你在 `derived-modular-architecture` 仓库中：
+
+```bash
+npx @derived-modular/cli check .
+```
+
+## 下一步
+
+<Cards>
+  <Card title="文件放哪里" description="放置算法" href="/concepts/placement" />
+  <Card title="dma doctor" description="演进信号" href="/tooling/cli/doctor" />
+  <Card title="工具概览" description="CLI + linter，混合模型" href="/tooling/overview" />
+  <Card title="ESLint" description="Flat config 插件" href="/tooling/eslint" />
+  <Card title="CI" description="将 check 接入流水线" href="/tooling/ci" />
+</Cards>

@@ -1,0 +1,60 @@
+---
+title: "为什么只有两层模块"
+description: "Features 和 services 不是偷懒。为什么不设 widgets/entities，也不用 FSD 的六层。"
+icon: "Layers2"
+---
+
+## 简短回答
+
+依赖图只有一个定性分界：**「没人依赖我」** vs **「其他模块依赖我」**。前者是 features，后者是 services。额外的层（widgets、entities、processes）把连续的层级按规模和含义切片——边界会永远争论下去，机器也无法校验。
+
+## 连续层级 vs 离散义务
+
+任何模块都可以放在「有多少代码依赖它」这条轴上。这是连续刻度。但**义务**在一个点上会跳变：
+
+| | Feature | Service |
+| --- | --- | --- |
+| 来自模块的入边 | 无 | 有 |
+| API 稳定性 | 可以更自由地改 | 依赖方会坏 |
+| 提升（promotion） | — | Feature 移到这里 |
+| 谓词 | 可校验：无入边 | 可校验：有入边 |
+
+在 `features` 和 `services` 之间加 `widgets`，等于引入一条**两侧机器义务没有区别**的边界。那是凭感觉，不是规则。
+
+## 为什么不用 FSD 的 4–6 层
+
+FSD（Feature-Sliced Design）按语义切代码：entities、features、widgets、pages… 团队能争几个月：「购物车是 entity 还是 feature？」DMA 的回答：**别争——看导入图。**
+
+- 模块无入边 → `features/`
+- 出现入边 → `services/`
+- 可移植代码 → `shared/`
+
+产品语义留在文件夹名里（`checkout`、`catalog`），不在层级排序里。
+
+## 为什么不用扁平的 `modules/`
+
+没有 feature/service 分界，入边谓词就失去意义。你不会自动知道某个模块已变成共享的、其 API 应趋于稳定。提升（promotion）是刻意的设计时刻：为一个消费者长出来的 API，被迫成为多方的契约。
+
+## `services/` 不是第一天就建
+
+这个文件夹是惰性的：只要所有模块都是叶子 feature，`services/` 就不需要。关于 services 的规则会「休眠」。这降低了入门门槛——不必为了「以后可能用到」先建空层。
+
+## 诚实的权衡
+
+**DMA 吃亏**当：
+
+- 团队需要严格的语义分类帮新人上手（「所有跟用户相关的放 entities」）；
+- 产品很大，横向领域（`billing/`、`catalog/`）比纵向层级更重要——DMA 建议在 `services/` 内按领域拆分，而不是加新层。
+
+**DMA 占优**当：
+
+- 你想要 CI 能校验、无需解读的规则；
+- 你厌倦了每次 review 都问「这是 widget 还是 feature？」。
+
+表格对比见 [DMA vs FSD](/deep-dive/dma-vs-fsd)。
+
+## 相关主题
+
+- [层](/concepts/layers) — 谓词与 import 方向
+- [代码演进](/concepts/evolution) — feature → service 的提升（promotion）
+- 工具：`feature-has-inbound`、`service-no-inbound`，见 [dma check](/tooling/cli/check)

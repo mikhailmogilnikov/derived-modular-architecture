@@ -1,0 +1,114 @@
+---
+title: "CI"
+description: "如何将 dma check 接入流水线 — GitHub Actions、JSON、SARIF。"
+icon: "Workflow"
+---
+
+`dma check` 是唯一**必须**阻止合并的校验。CI 里跑 linter 也有用，但没有 CLI 就看不到环和入边谓词。
+
+## 最小步骤
+
+```bash
+npx @derived-modular/cli check .
+```
+
+退出码 `1` — 架构违规。退出码 `2` — 环境问题（缺少 `src/`、tsconfig 损坏）。
+
+在 install 之后、deploy 之前把该命令加入流水线。
+
+## GitHub Actions
+
+```yaml
+name: Architecture
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  dma:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm ci
+
+      - run: npx @derived-modular/cli check . --format json
+```
+
+使用 bun：
+
+```yaml
+      - uses: oven-sh/setup-bun@v2
+
+      - run: bun install --frozen-lockfile
+
+      - run: bun x @derived-modular/cli check .
+```
+
+## 面向脚本与智能体的 JSON
+
+```bash
+npx @derived-modular/cli check . --format json > dma-report.json
+```
+
+报告格式稳定（`version: 1`）— 便于在自定义 CI、机器人和 AI 智能体中解析。
+
+## 面向 GitHub Code Scanning 的 SARIF
+
+```bash
+npx @derived-modular/cli check . --format sarif > dma.sarif
+```
+
+将产物上传到 Code Scanning — 违规会与其他分析器一起出现在 Security 标签页。
+
+## 一起跑什么
+
+| 步骤 | 命令 | 阻止合并？ |
+| --- | --- | --- |
+| 架构（必需） | `npx @derived-modular/cli check .` | 是 |
+| Lint（可选） | `eslint .` / `biome check` | 团队自定 |
+| 演进（可选） | `npx @derived-modular/cli doctor .` | 否（退出码 0） |
+
+`doctor` 在 CI 中只适合作为信息性 job — 成长信号，不是门槛。
+
+## Monorepo
+
+从 workspace 根目录（那里没有 `src/`）一次发现并校验所有 DMA 应用：
+
+```bash
+npx @derived-modular/cli check .
+npx @derived-modular/cli check --roots apps/web,apps/admin
+```
+
+或按包 / turbo filter。详见 [Monorepo](/guides/monorepo)。
+
+## DMA 仓库中的示例
+
+所有 [examples](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples) 均通过 `dma check`。在 DMA monorepo 的 CI 中：
+
+```yaml
+- name: DMA-check examples
+  run: bun run dma-check:examples
+```
+
+## 常见错误
+
+| 问题 | 修复 |
+| --- | --- |
+| `exit 2`，缺少 `src/` / 无 roots | 应用路径，或带可发现应用的 monorepo 根目录 / `--roots` |
+| 别名未解析 | 检查应用根目录的 `tsconfig.json` paths |
+| CI 绿、本地失败 | CLI 版本、cwd 不同、未提交文件 |
+
+## 下一步
+
+<Cards>
+  <Card title="dma check" description="规则与退出码" href="/tooling/cli/check" />
+  <Card title="工具概览" description="CLI + linter" href="/tooling/overview" />
+  <Card title="快速开始" description="首次本地运行" href="/start/quick-start" />
+</Cards>

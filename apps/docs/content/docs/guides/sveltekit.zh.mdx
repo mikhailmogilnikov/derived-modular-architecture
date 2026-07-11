@@ -1,0 +1,109 @@
+---
+title: "SvelteKit"
+description: "组合根在 routes/、使用 Svelte 5 runes 的 DMA。"
+icon: "Layers"
+---
+
+**SvelteKit + Svelte 5** 示例：跨 feature 的广度、提升后的 cart service、在 `app-providers.svelte` 中的事件接线。
+
+源码：[examples/sveltekit-routes](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/sveltekit-routes)。
+
+## 组合根 = routes/
+
+DMA 将 `src/routes/` 视为 `app/`：
+
+```text
+src/routes/
+├── +layout.svelte       # import app.css, mount AppProviders
+├── +page.svelte         # thin shell — wiring only
+└── app-providers.svelte # theme tokens + event subscriptions
+```
+
+`+page.svelte` 挂载 `features/*/public/*` 以及 stage-0 的 `profile.svelte`、`promo.svelte`。
+
+## 事件接线
+
+Checkout 发出事件；app 订阅并调用 service：
+
+```svelte
+<!-- routes/app-providers.svelte -->
+<script>
+  import { onCheckoutCompleted } from "@/features/checkout/public/checkout.events";
+  import { clearCart } from "@/services/cart/public/cart";
+
+  onCheckoutCompleted(() => clearCart());
+</script>
+```
+
+无 `checkout → cart` 这样的 feature 边——app 向下导入两个模块。见[跨模块接线](/guides/cross-module-wiring)。
+
+## Mini-shop 流程
+
+1. **Catalog**——`catalog.store.ts` + 来自 cart service 的 `addCartItem`
+2. **Checkout**——cart service + `checkout.store.ts`（支付状态）
+3. **AppProviders**——`checkoutCompleted` → `clearCart()`
+4. **Profile / Promo**——stage-0，共享 `Card`
+
+## Svelte 5 runes
+
+| 文件 | Runes |
+| --- | --- |
+| `profile.svelte` | `$state` |
+| `app-providers.svelte` | `$props`、`$effect` |
+| `button.svelte` | `$props` |
+
+`*.store.ts` 中的 store——常规 Svelte store，通过 `$store` 自动订阅。
+
+## 代码放哪里
+
+| 问题 | 位置 |
+| --- | --- |
+| 路由外壳、layout？ | `src/routes/` |
+| UI 流程？ | `features/<name>/public/*` |
+| 单 feature 状态？ | `features/<name>/<name>.store.ts` |
+| 2+ 模块？ | `services/<name>/public/*` |
+| 可移植 helper/UI？ | `shared/lib/`、`shared/ui/` |
+| 订阅方 / 端口？ | `routes/app-providers.svelte` |
+
+内部从同一 feature 的 `public/` 文件**相对路径**导入。
+
+## 样式
+
+| 类型 | 位置 |
+| --- | --- |
+| 全局 reset | `src/app.css` → `+layout.svelte` |
+| 设计 token | `app-providers.svelte`（`.app-theme` 上的 `--color-*`） |
+| 路由外壳 | `+page.svelte` 中 scoped `<style>` |
+| Feature 页面 | `public/*.svelte` 中 scoped |
+| 共享 UI | `shared/ui/*.svelte` 中 scoped |
+| Feature 样式表 | `checkout/checkout.css` → 从 `public/` 导入 |
+
+Provider 外壳中的 token——feature 与 `shared/ui` 读取 `var(--…)` 而互不导入。
+
+## 测试
+
+就近放置的 `*.test.ts`（Vitest）：
+
+- `catalog.store.test.ts`——store + `svelte/store`
+- `services/cart/public/cart.test.ts`——service API
+- `shared/lib/format-currency.test.ts`——纯 helper
+
+`dma check` 也会扫描 `*.test.ts`——测试中的导入遵循相同规则。示例中测试就近放置，在模块内相对导入或经 `public/` 导入。
+
+## 命令
+
+```bash
+bun run dev
+bun run build
+bun run dma-check   # dma check .
+bun run lint        # oxlint + @derived-modular/oxlint-plugin
+bun run test
+```
+
+## 下一步
+
+<Cards>
+  <Card title="跨模块接线" description="事件模式" href="/guides/cross-module-wiring" />
+  <Card title="Oxlint 插件" description="配置" href="/tooling/oxlint" />
+  <Card title="Vite + React" description="规范示例" href="/guides/vite-react" />
+</Cards>

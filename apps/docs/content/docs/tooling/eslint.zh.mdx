@@ -1,0 +1,93 @@
+---
+title: "ESLint"
+description: "@derived-modular/eslint-plugin — 编辑器中的四条架构规则。"
+icon: "ShieldCheck"
+---
+
+`@derived-modular/eslint-plugin` 在编辑器里提供快速反馈：错误导入在保存时高亮，不必等 CI。
+
+这**不能替代** `dma check`。插件一次只看一个文件，看不到图中的环。CI 里仍需要 CLI。
+
+## 安装
+
+```bash
+npm install -D @derived-modular/eslint-plugin eslint
+```
+
+需要 ESLint 9+ 与 flat config。
+
+## 最小配置
+
+```js
+// eslint.config.js
+import dma from "@derived-modular/eslint-plugin";
+
+export default [
+  ...dma.configs.recommended,
+  {
+    settings: {
+      dma: {
+        srcRoot: "src",
+        compositionRoots: ["app", "pages", "routes"],
+      },
+    },
+  },
+];
+```
+
+`recommended` 预设以 `error` 级别启用全部四条规则。
+
+## 规则
+
+| 规则 | 捕获内容 |
+| --- | --- |
+| `@derived-modular/layer-direction` | 跨层非向下导入 |
+| `@derived-modular/feature-to-feature` | Feature 导入另一个 feature |
+| `@derived-modular/public-api` | 跨模块导入绕过 `*/public/*` |
+| `@derived-modular/no-barrel` | 模块内带 re-export 的 barrel `index` |
+
+## `settings.dma` 选项
+
+| 键 | 默认值 | 说明 |
+| --- | --- | --- |
+| `srcRoot` | `"src"` | 源码根目录 |
+| `compositionRoots` | `["app", "pages", "routes"]` | 组合根文件夹 |
+
+未设置时，插件还会向上读取 [`dma.config.*`](/tooling/cli/config) 中的 `srcRoot` / `compositionRoots`。优先级：`settings.dma` > 配置文件 > 默认值。
+
+插件解析相对导入与 `@/` → `srcRoot`。ESLint 自身无法解析的 tsconfig 复杂别名，可能需要额外主机配置。npm 包导入会被忽略。
+
+`@derived-modular/no-barrel` 可对命中单目标 barrel 的导入自动修复（改写为 public 路径）。
+
+`pages/` 与 `routes/` 与 `app/` 同等对待 — 适用于 Next.js App Router、Astro、TanStack Router、SvelteKit。
+
+## ESLint 不覆盖的内容
+
+| 关注点 | ESLint | dma check |
+| --- | --- | --- |
+| `no-cycle` | — | ✓ |
+| `feature-has-inbound` | — | ✓ |
+| `service-no-inbound` | — | ✓ |
+| `dma doctor` 信号 | — | ✓ |
+
+ESLint 安静但 `dma check` 失败 — 正常。两者都要跑。
+
+## Oxlint
+
+同款规则可通过 [`@derived-modular/oxlint-plugin`](/tooling/oxlint) 使用 — Oxlint 的 JS 插件。状态：alpha。
+
+## Biome
+
+若项目用 Biome 而非 ESLint — 见 [Biome](/tooling/biome)。覆盖较弱（GritQL 启发式），但 CI 中 `dma check` 仍是必须的。
+
+## 仓库示例
+
+在线配置 — [examples/next-app/eslint.config.js](https://github.com/mikhailmogilnikov/derived-modular-architecture/blob/main/examples/next-app/eslint.config.js)。
+
+## 下一步
+
+<Cards>
+  <Card title="dma check" description="完整图审计" href="/tooling/cli/check" />
+  <Card title="工具概览" description="整体如何配合" href="/tooling/overview" />
+  <Card title="CI" description="流水线中的 dma check" href="/tooling/ci" />
+</Cards>

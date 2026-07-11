@@ -19,6 +19,7 @@
       "name": "@derived-modular/docs",
       "version": "0.0.3",
       "dependencies": {
+        "@orama/tokenizers": "^3.1.18",
         "@vercel/analytics": "^2.0.1",
         "cnfast": "^0.0.8",
         "fumadocs-core": "16.11.2",
@@ -118,7 +119,7 @@
     },
     "packages/biome-plugin": {
       "name": "@derived-modular/biome-plugin",
-      "version": "1.1.0",
+      "version": "1.2.1",
       "devDependencies": {
         "@biomejs/biome": "2.5.2",
         "@types/bun": "latest",
@@ -126,7 +127,7 @@
     },
     "packages/boundaries": {
       "name": "@derived-modular/boundaries",
-      "version": "1.1.0",
+      "version": "1.2.1",
       "devDependencies": {
         "@types/bun": "latest",
         "@types/node": "latest",
@@ -135,8 +136,10 @@
     },
     "packages/cli": {
       "name": "@derived-modular/cli",
-      "version": "1.1.0",
-      "bin": "./dist/cli.js",
+      "version": "1.2.1",
+      "bin": {
+        "dma": "./dist/cli.js",
+      },
       "dependencies": {
         "@derived-modular/boundaries": "workspace:*",
         "jiti": "^2.7.0",
@@ -149,7 +152,7 @@
     },
     "packages/eslint-plugin": {
       "name": "@derived-modular/eslint-plugin",
-      "version": "1.1.0",
+      "version": "1.2.1",
       "dependencies": {
         "@derived-modular/boundaries": "workspace:*",
         "jiti": "^2.7.0",
@@ -166,7 +169,7 @@
     },
     "packages/oxlint-plugin": {
       "name": "@derived-modular/oxlint-plugin",
-      "version": "1.1.0",
+      "version": "1.2.1",
       "dependencies": {
         "@derived-modular/eslint-plugin": "workspace:*",
       },
@@ -547,6 +550,8 @@
     "@nodelib/fs.walk": ["@nodelib/fs.walk@1.2.8", "", { "dependencies": { "@nodelib/fs.scandir": "2.1.5", "fastq": "^1.6.0" } }, "sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg=="],
 
     "@orama/orama": ["@orama/orama@3.1.18", "", {}, "sha512-a61ljmRVVyG5MC/698C8/FfFDw5a8LOIvyOLW5fztgUXqUpc1jOfQzOitSCbge657OgXXThmY3Tk8fpiDb4UcA=="],
+
+    "@orama/tokenizers": ["@orama/tokenizers@3.1.18", "", { "dependencies": { "@orama/orama": "3.1.18" } }, "sha512-Ra4dFddWZ7hCGPAehnd/6QZjlzQvczYSt1y1Fq4HteJqRu2yvfR6fXvxiUnKi+HIgJYPxKhebJEjvJdF8LYQWg=="],
 
     "@oslojs/encoding": ["@oslojs/encoding@1.1.0", "", {}, "sha512-70wQhgYmndg4GCPxPPxPGevRKqTIJ2Nh4OkiMWmDAVYsTQ+Ta7Sq+rPevXyXGdzr30/qZBnyOalCszoMxlyldQ=="],
 

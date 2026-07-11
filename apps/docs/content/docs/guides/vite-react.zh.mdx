@@ -1,0 +1,120 @@
+---
+title: "Vite + React"
+description: "Vite + React 上可运行的规范 DMA 示例。"
+icon: "Zap"
+---
+
+这是**参考** DMA 示例：可运行的 mini-shop、完整导入图、就近放置的 store、cart 提升（promotion）到 `services/`。其他框架指南是同一故事的不同变体。
+
+源码：[examples/vite-react](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vite-react)。
+
+## 组合根
+
+DMA 将 `src/app/` 视为组合根（composition root）——与其他栈中的 `pages/` 或 `routes/` 角色相同。
+
+```text
+src/app/
+├── app.tsx         # nav, badges, feature mounts, prop wiring
+├── providers.tsx   # ThemeProvider from shared/ui
+└── app.css         # global styles only here
+```
+
+`app.tsx` **只**导入 `*/public/*`：
+
+```tsx
+import { CatalogPage } from "@/features/catalog/public/catalog-page";
+import { addNotification } from "@/features/notifications/public/notifications-api";
+
+<CatalogPage
+  onAddedToCart={(name) => addNotification(`Added ${name}`)}
+/>
+```
+
+Catalog → notifications 通过 props 胶水——见[跨模块接线](/guides/cross-module-wiring)。
+
+## Mini-shop：谁拥有什么
+
+| 模块 | 状态所有者 | 导入 |
+| --- | --- | --- |
+| Catalog | `catalog.store.ts`（filters） | `services/cart`、`shared/*` |
+| Checkout | `checkout.store.ts`（delivery） | `services/cart`、`shared/*` |
+| Notifications | `notifications.store.ts` | `shared/*` |
+| Cart | `services/cart/public/cart.ts` | `shared/model` |
+| Profile | stage-0 `profile.tsx` | `shared/ui` |
+
+无 `catalog → notifications` 边——只有 `app →` 两个模块。
+
+## 提升（promotion）：checkout → cart
+
+购物车并非一开始就在 `services/`。当 catalog 也需要 `addCartItem` 时，cart 被提升：
+
+```text
+Before (1 consumer)              After (2 consumers)
+features/checkout/              features/catalog/public/ ──┐
+  checkout.store (cart)         features/checkout/public/ ─┼──► services/cart/public/cart.ts
+                                checkout.store (delivery only)
+```
+
+`dma check` 看到入边（inbound edge）并确认 cart 属于 `services/`，而非 feature 内部。
+
+## 代码放哪里
+
+| 任务 | 文件夹 | 示例 |
+| --- | --- | --- |
+| 从 app 挂载的屏幕 | `features/<name>/public/` 或 stage-0 `features/<name>.tsx` | `catalog-page.tsx` |
+| 单 feature 状态 | 就近放置的 `*.store.ts` | `checkout.store.ts` |
+| 2+ 模块的场景 | `services/<name>/public/` | `cart.ts` |
+| 无产品逻辑的 UI 原语 | `shared/ui/` | `button.tsx` |
+| 纯 helper | `shared/lib/` | `format-currency.ts` |
+| 2+ 模块的类型 | `shared/model/` | `product.ts` |
+| Providers | `app/providers.tsx` | ThemeProvider |
+
+## 数据获取
+
+| 层 | 文件 | 角色 |
+| --- | --- | --- |
+| 传输 | `shared/api/http.ts` | 精简的 `get<T>()` |
+| Feature API | `features/catalog/catalog.api.ts` | 仅 catalog 导入 |
+| 演示数据 | `public/catalog.json` | Vite 静态资源 |
+
+其他 feature 不导入 `catalog.api.ts`。共享 HTTP 经 `shared/api/http.ts`。
+
+## 样式
+
+| 方式 | 位置 | 示例 |
+| --- | --- | --- |
+| 全局 CSS | `app/app.css` | reset、外壳 |
+| CSS Modules | 紧邻 `public/` 入口 | `catalog-page.module.css` |
+| 纯 CSS | feature 内就近放置 | `checkout-page.css` |
+| SCSS module | stage-0 feature | `profile.module.scss` |
+| CSS-in-JS | feature 内部 | `notifications.styles.ts` |
+
+全局样式——**仅**在 `app/`。Feature 专属皮肤不属于 `shared/`。
+
+## 测试
+
+与代码就近放置的 `*.test.ts`（Vitest）：
+
+- `catalog.store.test.ts`——内部 store
+- `services/cart/public/cart.test.ts`——service 公共 API
+- `shared/lib/format-currency.test.ts`——可移植 helper
+
+E2E（示例中未包含）——在 app 根（`e2e/`）。
+
+## 命令
+
+```bash
+bun run dev
+bun run build
+bun run dma-check   # dma check .
+bun run lint        # ESLint + @derived-modular/eslint-plugin
+bun run test
+```
+
+## 下一步
+
+<Cards>
+  <Card title="跨模块接线" description="onAddedToCart 模式" href="/guides/cross-module-wiring" />
+  <Card title="Next.js" description="Server 与 Client 边界" href="/guides/nextjs" />
+  <Card title="迁移" description="在现有项目中采用" href="/guides/migration" />
+</Cards>

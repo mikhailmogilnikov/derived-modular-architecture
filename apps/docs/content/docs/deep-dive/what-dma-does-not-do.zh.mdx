@@ -1,0 +1,74 @@
+---
+title: "DMA 不做什么"
+description: "方案的诚实边界，以及 v1 工具的限制。"
+icon: "CircleOff"
+---
+
+DMA 描述的是**代码放置与依赖方向**，可从导入图校验。下面是规范或 v1 工具范围之外的内容。了解限制能减少采用时的错误预期。
+
+## 规范不解决什么
+
+### 领域切分
+
+一个模块 `checkout` 还是两个（`cart` + `checkout`）——产品建模（Conway）。DMA 可以**事后**发现切分不好（很多 port、`doctor` 里密集子图），但不提供「怎么切领域」的配方。
+
+### 状态管理与数据流
+
+Flux、signals、React Query、服务端缓存——DMA 说的是状态**放哪**（模块内 `model/`，提升后进 `services/`），不是**怎么**更新。
+
+### 测试策略
+
+就近放置有定义（[测试](/concepts/testing)）。覆盖率、金字塔、契约测试——团队自选。
+
+### 运行时边界
+
+微前端、module federation、独立部署——不在范围内。原则：框架路由文件是组合根（composition root）里的薄壳。
+
+### 框架渲染细节
+
+SSR、RSC、基于文件的路由——在栈指南里（[Next.js](/guides/nextjs)），但 DMA 除组合根外不规定框架特定模式。
+
+## 仍靠人判断
+
+### services / shared 边界
+
+唯一没有完整机器校验的规则：产品场景 vs 可移植基础设施。启发式：「搬到另一个产品含义不变还能用吗？」——见 [Services vs Shared](/deep-dive/services-vs-shared)。
+
+### Stage 3 — 模块拆分
+
+`public/` 臃肿时（约 8+ 入口）——拆分模块。尚无专用 `doctor` 信号；在 review 里决定。
+
+### 文件夹名与产品语义
+
+`catalog` vs `shop`——DMA 不争论。它只争论**层谓词**和**图的边**。
+
+## v1 工具不包含什么
+
+| v1 没有 | 替代做法 |
+| --- | --- |
+| 自动修复 / codemod | 手动重构 + 每步后跑 `dma check` |
+| 项目脚手架 | [快速开始](/start/quick-start)、示例 |
+| LSP / 架构 server | CLI + 编辑器里的 linter |
+| Watch 模式 | pre-push 或 CI 里跑 `dma check` |
+| doctor 阈值的用户配置 | ✅ | `dma.config` 的 `thresholds` 覆盖 `DEFAULT_THRESHOLDS` |
+| Monorepo 跨包图 | 每个 root 单独建图（[Monorepo](/guides/monorepo)） |
+| Biome/Oxlint 全图对等 | CI 里始终跑 `dma check` |
+| CLI 运行时加载 `rules.json` | 规则内置于 `@derived-modular/cli` |
+
+## 声明与「清单」
+
+DMA 不用重复目录树已可见信息的声明式文件（带层列表的 `architecture.yaml`）。只允许可执行的覆盖（工具里的临时 allowlist，若有）——不是文档表演。
+
+## DMA 可能不是最佳选择的场景
+
+- 你需要严格的语义分类帮新人上手（「所有跟用户相关的放 entities」）——见 [DMA vs FSD](/deep-dive/dma-vs-fsd)。
+- 产品更按横向领域组织，而非纵向层级——DMA 建议在 `services/` **内部**拆分，而不是加新层。
+- 团队还没准备在 CI 里保持 `dma check`——没有门槛的规则又会变成口头传统。
+
+## 接下来
+
+<Cards>
+  <Card title="什么是 DMA" description="背景与边界" href="/start/what-is-dma" />
+  <Card title="DMA vs FSD" description="与另一种方案对比" href="/deep-dive/dma-vs-fsd" />
+  <Card title="工具概览" description="v1 校验什么" href="/tooling/overview" />
+</Cards>

@@ -1,0 +1,69 @@
+---
+title: "Services vs Shared"
+description: "产品场景与可移植基础设施之间的边界在哪里。"
+icon: "Split"
+---
+
+## 简短回答
+
+**Shared** — 原封不动搬到另一个产品也能用的代码。**Services** — 实现*本*产品某个场景、且被其他模块依赖的代码。这是 DMA 里机器无法完全裁定的唯一边界——仍要靠启发式和判断。
+
+## 一句话启发式
+
+> 这段代码原封不动搬到另一个产品还能用吗？
+
+- **能** → `shared/`
+- **不能** → `services/`
+
+按钮、`formatCurrency`、基础 HTTP 客户端——shared。购物车、结账流程、本产品订单的权限——services。
+
+## 为什么两层都有入边
+
+`services/` 和 `shared/` 都有来自模块的入边（inbound edge）。区别不在图上，而在**代码含义**：
+
+| | Services | Shared |
+| --- | --- | --- |
+| 了解产品 | 是 | 否 |
+| 示例 | `cart`、`session`、`permissions` | `Button`、`format-date`、`api-client` |
+| `public/` | 有，扁平 | 不需要——整层即 public |
+| 内部分组 | 模块段（ui、model…） | `ui/`、`lib/`、`api/`、`model/`、`domain/` |
+
+## 常见错误
+
+**过早放进 shared。** 你抽了个 helper「以备将来」——一个月后 `shared/lib` 变成垃圾场。二次使用规则：先就近放置，第二个消费者出现再提升。
+
+**产品代码进 shared。** `shared/ui/cart-badge.tsx` 了解购物车——那是 feature 或 service，不是 shared UI 原语。
+
+**没有消费者的 service。** `services/` 里没人依赖的模块违反谓词（`service-no-inbound`）。降回 feature 或删掉。
+
+**人人都依赖的 feature。** catalog 和 profile 都 import checkout——那是 service，不是 feature（`feature-has-inbound`）。
+
+## 实践中如何决定
+
+1. 出现第二个消费者了吗？（`dma doctor` → `shared-candidate`）
+2. 代码是关于**本**产品的吗？→ `services/`，从 feature 提升（promotion）
+3. 代码是**可移植**的吗？→ `shared/` 里对应分组（`ui`、`lib`、`api`、`model`、`domain`）
+4. 不确定？留在 feature 里，等第二个消费者——就近放置比放错便宜
+
+## Shared 分组
+
+```text
+shared/
+├── ui/       # buttons, inputs — no domain knowledge
+├── lib/      # dates, formatting, storage
+├── api/      # base HTTP client, interceptors
+├── model/    # query client, env, feature flags
+└── domain/   # shared business types (User, Money)
+```
+
+更多细节见 [Shared](/concepts/shared)。
+
+## Services 与领域
+
+`services/` 变大时，**横向**切分（`domains/billing/`、独立包）——不要加新的纵向层。doctor 里的 `dense-services` 信号提示何时该拆分。
+
+## 相关主题
+
+- [层](/concepts/layers) — 层谓词
+- [代码演进](/concepts/evolution) — 二次使用与提升（promotion）
+- [为什么只有两层模块](/deep-dive/why-two-layers) — 为什么要有 feature/service 分界

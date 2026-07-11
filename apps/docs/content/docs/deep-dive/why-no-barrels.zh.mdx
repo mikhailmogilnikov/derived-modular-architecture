@@ -1,0 +1,65 @@
+---
+title: "为什么不用 barrel 文件"
+description: "简短回答：barrel 会隐藏导入图。深入——会破坏什么，以及有哪些替代方案。"
+icon: "PackageX"
+---
+
+## 简短回答
+
+barrel 文件（带 `export { Foo } from './foo'` 的 `index.ts`）会隐藏真实依赖。linter 和 `dma check` 从 import 路径构建导入图——经过 barrel，图就失真了。因此 DMA 禁止模块内的 barrel，并要求直接 import 到 `*/public/*`。
+
+## 什么是 barrel
+
+```ts
+// features/checkout/public/index.ts  ✗
+export { CheckoutPage } from "./checkout-page";
+export { useCheckout } from "./use-checkout";
+```
+
+消费者这样写：
+
+```ts
+import { CheckoutPage } from "@/features/checkout/public";
+```
+
+看起来方便。但分析器看到的是对 `public/index.ts` 的 import，而不是 `checkout-page.tsx`。模块之间的真实链接丢失了。
+
+## 会破坏什么
+
+**1. 依赖图。** `dma check` 无法精确判断谁依赖谁。循环和提升（feature → service）由边决定——barrel 会把边弄模糊。
+
+**2. Tree-shaking 与打包器。** barrel 常多拉进额外代码：你只 import 了一个函数，却拿到了整个模块。
+
+**3. 重构。** 你重命名了文件——所有经 barrel 的 import 都断了，尽管直接消费者只有两个。
+
+**4. 虚假的 API 感。** barrel 暗示「从文件夹里随便 import」。DMA 相反：要求显式契约——每个入口是 `public/` 里单独的扁平文件。
+
+## DMA 允许的 barrel 替代方案
+
+直接 import 到文件：
+
+```ts
+import { CheckoutPage } from "@/features/checkout/public/checkout-page";
+```
+
+在 stage 0（单文件模块）时，整个文件就是 public——直接 import `checkout.tsx`。
+
+从 `public/` 到内部文件的 1:1 re-export 可作为 symlink 允许，但默认应把实现直接写在 `public/` 里。
+
+## 「但 npm 包都用 index.ts」
+
+发布边界上的包（stage 4）是另一回事：那里 `package.json` 的 `exports` 是显式契约。应用内部，模块不是包，图必须对工具透明。
+
+## 我们否决的替代方案
+
+| 方案 | 为什么不行 |
+| --- | --- |
+| 只在 `public/` 允许 barrel | 仍隐藏每个消费者拉的是哪个入口 |
+| 「允许 barrel 但禁止循环」 | 图不准时循环不可见 |
+| 自动生成 barrel | 又多一层与文件系统脱节的魔法 |
+
+## 相关主题
+
+- 概念中的规则：[模块与公共 API](/concepts/modules)
+- 不变量：[四大不变量](/concepts/invariants) — 「无 barrel 的公共 API」
+- 工具：`no-barrel` 规则，见 [dma check](/tooling/cli/check) 和 [ESLint](/tooling/eslint)

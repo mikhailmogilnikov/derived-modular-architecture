@@ -1,0 +1,86 @@
+---
+title: "文件放哪"
+description: "代码放置算法：从组合根到 promotion 与 shared。"
+icon: "GitBranch"
+---
+
+「这个文件放哪」的答案不是凭感觉——而是一串谓词。自上而下走步骤，**在第一个匹配处停下**。
+
+## 算法
+
+1. **路由、layout、接线、providers？** → 组合根：`app/`、`pages/` 或 `routes/`。只挂载 `*/public/*`，无业务逻辑。
+2. **另一个模块必须导入这段代码（产品流程）？** → `services/<name>/public/`。Promotion：移动 + 重新审视公共 API。绝不 `feature → feature`。
+3. **可移植 helper、UI 或类型，已有 2+ 模块需要？** → `shared/{ui,lib,api,model,domain}`。第一次用不要抽。
+4. **唯一消费者是一个模块？** → colocate 在该模块内（内部文件或 `ui/`、`model/` segment）。
+5. **新叶子流程，只从组合根挂载？** → `features/<name>`（stage 0——单文件，stage 1+——带 `public/` 的文件夹）。
+6. **边会造成循环或向上跨层？** → `public/ports.ts` 中的 port + 在组合根绑定。不要用 port 绕过合法的 promotion。
+
+### 快速谓词
+
+| 路径 | 谓词 |
+| --- | --- |
+| `app/` / `pages/` / `routes/` | 组装应用；模块不导入它 |
+| `features/` | 无来自其他 **模块** 的入边 |
+| `services/` | 有来自模块的入边；首次 promotion 时创建文件夹 |
+| `shared/` | 无产品流程的可移植代码 |
+
+Promotion 的入边——只来自 `features/*` 和 `services/*`。从组合根挂载 **不会** 触发 promotion。
+
+## 表：典型文件 → 文件夹
+
+| 你有… | 位置 | 示例 |
+| --- | --- | --- |
+| `page.tsx`、`+page.svelte`、`index.astro` | composition root | `app/page.tsx` |
+| Providers、事件接线 | composition root | `app/providers.tsx` |
+| 路由的屏幕 / 流程 | `features/<name>/public/` 或 stage-0 文件 | `catalog-page.tsx` |
+| 单个 feature 的 store | colocate 在 feature | `checkout.store.ts` |
+| 单个 feature 的 composable（Vue） | colocate 在 feature | `use-catalog-search.ts` |
+| catalog **和** checkout 都需要的逻辑 | `services/<name>/public/` | `cart.ts` |
+| 无产品逻辑的按钮 | `shared/ui/` | `button.tsx` |
+| `formatCurrency`、日期、i18n | `shared/lib/` | `format-currency.ts` |
+| 基础 HTTP client、拦截器 | `shared/api/` | `http.ts` |
+| 单个 feature 的 endpoint | colocate 在 feature | `catalog.api.ts` |
+| `Product`、injection key | `shared/model/` 或 `shared/domain/` | `product.ts` |
+| store 的单元测试 | store 旁边 | `checkout.store.test.ts` |
+| E2E | 应用根 | 配置旁的 `e2e/` |
+
+## services vs shared（最后一步人工判断）
+
+问题：「这段代码换到另一个产品，含义要不要改？」
+
+- **是** → `shared/`（格式化、UI 原语、类型）
+- **否** → `services/`（cart、session、作为产品流程的 catalog API）
+
+拿不准时，在 feature 里 colocate 到第二个消费者出现。更多——[Services vs Shared](/deep-dive/services-vs-shared)。
+
+## 跨模块接线
+
+Feature 不导入 feature。选项：
+
+| 任务 | 机制 |
+| --- | --- |
+| 回调 / props | 组合根在 `public/` entry 之间传递 |
+| 不知订阅者的事件 | `public/*.events.ts`；在 `app/` 订阅 |
+| 循环 / 外部 seed | `public/ports.ts` + 在 `app/` 绑定 |
+
+详解——[跨模块接线](/guides/cross-module-wiring)。
+
+## 工具检查什么
+
+| 情况 | 规则 |
+| --- | --- |
+| 跨层向上导入 | `layer-direction` |
+| `features/a` → `features/b` | `feature-to-feature` |
+| 绕过 `public/` 的导入 | `public-api` |
+| 有入边的 feature | `feature-has-inbound` |
+| shared/services 候选 | `shared-candidate` (doctor)——`help` 按层点名 Placement #2–3 |
+
+完整错误说明——[dma check: violation reference](/tooling/cli/check#violation-reference)。
+
+## 下一步
+
+<Cards>
+  <Card title="模块与公共 API" description="Stage 0–4" href="/concepts/modules" />
+  <Card title="代码演进" description="Promotion 与 second-use" href="/concepts/evolution" />
+  <Card title="项目布局" description="src/ 目录树" href="/start/project-layout" />
+</Cards>

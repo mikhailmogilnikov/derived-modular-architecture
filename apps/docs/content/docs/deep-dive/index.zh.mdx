@@ -1,0 +1,50 @@
+---
+title: "概览"
+description: "何时阅读深度解析，以及从哪里开始。"
+icon: "BookOpen"
+---
+
+深度解析面向已经掌握基础、想弄清「为什么是这样设计」的读者。不必从头到尾通读，按你在 code review 或与同事争论时遇到的具体问题选读即可。
+
+<Callout type="info">
+  如果你是第一次接触 DMA，建议先从 [什么是 DMA](/start/what-is-dma) 和 [四大不变量](/concepts/invariants) 开始。本文可以稍后再回来读。
+</Callout>
+
+## 问题 → 文章
+
+| 问题 | 文章 |
+| --- | --- |
+| 为什么禁止 `index.ts` 的 re-export？ | [为什么不用 barrel 文件](/deep-dive/why-no-barrels) |
+| 为什么不像 FSD 那样用 widgets/entities？ | [为什么只有两层模块](/deep-dive/why-two-layers) |
+| 购物车该放 services 还是 shared？ | [Services vs Shared](/deep-dive/services-vs-shared) |
+| DMA 和 FSD 有何不同？ | [DMA vs FSD](/deep-dive/dma-vs-fsd) |
+| 既然有 ESLint，为什么还要 CLI？ | [为什么需要 CLI，而不只靠 linter](/deep-dive/why-cli-not-only-linters) |
+| DMA **不**解决什么？ | [DMA 不做什么](/deep-dive/what-dma-does-not-do) |
+| 新文件该放哪里？ | [文件放置](/concepts/placement) |
+
+## 推荐阅读顺序
+
+如果你打算按顺序阅读：
+
+1. [为什么只有两层模块](/deep-dive/why-two-layers) — 分层哲学
+2. [为什么不用 barrel 文件](/deep-dive/why-no-barrels) — 图的透明度
+3. [Services vs Shared](/deep-dive/services-vs-shared) — 唯一「灰色」边界
+4. [为什么需要 CLI，而不只靠 linter](/deep-dive/why-cli-not-only-linters) — 强制校验
+5. [DMA vs FSD](/deep-dive/dma-vs-fsd) — 与另一种方案的对比
+
+## 与概念文档的关系
+
+| 深度解析 | 基础文章 |
+| --- | --- |
+| Barrel 文件 | [模块与公共 API](/concepts/modules) |
+| 两层 | [层](/concepts/layers) |
+| Services vs Shared | [Shared](/concepts/shared)、[代码演进](/concepts/evolution) |
+| CLI vs linter | [工具概览](/tooling/overview) |
+
+## 接下来
+
+<Cards>
+  <Card title="概念" description="不变量、层、模块" href="/concepts/invariants" />
+  <Card title="工具" description="CLI 与插件" href="/tooling/overview" />
+  <Card title="快速开始" description="第一次运行 dma check" href="/start/quick-start" />
+</Cards>

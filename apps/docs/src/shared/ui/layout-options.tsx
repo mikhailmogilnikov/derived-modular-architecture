@@ -14,10 +14,20 @@ export const translations = i18n
     ru: {
       displayName: "Русский",
     },
+    zh: {
+      displayName: "中文",
+    },
   });
 
-const docsLinkLabel = (locale: string): string =>
-  locale === "ru" ? "Документация" : "Docs";
+const docsLinkLabel = (locale: string): string => {
+  if (locale === "ru") {
+    return "Документация";
+  }
+  if (locale === "zh") {
+    return "文档";
+  }
+  return "Docs";
+};
 
 export function baseOptions(locale: string): BaseLayoutProps {
   return {
