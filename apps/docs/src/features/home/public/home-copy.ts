@@ -2,7 +2,7 @@ import type { FileTreeNode } from "@/features/home/public/home-file-tree";
 
 export const homeCopy = {
   en: {
-    badge: "Frontend architecture with CI checks",
+    badge: "Latest update — release v1.0.1",
     ctaDocs: "What is DMA",
     ctaLead:
       "Two minutes to understand the idea. Then wire the check when you’re ready.",
@@ -55,7 +55,7 @@ export const homeCopy = {
       },
     ],
     heroLead:
-      "DMA tells you where frontend code lives — and stops features from quietly importing each other.",
+      "DMA tells people and agents where frontend code lives — and verifies boundaries through the linter, CLI, and CI.",
     heroTitle: "A modular architecture for",
     heroTooling: {
       aiSkill: {
@@ -108,7 +108,7 @@ export const homeCopy = {
     violation: "feature-to-feature: checkout must not import catalog",
   },
   ru: {
-    badge: "Фронтенд-архитектура с проверкой в CI",
+    badge: "Последнее обновление — релиз v1.0.1",
     ctaDocs: "Что такое DMA",
     ctaLead: "Две минуты на идею. Проверку подключите, когда будете готовы.",
     ctaStart: "Быстрый старт",
@@ -160,7 +160,7 @@ export const homeCopy = {
       },
     ],
     heroLead:
-      "DMA говорит, где живёт фронтенд-код — и не даёт фичам тихо импортировать друг друга.",
+      "DMA говорит людям и агентам, где живёт фронтенд-код — и проверяет границы через линтер, CLI и CI.",
     heroTitle: "Модульная архитектура для",
     heroTooling: {
       aiSkill: {

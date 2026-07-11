@@ -1,4 +1,4 @@
-import { Layers, Rocket } from "lucide-react";
+import { ArrowRight, Layers, Rocket } from "lucide-react";
 import Link from "next/link";
 import { HomeCodeTabs } from "@/features/home/public/home-code-tabs";
 import {
@@ -10,6 +10,10 @@ import { HomeExplorer } from "@/features/home/public/home-explorer";
 import { HomeFooter } from "@/features/home/public/home-footer";
 import { HomeFrameworkIcons } from "@/features/home/public/home-framework-icons";
 import { HomeToolingPipeline } from "@/features/home/public/home-tooling-pipeline";
+import { gitConfig } from "@/shared/model/app-config";
+
+const heroBadgeClass =
+  "inline-flex items-center gap-1.5 font-medium text-fd-muted-foreground text-sm transition-colors hover:text-fd-foreground";
 
 const ctaPrimaryClass =
   "inline-flex items-center gap-2.5 rounded-full bg-fd-primary px-7 py-3.5 font-medium text-base text-fd-primary-foreground transition-opacity hover:opacity-90";
@@ -19,15 +23,22 @@ const ctaSecondaryClass =
 export function HomePage({ lang }: { lang: string }) {
   const locale = getHomeLocale(lang);
   const content = homeCopy[locale];
+  const releaseHref = `https://github.com/${gitConfig.user}/${gitConfig.repo}/releases`;
 
   return (
     <div className="landing-page w-full">
       <section className="landing-hero relative overflow-hidden">
-        <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-12 px-4 py-20 text-center md:gap-14 md:py-28">
+        <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-12 px-4 pt-12 pb-20 text-center md:gap-14 md:py-28">
           <div className="max-w-4xl space-y-5">
-            <span className="inline-flex rounded-full border border-fd-border/80 bg-fd-card/80 px-3 py-1 font-medium text-fd-muted-foreground text-xs">
+            <Link
+              className={heroBadgeClass}
+              href={releaseHref}
+              rel="noopener"
+              target="_blank"
+            >
               {content.badge}
-            </span>
+              <ArrowRight aria-hidden="true" className="size-3.5" />
+            </Link>
             <h1 className="font-semibold text-4xl tracking-tight md:text-6xl md:leading-[1.12]">
               <span className="block text-balance">{content.heroTitle}</span>
               <span className="mt-5 flex w-full justify-center md:mt-6">
