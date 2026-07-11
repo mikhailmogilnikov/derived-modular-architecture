@@ -15,7 +15,13 @@ import {
   getPageMarkdownUrl,
   source,
 } from "@/services/docs-content/public/source";
-import { gitConfig } from "@/shared/model/app-config";
+import {
+  appName,
+  docsRoute,
+  gitConfig,
+  ogLocale,
+  twitterHandle,
+} from "@/shared/model/app-config";
 import { I18nDocLink } from "@/shared/ui/i18n-doc-link";
 
 export function DocsContentPage({
@@ -73,11 +79,36 @@ export function generateDocsMetadata({
     notFound();
   }
 
+  const slugPath = page.slugs.join("/");
+  const image = getPageImage(page).url;
+  const { description, title } = page.data;
+
   return {
-    description: page.data.description,
-    openGraph: {
-      images: getPageImage(page).url,
+    alternates: {
+      canonical: `/${lang}${docsRoute}/${slugPath}`,
+      languages: {
+        en: `/en${docsRoute}/${slugPath}`,
+        ru: `/ru${docsRoute}/${slugPath}`,
+        "x-default": `/en${docsRoute}/${slugPath}`,
+      },
     },
-    title: page.data.title,
+    description,
+    openGraph: {
+      description,
+      images: image,
+      locale: ogLocale[lang] ?? ogLocale.en,
+      siteName: appName,
+      title,
+      type: "article",
+      url: `/${lang}${docsRoute}/${slugPath}`,
+    },
+    title,
+    twitter: {
+      card: "summary_large_image",
+      creator: twitterHandle,
+      description,
+      images: image,
+      title,
+    },
   };
 }

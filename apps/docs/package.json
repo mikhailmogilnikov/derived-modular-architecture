@@ -14,6 +14,7 @@
     "dma-check": "bun ../../packages/cli/dist/cli.js check ."
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "cnfast": "^0.0.8",
     "fumadocs-core": "16.11.2",
     "fumadocs-mdx": "15.1.0",

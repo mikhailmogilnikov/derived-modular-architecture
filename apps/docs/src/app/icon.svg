@@ -1,0 +1,23 @@
+<svg
+  fill="none"
+  height="32"
+  viewBox="0 0 32 32"
+  width="32"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <title>Derived Modular Architecture</title>
+  <rect fill="#0a0a0a" height="32" rx="7" width="32" />
+  <g
+    fill="none"
+    stroke="#ffffff"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="1.9"
+  >
+    <path
+      d="M16.75 6.3a1.7 1.7 0 0 0-1.5 0L7.2 9.86a.9.9 0 0 0 0 1.64l8.05 3.56a1.7 1.7 0 0 0 1.5 0l8.05-3.56a.9.9 0 0 0 0-1.64Z"
+    />
+    <path d="M24.8 20.4 16.75 24a1.7 1.7 0 0 1-1.5 0L7.2 20.4" />
+    <path d="M24.8 15.4 16.75 19a1.7 1.7 0 0 1-1.5 0L7.2 15.4" />
+  </g>
+</svg>
