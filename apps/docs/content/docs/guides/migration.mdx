@@ -93,11 +93,12 @@ Pick one vertical (e.g. checkout), lay it out with DMA, and temporarily exclude 
 
 ### Monorepo
 
-`dma check` in v1 — one app root per invocation:
+`dma check` — один граф на корень; с корня монорепо доступен multi-root discover:
 
 ```bash
+npx @derived-modular/cli check .
 npx @derived-modular/cli check apps/web
-npx @derived-modular/cli check apps/admin
+npx @derived-modular/cli check --roots apps/web,apps/admin
 ```
 
 See [Monorepo](/guides/monorepo) for details.

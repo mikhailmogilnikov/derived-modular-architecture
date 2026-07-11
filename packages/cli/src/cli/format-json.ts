@@ -1,8 +1,13 @@
 import type { AnalyzeMode, Diagnostic } from "../core/types";
 
+export interface FormatJsonOptions {
+  projects?: string[];
+}
+
 export interface Report {
   command: AnalyzeMode;
   diagnostics: Diagnostic[];
+  projects?: string[];
   summary: {
     errors: number;
     infos: number;
@@ -29,7 +34,8 @@ const countBySeverity = (diagnostics: Diagnostic[]): Report["summary"] => {
 
 export const formatJson = (
   command: AnalyzeMode,
-  diagnostics: Diagnostic[]
+  diagnostics: Diagnostic[],
+  options?: FormatJsonOptions
 ): string => {
   const report: Report = {
     command,
@@ -37,5 +43,8 @@ export const formatJson = (
     summary: countBySeverity(diagnostics),
     version: 1,
   };
+  if (options?.projects !== undefined && options.projects.length > 1) {
+    report.projects = options.projects;
+  }
   return JSON.stringify(report, null, 2);
 };

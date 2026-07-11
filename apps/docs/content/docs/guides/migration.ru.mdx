@@ -93,11 +93,12 @@ features/catalog → features/checkout/internal
 
 ### Monorepo
 
-`dma check` в v1 — один app root за вызов:
+`dma check` — один граф на корень; с корня монорепо доступен multi-root discover:
 
 ```bash
+npx @derived-modular/cli check .
 npx @derived-modular/cli check apps/web
-npx @derived-modular/cli check apps/admin
+npx @derived-modular/cli check --roots apps/web,apps/admin
 ```
 
 Подробнее — [Монорепо](/guides/monorepo).

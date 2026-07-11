@@ -68,7 +68,7 @@ E2E doesn't colocate inside `features/` — they cross multiple modules and rout
 
 ## Monorepo
 
-Unit tests stay in the app package (`apps/web/src/...`). Workspace package tests — inside the package. `dma check` runs **at app root**, not the whole monorepo in one call. See [Monorepo](/guides/monorepo).
+Unit tests stay in the app package (`apps/web/src/...`). Workspace package tests — inside the package. `dma check` analyzes **one graph per root** (app or discovered package); graphs are not merged across the monorepo. See [Monorepo](/guides/monorepo).
 
 ## Examples in the repo
 

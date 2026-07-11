@@ -47,4 +47,25 @@ describe("formatSarif", () => {
     ).toBe(pathToFileURL(outside).href);
     expect(run.tool.driver.rules).toEqual([{ id: "dma/layer" }]);
   });
+
+  test("adds properties.project when present", () => {
+    const log = JSON.parse(
+      formatSarif("check", [
+        {
+          message: "x",
+          project: "apps/web",
+          ruleId: "dma/layer",
+          severity: "error",
+        },
+      ])
+    ) as {
+      runs: Array<{
+        results: Array<{ properties?: { project: string } }>;
+      }>;
+    };
+
+    expect(log.runs[0]?.results[0]?.properties).toEqual({
+      project: "apps/web",
+    });
+  });
 });

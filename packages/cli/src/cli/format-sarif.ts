@@ -24,6 +24,7 @@ interface SarifResult {
   level: "error" | "warning" | "note";
   locations?: SarifLocation[];
   message: SarifMessage;
+  properties?: { project: string };
   ruleId: string;
 }
 
@@ -103,6 +104,9 @@ export const formatSarif = (
       message: { text: diagnostic.message },
       ruleId: diagnostic.ruleId,
     };
+    if (diagnostic.project !== undefined) {
+      result.properties = { project: diagnostic.project };
+    }
     const locations = toLocations(diagnostic, cwd);
     if (locations) {
       result.locations = locations;

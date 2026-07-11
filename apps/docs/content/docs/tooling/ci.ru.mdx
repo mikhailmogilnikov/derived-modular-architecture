@@ -79,14 +79,14 @@ npx @derived-modular/cli check . --format sarif > dma.sarif
 
 ## Монорепо
 
-Сейчас v1 CLI смотрит на один app root за вызов. В монорепо запускайте check **на каждое приложение**:
+С корня workspace (без `src/`) можно найти и проверить все DMA apps одним вызовом:
 
 ```bash
-npx @derived-modular/cli check apps/web
-npx @derived-modular/cli check apps/admin
+npx @derived-modular/cli check .
+npx @derived-modular/cli check --roots apps/web,apps/admin
 ```
 
-Или через turbo/npm scripts в каждом пакете. Подробнее — [Монорепо](/guides/monorepo).
+Или per package / turbo filter. Подробнее — [Монорепо](/guides/monorepo).
 
 ## Примеры в репозитории DMA
 
@@ -101,7 +101,7 @@ npx @derived-modular/cli check apps/admin
 
 | Проблема | Решение |
 | --- | --- |
-| `exit 2`, нет `src/` | Убедитесь, что `path` указывает на корень приложения, не монорепо |
+| `exit 2`, нет `src/` / нет корней | Путь к app, или корень монорепо с discoverable apps / `--roots` |
 | Алиасы не резолвятся | Проверьте `tsconfig.json` paths в корне приложения |
 | CI зелёный, локально падает | Версии CLI, разный cwd, незакоммиченные файлы |
 

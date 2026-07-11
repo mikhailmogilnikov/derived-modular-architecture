@@ -88,7 +88,7 @@ Typical `ruleId` values from the `check` report and what to do about them.
 
 | Symptom | What to check |
 | --- | --- |
-| Missing `src/` | `path` points to the **application** root, not the whole monorepo |
+| Missing `src/` / no DMA roots | Single-app: point at the app root. Monorepo root: discovery should find apps, or pass `--roots` / `--include-packages` |
 | Broken tsconfig | `paths` for `@/` in the app tsconfig |
 | Invalid arguments | `npx @derived-modular/cli check --help` |
 

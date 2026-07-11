@@ -1,12 +1,12 @@
 ---
 title: "Monorepo"
-description: "dma check in a monorepo: multiple apps, workspace packages, CI."
+description: "dma check in a monorepo: multi-root discovery, workspace packages, CI."
 icon: "Boxes"
 ---
 
-In v1 the CLI looks at **one app root per invocation**. Monorepo does not break DMA — only how you run checks and where `src/` lives changes.
+`dma check` / `dma doctor` analyze **one DMA `src/` tree per root**. In a monorepo you can still point at a single app, or run from the workspace root and let the CLI discover apps.
 
-## One check — one app
+## One check — one app (still valid)
 
 ```bash
 npx @derived-modular/cli check apps/web
@@ -14,15 +14,43 @@ npx @derived-modular/cli check apps/admin
 npx @derived-modular/cli check examples/vite-react
 ```
 
-The path must point at the app root with `src/{app|pages|routes, features, services?, shared}`, not the monorepo root.
+The path must point at the app root with `src/{app|pages|routes, features, services?, shared}`.
 
-`exit 2` with a missing `src/` message often means you passed the workspace root instead of an app package.
+## Multi-root from the monorepo root
+
+If `path` has **no** `src/`, the CLI discovers DMA roots and checks each separately:
+
+```bash
+npx @derived-modular/cli check .
+```
+
+**Default discovery:** packages with `src/` and a composition root (`app` | `pages` | `routes`).
+
+**How candidates are found:** npm/bun `package.json` workspaces or `pnpm-workspace.yaml` first; otherwise a shallow directory walk (skips `node_modules`, `dist`, …).
+
+### Flags
+
+```bash
+# explicit list (skips discovery; positional path ignored)
+npx @derived-modular/cli check --roots apps/web,apps/admin
+
+# also include library packages with src/{features|services|shared} but no composition root
+npx @derived-modular/cli check . --include-packages
+```
+
+Each root is a **separate graph**. Workspace imports between packages are **not** merged — intentional.
+
+Exit codes are aggregated: `1` if any root fails `check`; `2` if no roots found or a `--roots` entry has no `src/`.
 
 ## CI for multiple apps
 
-Options:
+### Single job from repo root
 
-### Job matrix
+```yaml
+- run: npx @derived-modular/cli check .
+```
+
+### Job matrix (per app)
 
 ```yaml
 strategy:
@@ -32,15 +60,11 @@ steps:
   - run: npx @derived-modular/cli check ${{ matrix.app }}
 ```
 
-### Root script
+### Explicit roots
 
 ```bash
-for app in apps/web apps/admin; do
-  npx @derived-modular/cli check "$app" || exit 1
-done
+npx @derived-modular/cli check --roots apps/web,apps/admin
 ```
-
-Each app is a separate graph. Cycles between packages via workspace imports are **not** merged into one graph by `dma check` in v1 — an intentional v1 limitation.
 
 ## Workspace packages (stage 4)
 
@@ -57,6 +81,8 @@ packages/
 
 Same rules: direct paths, no barrel inside the package. Enforcement via `exports` in `package.json` and app imports to the published surface.
 
+To run `dma check` on such a package (no composition root), use `--include-packages` or `--roots packages/cart`.
+
 The app imports `@my-org/cart/public/cart` (or a path from `exports`) — as an external module lower in the layer stack, not as a feature.
 
 More on stage 4 — [Modules and public API](/concepts/modules).
@@ -72,9 +98,9 @@ Each example is a workspace package under `examples/*`:
 ```bash
 bun run build   # build CLI and plugins
 bun run --cwd examples/vite-react dma-check
+# or from repo root after build:
+npx @derived-modular/cli check --roots examples/vite-react
 ```
-
-In the DMA monorepo CI, checks run on examples as separate jobs — same pattern as `apps/*`.
 
 ## Linters in monorepo
 

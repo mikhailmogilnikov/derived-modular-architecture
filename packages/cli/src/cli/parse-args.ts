@@ -4,7 +4,9 @@ import type { AnalyzeMode } from "../core/types";
 export interface CliArgs {
   command: AnalyzeMode;
   format: "human" | "json" | "sarif";
+  includePackages: boolean;
   path: string;
+  roots?: string[];
 }
 
 const isAnalyzeMode = (value: string): value is AnalyzeMode =>
@@ -13,8 +15,28 @@ const isAnalyzeMode = (value: string): value is AnalyzeMode =>
 const isFormat = (value: string): value is CliArgs["format"] =>
   value === "human" || value === "json" || value === "sarif";
 
+const flattenRoots = (values: string[] | undefined): string[] | undefined => {
+  if (values === undefined || values.length === 0) {
+    return;
+  }
+  const roots: string[] = [];
+  for (const value of values) {
+    for (const part of value.split(",")) {
+      const trimmed = part.trim();
+      if (trimmed.length > 0) {
+        roots.push(trimmed);
+      }
+    }
+  }
+  return roots.length > 0 ? roots : undefined;
+};
+
 export const parseCliArgs = (argv: string[]): CliArgs => {
-  let values: { format?: string } = {};
+  let values: {
+    format?: string;
+    "include-packages"?: boolean;
+    roots?: string[];
+  } = {};
   let positionals: string[] = [];
 
   try {
@@ -23,6 +45,8 @@ export const parseCliArgs = (argv: string[]): CliArgs => {
       args: argv,
       options: {
         format: { default: "human", type: "string" },
+        "include-packages": { default: false, type: "boolean" },
+        roots: { multiple: true, type: "string" },
       },
     });
     ({ values, positionals } = parsed);
@@ -45,5 +69,11 @@ export const parseCliArgs = (argv: string[]): CliArgs => {
     );
   }
 
-  return { command, format, path };
+  return {
+    command,
+    format,
+    includePackages: values["include-packages"] ?? false,
+    path,
+    roots: flattenRoots(values.roots),
+  };
 };

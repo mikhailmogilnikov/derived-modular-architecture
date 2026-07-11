@@ -1,12 +1,12 @@
 ---
 title: "Монорепо"
-description: "dma check в монорепо: несколько приложений, workspace-пакеты, CI."
+description: "dma check в монорепо: multi-root discovery, workspace-пакеты, CI."
 icon: "Boxes"
 ---
 
-В v1 CLI смотрит на **один app root за вызов**. Монорепо не ломает DMA — меняется только то, как вы запускаете проверку и где лежит `src/`.
+`dma check` / `dma doctor` анализируют **одно дерево `src/` на корень**. В монорепо можно указать одно приложение или запустить проверку с корня workspace — CLI сам найдёт apps.
 
-## Один check — одно приложение
+## Один check — одно приложение (по-прежнему ок)
 
 ```bash
 npx @derived-modular/cli check apps/web
@@ -14,15 +14,43 @@ npx @derived-modular/cli check apps/admin
 npx @derived-modular/cli check examples/vite-react
 ```
 
-Путь должен указывать на корень приложения с `src/{app|pages|routes, features, services?, shared}`, а не на корень всего монорепо.
+Путь должен указывать на корень приложения с `src/{app|pages|routes, features, services?, shared}`.
 
-`exit 2` с сообщением об отсутствии `src/` часто значит, что вы передали корень workspace вместо app package.
+## Multi-root с корня монорепо
+
+Если у `path` **нет** `src/`, CLI находит DMA-корни и проверяет каждый отдельно:
+
+```bash
+npx @derived-modular/cli check .
+```
+
+**По умолчанию:** пакеты с `src/` и composition root (`app` | `pages` | `routes`).
+
+**Кандидаты:** сначала npm/bun `package.json` workspaces или `pnpm-workspace.yaml`; иначе неглубокий обход каталогов (пропуск `node_modules`, `dist`, …).
+
+### Флаги
+
+```bash
+# явный список (без discover; positional path игнорируется)
+npx @derived-modular/cli check --roots apps/web,apps/admin
+
+# также library-пакеты с src/{features|services|shared} без composition root
+npx @derived-modular/cli check . --include-packages
+```
+
+Каждый корень — **отдельный граф**. Workspace-импорты между пакетами **не** склеиваются — осознанно.
+
+Коды выхода агрегируются: `1`, если любой корень упал в `check`; `2`, если корней нет или у `--roots` нет `src/`.
 
 ## CI для нескольких приложений
 
-Варианты:
+### Один job с корня репо
 
-### Матрица jobs
+```yaml
+- run: npx @derived-modular/cli check .
+```
+
+### Матрица jobs (per app)
 
 ```yaml
 strategy:
@@ -32,15 +60,11 @@ steps:
   - run: npx @derived-modular/cli check ${{ matrix.app }}
 ```
 
-### Скрипт в корне
+### Явные корни
 
 ```bash
-for app in apps/web apps/admin; do
-  npx @derived-modular/cli check "$app" || exit 1
-done
+npx @derived-modular/cli check --roots apps/web,apps/admin
 ```
-
-Каждое приложение — отдельный граф. Циклы между пакетами через workspace imports `dma check` в v1 **не** склеивает в один граф — это осознанное ограничение v1.
 
 ## Пакеты workspace (стадия 4)
 
@@ -57,6 +81,8 @@ packages/
 
 Правила те же: прямые пути, без barrel внутри пакета. Enforcement — через `exports` в `package.json` и импорты приложений на published surface.
 
+Чтобы прогнать `dma check` по такому пакету (без composition root): `--include-packages` или `--roots packages/cart`.
+
 Приложение импортирует `@my-org/cart/public/cart` (или path из `exports`) — как внешний модуль ниже по слою, не как feature.
 
 Подробнее о стадии 4 — [Модули и public API](/concepts/modules).
@@ -72,9 +98,9 @@ packages/
 ```bash
 bun run build   # собрать CLI и плагины
 bun run --cwd examples/vite-react dma-check
+# или с корня после сборки:
+npx @derived-modular/cli check --roots examples/vite-react
 ```
-
-В CI монорепо DMA гоняют check по examples отдельными job'ами — тот же паттерн, что для `apps/*`.
 
 ## Линтеры в монорепо
 

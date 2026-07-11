@@ -1,3 +1,4 @@
+import { relative } from "node:path";
 import { analyze } from "../core/analyze";
 import { DmaEnvironmentError } from "../core/errors";
 import type { AnalyzeMode, Diagnostic } from "../core/types";
@@ -5,19 +6,30 @@ import { formatHuman } from "./format-human";
 import { formatJson } from "./format-json";
 import { formatSarif } from "./format-sarif";
 import { parseCliArgs } from "./parse-args";
+import { resolveRoots } from "./resolve-roots";
+
+export interface FormatOptions {
+  projects?: string[];
+}
+
+const toProjectLabel = (root: string, cwd: string): string => {
+  const rel = relative(cwd, root);
+  return (rel === "" ? "." : rel).split("\\").join("/");
+};
 
 const formatReport = (
   format: "human" | "json" | "sarif",
   command: AnalyzeMode,
-  diagnostics: Diagnostic[]
+  diagnostics: Diagnostic[],
+  options?: FormatOptions
 ): string => {
   if (format === "json") {
-    return formatJson(command, diagnostics);
+    return formatJson(command, diagnostics, options);
   }
   if (format === "sarif") {
     return formatSarif(command, diagnostics);
   }
-  return formatHuman(command, diagnostics);
+  return formatHuman(command, diagnostics, options);
 };
 
 const formatCliError = (message: string): string => {
@@ -30,8 +42,33 @@ const formatCliError = (message: string): string => {
 export const runCli = (argv: string[]): number => {
   try {
     const args = parseCliArgs(argv);
-    const { diagnostics } = analyze(args.path, args.command);
-    const report = formatReport(args.format, args.command, diagnostics);
+    const roots = resolveRoots(args);
+    const isMulti = roots.length > 1;
+    const cwd = process.cwd();
+    const diagnostics: Diagnostic[] = [];
+
+    for (const root of roots) {
+      const result = analyze(root, args.command);
+      if (isMulti) {
+        const project = toProjectLabel(root, cwd);
+        for (const diagnostic of result.diagnostics) {
+          diagnostics.push({ ...diagnostic, project });
+        }
+      } else {
+        diagnostics.push(...result.diagnostics);
+      }
+    }
+
+    const formatOptions: FormatOptions | undefined = isMulti
+      ? { projects: roots.map((root) => toProjectLabel(root, cwd)) }
+      : undefined;
+
+    const report = formatReport(
+      args.format,
+      args.command,
+      diagnostics,
+      formatOptions
+    );
     process.stdout.write(`${report}\n`);
 
     if (

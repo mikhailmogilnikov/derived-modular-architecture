@@ -12,6 +12,8 @@ export interface Diagnostic {
   file?: string;
   help?: string;
   message: string;
+  /** Relative DMA root path; set only in multi-root CLI runs. */
+  project?: string;
   range?: DiagnosticRange;
   ruleId: string;
   severity: Severity;

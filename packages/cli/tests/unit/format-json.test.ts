@@ -25,4 +25,17 @@ describe("formatJson", () => {
     expect(report.diagnostics).toHaveLength(6);
     expect(report.summary).toEqual({ errors: 2, infos: 3, warnings: 1 });
   });
+
+  test("includes projects when multi", () => {
+    const report = JSON.parse(
+      formatJson(
+        "check",
+        [{ message: "e", project: "apps/a", ruleId: "x", severity: "error" }],
+        { projects: ["apps/a", "apps/b"] }
+      )
+    ) as { projects?: string[]; diagnostics: Diagnostic[] };
+
+    expect(report.projects).toEqual(["apps/a", "apps/b"]);
+    expect(report.diagnostics[0]?.project).toBe("apps/a");
+  });
 });

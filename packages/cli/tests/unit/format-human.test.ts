@@ -48,4 +48,28 @@ describe("formatHuman", () => {
       delete process.env.NO_COLOR;
     }
   });
+
+  test("multi-root banners and footer", () => {
+    process.env.NO_COLOR = "1";
+    try {
+      const diagnostics: Diagnostic[] = [
+        {
+          message: "bad",
+          project: "apps/admin",
+          ruleId: "feature-to-feature",
+          severity: "error",
+        },
+      ];
+      const out = formatHuman("check", diagnostics, {
+        projects: ["apps/admin", "apps/web"],
+      });
+      expect(out).toContain("Checking 2 roots");
+      expect(out).toContain("── apps/admin ──");
+      expect(out).toContain("── apps/web ──");
+      expect(out).toContain("ok");
+      expect(out).toContain("2 roots · 1 error");
+    } finally {
+      delete process.env.NO_COLOR;
+    }
+  });
 });

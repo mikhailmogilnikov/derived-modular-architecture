@@ -79,14 +79,14 @@ Upload the artifact to Code Scanning — violations appear in the Security tab a
 
 ## Monorepo
 
-Currently v1 CLI inspects one app root per invocation. In a monorepo run check **per application**:
+From the workspace root (no `src/` there), discover and check all DMA apps in one call:
 
 ```bash
-npx @derived-modular/cli check apps/web
-npx @derived-modular/cli check apps/admin
+npx @derived-modular/cli check .
+npx @derived-modular/cli check --roots apps/web,apps/admin
 ```
 
-Or via turbo/npm scripts in each package. Details — [Monorepo](/guides/monorepo).
+Or per package / turbo filter. Details — [Monorepo](/guides/monorepo).
 
 ## Examples in the DMA repository
 
@@ -101,7 +101,7 @@ All [examples](https://github.com/mikhailmogilnikov/derived-modular-architecture
 
 | Problem | Fix |
 | --- | --- |
-| `exit 2`, missing `src/` | Ensure `path` points to the application root, not the monorepo |
+| `exit 2`, missing `src/` / no roots | App path, or monorepo root with discoverable apps / `--roots` |
 | Aliases not resolved | Check `tsconfig.json` paths at the application root |
 | CI green, local fails | CLI versions, different cwd, uncommitted files |
 

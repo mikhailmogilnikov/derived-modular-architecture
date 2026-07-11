@@ -1,5 +1,11 @@
 # @derived-modular/cli
 
+## 1.1.0
+
+### Minor Changes
+
+- Multi-root monorepo support: discover DMA apps from workspaces (or directory walk), `--roots`, `--include-packages`; each root analyzed as a separate graph
+
 ## 1.0.1
 
 ### Patch Changes

@@ -88,7 +88,7 @@ npx @derived-modular/cli check .
 
 | Симптом | Что проверить |
 | --- | --- |
-| Нет `src/` | `path` указывает на корень **приложения**, не монорепо целиком |
+| Нет `src/` / нет DMA-корней | Single-app: корень приложения. Корень монорепо: discovery должен найти apps, или `--roots` / `--include-packages` |
 | Битый tsconfig | `paths` для `@/` в tsconfig приложения |
 | Неверные аргументы | `npx @derived-modular/cli check --help` |
 

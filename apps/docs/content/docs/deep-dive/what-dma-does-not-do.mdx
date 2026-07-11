@@ -51,7 +51,7 @@ When `public/` is bloated (~8+ entrypoints) — split the module. No dedicated `
 | LSP / architecture server | CLI + linters in the editor |
 | Watch mode | `dma check` in pre-push or CI |
 | User config for doctor thresholds | CLI defaults; changes — post-v1 |
-| Monorepo discovery in one call | `dma check` per app root ([Monorepo](/guides/monorepo)) |
+| Cross-package graph in monorepo | Separate graphs per root ([Monorepo](/guides/monorepo)) |
 | Full graph parity in Biome/Oxlint | Always `dma check` in CI |
 | Runtime loading of `rules.json` in CLI | Rules built into `@derived-modular/cli` |
 

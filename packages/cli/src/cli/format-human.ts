@@ -1,6 +1,10 @@
 import { relative } from "node:path";
 import type { AnalyzeMode, Diagnostic, Severity } from "../core/types";
 
+export interface FormatHumanOptions {
+  projects?: string[];
+}
+
 const ESC = "\u001B[";
 const RESET = `${ESC}0m`;
 const BOLD = `${ESC}1m`;
@@ -121,6 +125,28 @@ const formatSummary = (
   return `${mark} ${parts.join(", ")}`;
 };
 
+const formatMultiFooter = (
+  projectCount: number,
+  errors: number,
+  warnings: number,
+  infos: number,
+  color: boolean
+): string => {
+  const parts = [
+    `${projectCount} root${projectCount === 1 ? "" : "s"}`,
+    paint(color, RED, `${errors} error${errors === 1 ? "" : "s"}`),
+  ];
+  if (warnings > 0) {
+    parts.push(
+      paint(color, YELLOW, `${warnings} warning${warnings === 1 ? "" : "s"}`)
+    );
+  }
+  if (infos > 0) {
+    parts.push(paint(color, BLUE, `${infos} info${infos === 1 ? "" : "s"}`));
+  }
+  return parts.join(" · ");
+};
+
 const severityRank = (severity: Severity): number => {
   if (severity === "error") {
     return 0;
@@ -131,19 +157,8 @@ const severityRank = (severity: Severity): number => {
   return 2;
 };
 
-export const formatHuman = (
-  command: AnalyzeMode,
-  diagnostics: Diagnostic[]
-): string => {
-  const color = useColor();
-  const { errors, infos, warnings } = countBySeverity(diagnostics);
-  const summary = formatSummary(command, errors, warnings, infos, color);
-
-  if (diagnostics.length === 0) {
-    return summary;
-  }
-
-  const ordered = [...diagnostics].sort((a, b) => {
+const orderDiagnostics = (diagnostics: Diagnostic[]): Diagnostic[] =>
+  [...diagnostics].sort((a, b) => {
     const bySeverity = severityRank(a.severity) - severityRank(b.severity);
     if (bySeverity !== 0) {
       return bySeverity;
@@ -156,8 +171,67 @@ export const formatHuman = (
     return a.ruleId.localeCompare(b.ruleId);
   });
 
-  const blocks = ordered.map((diagnostic) =>
+const formatSingle = (
+  command: AnalyzeMode,
+  diagnostics: Diagnostic[],
+  color: boolean
+): string => {
+  const { errors, infos, warnings } = countBySeverity(diagnostics);
+  const summary = formatSummary(command, errors, warnings, infos, color);
+
+  if (diagnostics.length === 0) {
+    return summary;
+  }
+
+  const blocks = orderDiagnostics(diagnostics).map((diagnostic) =>
     formatDiagnostic(diagnostic, color)
   );
   return `${blocks.join("\n\n")}\n\n${summary}`;
+};
+
+const formatMulti = (
+  diagnostics: Diagnostic[],
+  projects: string[],
+  color: boolean
+): string => {
+  const { errors, infos, warnings } = countBySeverity(diagnostics);
+  const header = `Checking ${projects.length} roots…`;
+  const sections: string[] = [];
+
+  for (const project of projects) {
+    const projectDiagnostics = diagnostics.filter(
+      (diagnostic) => diagnostic.project === project
+    );
+    const banner = `── ${project} ──`;
+    if (projectDiagnostics.length === 0) {
+      sections.push(`${banner}\nok`);
+      continue;
+    }
+    const blocks = orderDiagnostics(projectDiagnostics).map((diagnostic) =>
+      formatDiagnostic(diagnostic, color)
+    );
+    sections.push(`${banner}\n${blocks.join("\n\n")}`);
+  }
+
+  const footer = formatMultiFooter(
+    projects.length,
+    errors,
+    warnings,
+    infos,
+    color
+  );
+  return `${header}\n${sections.join("\n")}\n${footer}`;
+};
+
+export const formatHuman = (
+  command: AnalyzeMode,
+  diagnostics: Diagnostic[],
+  options?: FormatHumanOptions
+): string => {
+  const color = useColor();
+  const projects = options?.projects;
+  if (projects !== undefined && projects.length > 1) {
+    return formatMulti(diagnostics, projects, color);
+  }
+  return formatSingle(command, diagnostics, color);
 };

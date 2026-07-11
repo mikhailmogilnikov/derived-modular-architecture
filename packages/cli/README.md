@@ -38,11 +38,14 @@ npx @derived-modular/cli check [path]          # hard rules (fails CI on errors)
 npx @derived-modular/cli doctor [path]         # evolution signals (exit 0 by default)
 npx @derived-modular/cli check --format json
 npx @derived-modular/cli doctor --format sarif
+npx @derived-modular/cli check .               # multi-root if path has no src/
+npx @derived-modular/cli check --roots apps/web,apps/admin
+npx @derived-modular/cli check . --include-packages
 ```
 
 Invoke only via the package name — do not rely on a short global binary.
 
-`path` defaults to the current working directory. DMA looks for `src/{app|pages|routes,features,services?,shared}`.
+`path` defaults to the current working directory. If `path` contains `src/`, that single tree is analyzed. If not, the CLI discovers DMA app packages (workspaces first, directory walk fallback). Use `--roots` for an explicit list; `--include-packages` also includes library packages with `src/{features|services|shared}` but no composition root.
 
 ### Exit codes
 
@@ -133,9 +136,9 @@ bun test
 bun run build
 ```
 
-## Out of scope (v1)
+## Out of scope
 
-Autofix/codemods, project scaffolding, LSP, monorepo / `domains/*` roots, user config files, watch mode.
+Autofix/codemods, project scaffolding, LSP, `domains/*` layout, user config files (`dma.config.*`), cross-package graph merge, watch mode.
 
 ## License
 
