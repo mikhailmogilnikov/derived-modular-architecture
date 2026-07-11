@@ -19,9 +19,9 @@ interface HomeFileTreeProps {
 }
 
 const highlightClass: Record<TreeHighlight, string> = {
-  bad: "bg-red-500/10 text-red-300/95",
+  bad: "bg-red-500/10 text-red-400",
   dim: "text-fd-muted-foreground/70",
-  good: "bg-emerald-500/10 text-emerald-300/95",
+  good: "landing-tone-success-badge",
   selected: "bg-fd-accent text-fd-accent-foreground",
 };
 

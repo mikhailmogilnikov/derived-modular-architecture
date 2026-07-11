@@ -1,15 +1,16 @@
 import { ArrowRight, Layers, Rocket } from "lucide-react";
 import Link from "next/link";
-import { HomeCodeTabs } from "@/features/home/public/home-code-tabs";
 import {
   getHomeLocale,
   homeCopy,
-  teamTree,
+  moduleStageTrees,
 } from "@/features/home/public/home-copy";
-import { HomeExplorer } from "@/features/home/public/home-explorer";
 import { HomeFooter } from "@/features/home/public/home-footer";
 import { HomeFrameworkIcons } from "@/features/home/public/home-framework-icons";
+import { HomeLayersGrid } from "@/features/home/public/home-layers-grid";
+import { HomeModuleStages } from "@/features/home/public/home-module-stages";
 import { HomeToolingPipeline } from "@/features/home/public/home-tooling-pipeline";
+import { HomeViolationDemo } from "@/features/home/public/home-violation-demo";
 import { gitConfig } from "@/shared/model/app-config";
 
 const heroBadgeClass =
@@ -76,57 +77,52 @@ export function HomePage({ lang }: { lang: string }) {
       <section className="mx-auto max-w-6xl px-4 py-20 md:py-28">
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <h2 className="mb-4 font-semibold text-3xl tracking-tight md:text-4xl">
-            {content.structureTitle}
+            {content.layersTitle}
           </h2>
           <p className="text-fd-muted-foreground leading-relaxed">
-            {content.structureLead}
+            {content.layersLead}
           </p>
         </div>
-        <HomeCodeTabs labels={content.structureTabs} />
+        <HomeLayersGrid layers={content.layers} />
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-20 md:py-28">
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <h2 className="mb-4 font-semibold text-3xl tracking-tight md:text-4xl">
-            {content.teamTitle}
+            {content.moduleStagesTitle}
           </h2>
           <p className="text-fd-muted-foreground leading-relaxed">
-            {content.teamLead}
+            {content.moduleStagesLead}
           </p>
         </div>
+        <HomeModuleStages
+          explorerTitle={content.moduleStagesExplorer}
+          nextAriaLabel={content.moduleStagesNextAria}
+          stageAriaLabel={content.moduleStagesStageAria}
+          stages={content.moduleStages}
+          trees={moduleStageTrees}
+        />
+      </section>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="space-y-4">
-            <HomeExplorer nodes={teamTree} title={content.explorerTitle} />
-            <div className="overflow-hidden rounded-xl border border-fd-border/80 bg-fd-card">
-              <div className="border-fd-border/60 border-b px-4 py-2.5 font-medium text-sm">
-                {content.problemsTitle}
-              </div>
-              <div className="space-y-2 p-4 font-mono text-[13px]">
-                <p className="text-red-400">error</p>
-                <p className="text-fd-muted-foreground leading-relaxed">
-                  {content.violation}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col justify-center gap-8">
-            {content.teamPoints.map((point, index) => (
-              <div className="space-y-2" key={point.title}>
-                <p className="font-mono text-fd-muted-foreground text-xs">
-                  {String(index + 1).padStart(2, "0")}
-                </p>
-                <h3 className="font-medium text-lg tracking-tight">
-                  {point.title}
-                </h3>
-                <p className="text-fd-muted-foreground text-sm leading-relaxed">
-                  {point.description}
-                </p>
-              </div>
-            ))}
-          </div>
+      <section className="mx-auto max-w-6xl px-4 py-20 md:py-28">
+        <div className="mx-auto mb-12 max-w-2xl text-center">
+          <h2 className="mb-4 font-semibold text-3xl tracking-tight md:text-4xl">
+            {content.violationTitle}
+          </h2>
+          <p className="text-fd-muted-foreground leading-relaxed">
+            {content.violationLead}
+          </p>
         </div>
+        <HomeViolationDemo
+          command={content.violationDemo.command}
+          detail={content.violationDemo.detail}
+          editorLabel={content.violationDemo.editorLabel}
+          error={content.violationDemo.error}
+          fileName={content.violationDemo.fileName}
+          importLine={content.violationDemo.importLine}
+          note={content.violationDemo.note}
+          terminalLabel={content.violationDemo.terminalLabel}
+        />
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-20 md:pb-28">

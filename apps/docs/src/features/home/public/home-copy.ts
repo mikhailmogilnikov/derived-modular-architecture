@@ -9,7 +9,6 @@ export const homeCopy = {
     ctaStart: "Quick start",
 
     ctaTitle: "Start here",
-    explorerTitle: "Explorer",
     footerGitHubAria: "View on GitHub",
     footerNav: [
       {
@@ -76,36 +75,79 @@ export const homeCopy = {
         workflow: "ci.yml",
       },
     },
-    problemsTitle: "Problems",
-    structureLead:
-      "Screens on top. User flows in features. Shared pieces only when needed. That’s the whole idea.",
-    structureTabs: {
-      check: "Check",
-      import: "Imports",
-      tree: "Folders",
-    },
-
-    structureTitle: "One clear layout",
-    teamLead:
-      "If checkout imports catalog, you see it in the editor — and CI fails before merge.",
-    teamPoints: [
+    layers: [
+      {
+        description: "Entry point — routes and pages where the app starts.",
+        name: "app",
+      },
       {
         description:
-          "Boundaries come from folders, not from a wiki nobody reads.",
-        title: "Structure first",
+          "Product modules other flows import. For example: catalog service imports product and cart features.",
+        name: "services",
       },
       {
-        description: "Linter plugins catch bad imports while you type.",
-        title: "Fast feedback",
+        description:
+          "Product flow: cart, checkout. Imports between features are forbidden.",
+        name: "features",
       },
       {
-        description: "dma check runs the full graph in CI.",
-        title: "Hard gate",
+        description: "Portable helpers and UI — dates, buttons, HTTP client.",
+        name: "shared",
       },
     ],
-
-    teamTitle: "Same rules for the team and the pipeline",
-    violation: "feature-to-feature: checkout must not import catalog",
+    layersLead:
+      "No components/, utils/, or ad-hoc folders by taste. The folder tree is the rulebook — linter and CI enforce it. One-way imports: a lower layer never imports a higher one.",
+    layersTitle: "Four boundaries in src/",
+    moduleStages: [
+      {
+        change: "Whole file is the public API — import checkout.tsx directly.",
+        stage: "0",
+        title: "File module",
+      },
+      {
+        change:
+          "Module grew — public/ holds what app and other modules import. cart-row.tsx and hooks stay inside, only entrypoints go in public/.",
+        stage: "1",
+        title: "Folder + public/",
+      },
+      {
+        change:
+          "Too many files inside — split by role: ui/ for components, model/ for state and business logic, api/ for requests, lib/ for helpers used across segments.",
+        stage: "2",
+        title: "Segments",
+      },
+      {
+        change:
+          "checkout-form imports checkout — checkout moves to services/, the new flow stays in features/.",
+        stage: "3",
+        title: "Promotion",
+      },
+      {
+        change:
+          "Extracted to packages/checkout/ — same rules, shared across apps.",
+        stage: "4",
+        title: "Package",
+      },
+    ],
+    moduleStagesExplorer: "Explorer",
+    moduleStagesLead:
+      "Start with a single file. Folders appear when the code needs them — each step builds on the last, no rewrite.",
+    moduleStagesNextAria: "Next stage",
+    moduleStagesStageAria: "Stage",
+    moduleStagesTitle: "The layout grows with the product",
+    violationDemo: {
+      command: "npx @derived-modular/cli check .",
+      detail: "checkout → catalog/public/api.ts",
+      editorLabel: "Problems",
+      error: "feature-to-feature",
+      fileName: "features/checkout/model.ts",
+      importLine: 'import { getCatalog } from "@/features/catalog/public/api";',
+      note: "Same ruleId in ESLint and in CI.",
+      terminalLabel: "terminal",
+    },
+    violationLead:
+      "Checkout can't reach into catalog — in the editor or in CI.",
+    violationTitle: "feature-to-feature is an error",
   },
   ru: {
     badge: "Последнее обновление — релиз v1.0.1",
@@ -114,7 +156,6 @@ export const homeCopy = {
     ctaStart: "Быстрый старт",
 
     ctaTitle: "Начните здесь",
-    explorerTitle: "Explorer",
     footerGitHubAria: "Открыть на GitHub",
     footerNav: [
       {
@@ -181,35 +222,79 @@ export const homeCopy = {
         workflow: "ci.yml",
       },
     },
-    problemsTitle: "Problems",
-    structureLead:
-      "Экраны сверху. Пользовательские потоки в features. Общее — только когда нужно. Вся идея в этом.",
-    structureTabs: {
-      check: "Проверка",
-      import: "Импорты",
-      tree: "Папки",
-    },
-
-    structureTitle: "Одна понятная раскладка",
-    teamLead:
-      "Если checkout импортирует catalog — это видно в редакторе, а CI падает до merge.",
-    teamPoints: [
+    layers: [
       {
-        description: "Границы из папок, а не из вики, которую никто не читает.",
-        title: "Сначала структура",
+        description:
+          "Точка входа — маршруты и страницы, с чего начинается приложение.",
+        name: "app",
       },
       {
-        description: "Плагины ловят плохие импорты прямо при наборе.",
-        title: "Быстрый фидбек",
+        description:
+          "Продуктовые модули, которые импортируют другие потоки. Например: сервис catalog импортирует фичи product и cart.",
+        name: "services",
       },
       {
-        description: "dma check гоняет полный граф в CI.",
-        title: "Жёсткий gate",
+        description:
+          "Продуктовый поток: cart, checkout. Импорты между фичами запрещены.",
+        name: "features",
+      },
+      {
+        description: "Переносимые хелперы и UI — даты, кнопки, HTTP-клиент.",
+        name: "shared",
       },
     ],
-
-    teamTitle: "Одни правила для команды и пайплайна",
-    violation: "feature-to-feature: checkout не должен импортировать catalog",
+    layersLead:
+      "Без components, utils и прочего «на глаз». Дерево папок задаёт правила — линтер и CI проверяют. Импорты однонаправленные: нижестоящий слой не импортирует вышестоящий.",
+    layersTitle: "Четыре границы в src/",
+    moduleStages: [
+      {
+        change: "Весь файл публичный — импортируйте checkout.tsx напрямую.",
+        stage: "0",
+        title: "Файл-модуль",
+      },
+      {
+        change:
+          "Модуль разросся — в public/ лежит то, что импортируют app и другие модули. cart-row.tsx и хуки остаются внутри checkout/, наружу — только entrypoint'ы.",
+        stage: "1",
+        title: "Папка + public/",
+      },
+      {
+        change:
+          "Файлов внутри модуля стало много — делим по ролям: ui/ для компонентов, model/ для состояния и бизнес-логики, api/ для запросов, lib/ для хелперов между сегментами.",
+        stage: "2",
+        title: "Сегменты",
+      },
+      {
+        change:
+          "checkout-form импортирует checkout — checkout переезжает в services/, новый поток остаётся в features/.",
+        stage: "3",
+        title: "Promotion",
+      },
+      {
+        change:
+          "Вынесли в packages/checkout/ — те же правила, общий модуль для приложений.",
+        stage: "4",
+        title: "Пакет",
+      },
+    ],
+    moduleStagesExplorer: "Explorer",
+    moduleStagesLead:
+      "Начните с одного файла. Папки появляются, когда код этого требует — каждый шаг наследует предыдущий, без переписывания.",
+    moduleStagesNextAria: "Следующая стадия",
+    moduleStagesStageAria: "Стадия",
+    moduleStagesTitle: "Структура растёт вместе с продуктом",
+    violationDemo: {
+      command: "npx @derived-modular/cli check .",
+      detail: "checkout → catalog/public/api.ts",
+      editorLabel: "Problems",
+      error: "feature-to-feature",
+      fileName: "features/checkout/model.ts",
+      importLine: 'import { getCatalog } from "@/features/catalog/public/api";',
+      note: "Тот же ruleId в ESLint и в CI.",
+      terminalLabel: "terminal",
+    },
+    violationLead: "Checkout не залезает в catalog — ни в редакторе, ни в CI.",
+    violationTitle: "feature-to-feature — ошибка",
   },
 } as const;
 
@@ -218,6 +303,226 @@ export type HomeLocale = keyof typeof homeCopy;
 export function getHomeLocale(lang: string): HomeLocale {
   return lang in homeCopy ? (lang as HomeLocale) : "en";
 }
+
+export const moduleStageTrees = {
+  "0": {
+    nodes: [
+      {
+        children: [{ highlight: "good", kind: "file", name: "checkout.tsx" }],
+        kind: "folder",
+        name: "features",
+        open: true,
+      },
+    ],
+    window: "features/",
+  },
+  "1": {
+    nodes: [
+      {
+        children: [
+          {
+            children: [
+              {
+                children: [
+                  {
+                    highlight: "good",
+                    kind: "file",
+                    name: "checkout-page.tsx",
+                  },
+                ],
+                kind: "folder",
+                name: "public",
+                open: true,
+              },
+              {
+                gitStatus: "added",
+                highlight: "good",
+                kind: "file",
+                name: "use-cart-total.ts",
+              },
+              {
+                gitStatus: "added",
+                highlight: "good",
+                kind: "file",
+                name: "cart-row.tsx",
+              },
+            ],
+            kind: "folder",
+            name: "checkout",
+            open: true,
+          },
+        ],
+        kind: "folder",
+        name: "features",
+        open: true,
+      },
+    ],
+    window: "features/checkout/",
+  },
+  "2": {
+    nodes: [
+      {
+        children: [
+          {
+            children: [
+              {
+                children: [{ kind: "file", name: "checkout-page.tsx" }],
+                kind: "folder",
+                name: "public",
+                open: true,
+              },
+              {
+                gitStatus: "added",
+                highlight: "good",
+                kind: "folder",
+                name: "ui",
+                open: true,
+              },
+              {
+                gitStatus: "added",
+                highlight: "good",
+                kind: "folder",
+                name: "model",
+                open: true,
+              },
+              {
+                gitStatus: "added",
+                highlight: "good",
+                kind: "folder",
+                name: "api",
+                open: true,
+              },
+              {
+                gitStatus: "added",
+                highlight: "good",
+                kind: "folder",
+                name: "lib",
+                open: true,
+              },
+            ],
+            kind: "folder",
+            name: "checkout",
+            open: true,
+          },
+        ],
+        kind: "folder",
+        name: "features",
+        open: true,
+      },
+    ],
+    window: "features/checkout/",
+  },
+  "3": {
+    nodes: [
+      {
+        children: [
+          {
+            children: [
+              {
+                children: [
+                  {
+                    gitStatus: "added",
+                    highlight: "good",
+                    kind: "file",
+                    name: "checkout-form.tsx",
+                  },
+                ],
+                kind: "folder",
+                name: "public",
+                open: true,
+              },
+            ],
+            gitStatus: "added",
+            highlight: "good",
+            kind: "folder",
+            name: "checkout-form",
+            open: true,
+          },
+        ],
+        kind: "folder",
+        name: "features",
+        open: true,
+      },
+      {
+        children: [
+          {
+            children: [
+              {
+                children: [{ kind: "file", name: "checkout-page.tsx" }],
+                kind: "folder",
+                name: "public",
+                open: true,
+              },
+              { kind: "folder", name: "ui", open: true },
+              { kind: "folder", name: "model", open: true },
+            ],
+            gitStatus: "added",
+            highlight: "good",
+            kind: "folder",
+            name: "checkout",
+            open: true,
+          },
+        ],
+        gitStatus: "added",
+        highlight: "good",
+        kind: "folder",
+        name: "services",
+        open: true,
+      },
+    ],
+    window: "src/",
+  },
+  "4": {
+    nodes: [
+      {
+        children: [
+          {
+            children: [
+              {
+                gitStatus: "added",
+                highlight: "good",
+                kind: "file",
+                name: "package.json",
+              },
+              {
+                children: [
+                  {
+                    children: [
+                      {
+                        gitStatus: "added",
+                        highlight: "good",
+                        kind: "file",
+                        name: "checkout-page.tsx",
+                      },
+                    ],
+                    kind: "folder",
+                    name: "public",
+                    open: true,
+                  },
+                ],
+                kind: "folder",
+                name: "src",
+                open: true,
+              },
+            ],
+            gitStatus: "added",
+            highlight: "good",
+            kind: "folder",
+            name: "checkout",
+            open: true,
+          },
+        ],
+        kind: "folder",
+        name: "packages",
+        open: true,
+      },
+    ],
+    window: "packages/checkout/",
+  },
+} as const satisfies Record<
+  string,
+  { nodes: readonly FileTreeNode[]; window: string }
+>;
 
 export const heroLayersTree: FileTreeNode[] = [
   { kind: "folder", name: "app" },
@@ -245,32 +550,4 @@ export const heroLayersTree: FileTreeNode[] = [
   },
   { kind: "folder", name: "services" },
   { kind: "folder", name: "shared" },
-];
-
-export const teamTree: FileTreeNode[] = [
-  {
-    children: [
-      {
-        children: [
-          {
-            children: [{ highlight: "bad", kind: "file", name: "api.ts" }],
-            kind: "folder",
-            name: "public",
-          },
-        ],
-        kind: "folder",
-        name: "catalog",
-        open: true,
-      },
-      {
-        children: [{ highlight: "selected", kind: "file", name: "model.ts" }],
-        kind: "folder",
-        name: "checkout",
-        open: true,
-      },
-    ],
-    kind: "folder",
-    name: "src/features",
-    open: true,
-  },
 ];
