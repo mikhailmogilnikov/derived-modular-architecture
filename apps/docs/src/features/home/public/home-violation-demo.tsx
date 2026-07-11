@@ -83,12 +83,14 @@ export function HomeViolationDemo({
         </div>
       </div>
 
-      <p className="mx-auto mt-4 flex max-w-md items-center justify-center gap-1.5 text-center text-fd-muted-foreground text-sm leading-relaxed">
-        <Check
-          aria-hidden="true"
-          className="landing-tone-success size-3.5 shrink-0"
-        />
-        {note}
+      <p className="mx-auto mt-4 max-w-md text-center text-fd-muted-foreground text-sm leading-relaxed">
+        <span className="inline-flex items-start gap-1.5 text-left">
+          <Check
+            aria-hidden="true"
+            className="landing-tone-success mt-1 size-3.5 shrink-0"
+          />
+          <span>{note}</span>
+        </span>
       </p>
     </div>
   );
