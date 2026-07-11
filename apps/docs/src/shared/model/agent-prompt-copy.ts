@@ -2,12 +2,12 @@ export const agentPromptCopy = {
   en: {
     label: "Agent prompt",
     tooltip:
-      "Copied! Paste into your agent project chat (Claude Code, Codex, Cursor, etc.). It'll suggest next steps for integrating the architecture into your project.",
+      "Copied. Paste into your agent chat in your project (Cursor, Claude Code, Codex). The prompt will suggest where to start with DMA.",
   },
   ru: {
     label: "Промпт для агента",
     tooltip:
-      "Скопировано! Вставьте в чат проекта Вашего агента (Claude Code, Codex, Cursor и т.д.). Он предложит дальнейшие шаги по интеграции архитектуры в проект.",
+      "Скопировано. Вставьте в чат агента в своём проекте (Cursor, Claude Code, Codex). Промпт подскажет, с чего начать применять DMA.",
   },
 } as const;
 

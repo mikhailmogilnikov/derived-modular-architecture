@@ -2,7 +2,7 @@ import { Layers } from "lucide-react";
 import Link from "next/link";
 import { siGithub } from "simple-icons";
 import { getHomeLocale, homeCopy } from "@/features/home/public/home-copy";
-import { gitConfig, navBrandName } from "@/shared/model/app-config";
+import { appName, gitConfig } from "@/shared/model/app-config";
 
 interface HomeFooterProps {
   lang: string;
@@ -21,7 +21,7 @@ export function HomeFooter({ lang }: HomeFooterProps) {
         >
           <Layers aria-hidden className="size-5 shrink-0" />
           <span className="font-semibold text-lg tracking-tight">
-            {navBrandName}
+            {appName}
           </span>
         </Link>
         <div className="flex items-center gap-4">
