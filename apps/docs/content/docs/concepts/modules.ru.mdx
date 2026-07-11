@@ -69,7 +69,7 @@ api    → lib
 
 ### Стадия 3 — разделение
 
-Если в `public/` слишком много реализаций entrypoint'ов (ориентир ~8+) — **делите модуль**, а не вкладывайте `public/` друг в друга. Пока это решение на ревью, отдельного сигнала в doctor нет.
+Если в `public/` слишком много реализаций точка входа'ов (ориентир ~8+) — **делите модуль**, а не вкладывайте `public/` друг в друга. Пока это решение на ревью, отдельного сигнала в doctor нет.
 
 ### Стадия 4 — пакет
 
@@ -90,7 +90,7 @@ import { CartRow } from "@/features/checkout/ui/cart-row";
 import { CheckoutPage } from "@/features/checkout";
 ```
 
-`public/` остаётся **плоским**. Реализация entrypoint'а живёт в `public/` и может импортировать внутренние сегменты. Реэкспорт 1:1 из внутреннего файла допустим, но по умолчанию пишите код прямо в `public/`.
+`public/` остаётся **плоским**. Реализация точка входа'а живёт в `public/` и может импортировать внутренние сегменты. Реэкспорт 1:1 из внутреннего файла допустим, но по умолчанию пишите код прямо в `public/`.
 
 На стадии 0 весь файл — публичный, папка `public/` не нужна.
 
@@ -110,13 +110,13 @@ import { CheckoutPage } from "@/features/checkout";
 | Задача | Как |
 | --- | --- |
 | Использовать код ниже по слоям | Прямой импорт `services/*/public/*` или `shared/` |
-| Событие без знания подписчиков | Событие в `public/` эмиттера; подписка вниз или wiring в `app/` |
-| Прямой импорт дал бы цикл или шаг вверх | Порт в `public/ports.ts` + привязка в composition root |
-| Только визуальная композиция | Слоты/props в composition root |
+| Событие без знания подписчиков | Событие в `public/` эмиттера; подписка вниз или связка в `app/` |
+| Прямой импорт дал бы цикл или шаг вверх | Порт в `public/ports.ts` + привязка в корень композиции |
+| Только визуальная композиция | Слоты/props в корень композиции |
 
-Порты — runtime-зависимость, невидимая для статического графа. Держите их в `public/ports.ts` и не используйте для обхода promotion.
+Порты — зависимость во время выполнения, невидимая для статического графа. Держите их в `public/ports.ts` и не используйте для обхода promotion.
 
-## Что проверяет tooling
+## Что проверяют инструменты
 
 | Правило | Что ловит |
 | --- | --- |
@@ -128,8 +128,8 @@ import { CheckoutPage } from "@/features/checkout";
 
 <Cards>
   <Card title="Куда положить файл" description="Алгоритм размещения" href="/concepts/placement" />
-  <Card title="Эволюция кода" description="Second-use, promotion, doctor" href="/concepts/evolution" />
+  <Card title="Эволюция кода" description="Второе использование, promotion, doctor" href="/concepts/evolution" />
   <Card title="Shared" description="Группы ui, lib, api, model, domain" href="/concepts/shared" />
-  <Card title="Тесты" description="Colocate *.test.ts" href="/concepts/testing" />
+  <Card title="Тесты" description="Разместите рядом *.test.ts" href="/concepts/testing" />
   <Card title="Слои" description="features vs services" href="/concepts/layers" />
 </Cards>

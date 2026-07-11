@@ -4,7 +4,7 @@ description: "DMA на App Router: Server Components, Client boundary, providers
 icon: "AppWindow"
 ---
 
-Пример показывает, как DMA сочетается с **RSC boundary** Next.js App Router. Не полный runnable app в v1 — достаточно исходников для `dma check` и ESLint.
+Пример показывает, как DMA сочетается с **RSC boundary** Next.js App Router. Не полный запускаемый app в v1 — достаточно исходников для `dma check` и ESLint.
 
 Исходники: [examples/next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app).
 
@@ -35,7 +35,7 @@ src/
 
 ## Server vs Client
 
-Next.js по умолчанию — Server Components. DMA держит split на **composition root** vs **feature public entries**:
+Next.js по умолчанию — Server Components. DMA держит split на **корень композиции** vs **feature public entries**:
 
 | Файл | Boundary | Почему |
 | --- | --- | --- |
@@ -54,7 +54,7 @@ app/layout.tsx          (Server)
               └── features/profile.tsx                       (Client)
 ```
 
-**Паттерн:** `page.tsx` остаётся тонким server composition root. Интерактивность — в feature `public/` entries. Не импортируйте `*.store.ts` из `page.tsx`.
+**Паттерн:** `page.tsx` остаётся тонким тонкий server-корень композиции. Интерактивность — в feature `public/` entries. Не импортируйте `*.store.ts` из `page.tsx`.
 
 ## Тонкий `page.tsx`
 
@@ -92,7 +92,7 @@ export function Providers({ children }) {
 | `cart` | catalog, checkout | `addToCart`, `cartTotal` |
 | `session` | profile (через provider) | `SessionProvider` |
 
-`services/` появился, потому что **два модуля** импортируют cart — promotion из colocation.
+`services/` появился, потому что **два модуля** импортируют cart — promotion из размещение рядом.
 
 ## Стили
 
@@ -104,7 +104,7 @@ export function Providers({ children }) {
 
 Глобальные стили — только из `layout.tsx`. Features не импортируют globals.
 
-## Tooling
+## Инструменты
 
 ```bash
 bun run dma-check   # dma check .
@@ -117,7 +117,7 @@ ESLint ловит file-scoped ошибки (store из `page.tsx`). Полный
 ## Что дальше
 
 <Cards>
-  <Card title="Vite + React" description="Runnable канон" href="/guides/vite-react" />
-  <Card title="Склейка модулей" description="Providers и events" href="/guides/cross-module-wiring" />
+  <Card title="Vite + React" description="Запускаемый канон" href="/guides/vite-react" />
+  <Card title="Склейка модулей" description="Провайдеры и события" href="/guides/cross-module-wiring" />
   <Card title="Структура проекта" description="app vs pages vs routes" href="/start/project-layout" />
 </Cards>

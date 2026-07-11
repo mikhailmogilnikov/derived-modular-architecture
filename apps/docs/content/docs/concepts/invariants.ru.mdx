@@ -16,11 +16,11 @@ icon: "Shield"
 app/pages/routes → features → services → shared
 ```
 
-Composition root (`app/`, `pages/`, `routes/`) собирает приложение. Features не знают друг о друге. Services могут зависеть от других services, но граф остаётся ацикличным. Shared — только внутри shared.
+Корень композиции (`app/`, `pages/`, `routes/`) собирает приложение. Features не знают друг о друге. Services могут зависеть от других services, но граф остаётся ацикличным. Shared — только внутри shared.
 
 **Зачем:** циклы и «утечки вверх» — главная причина, почему рефакторинг становится дорогим. Направление фиксировано, его видно в графе.
 
-**Что проверяет tooling:** правила `layer-direction`, `feature-to-feature`, `no-cycle`.
+**Что проверяют инструменты:** правила `layer-direction`, `feature-to-feature`, `no-cycle`.
 
 ## 2. Публичный API без barrel-файлов
 
@@ -34,11 +34,11 @@ import { CartPanel } from "@/features/cart/public/cart-panel";
 import { CartPanel } from "@/features/cart/public";
 ```
 
-У маленьких модулей (stage 0) весь файл может быть публичным — без папки `public/`. Как только модуль обрастает внутренностями, публичная поверхность выносится в `public/`.
+У маленьких модулей (стадия 0) весь файл может быть публичным — без папки `public/`. Как только модуль обрастает внутренностями, публичная поверхность выносится в `public/`.
 
 **Зачем:** линтер и `dma check` строят граф по реальным путям импорта. Barrel с реэкспортами этот граф ломает.
 
-**Что проверяет tooling:** `public-api`, `no-barrel`.
+**Что проверяют инструменты:** `public-api`, `no-barrel`.
 
 <Callout type="info">
   Хотите разобраться глубже — [Почему нет barrel-файлов](/deep-dive/why-no-barrels).
@@ -50,7 +50,7 @@ import { CartPanel } from "@/features/cart/public";
 
 **Зачем:** преждевременное обобщение раздувает `shared/` и размывает границы модулей. Колокация держит код там, где его проще понять и удалить.
 
-**Что проверяет tooling:** частично — `shared-candidate` в `dma doctor`, когда **один и тот же файл** уже легально импортируют 2+ модуля (часто после lift в `shared/` или на surface `services/*/public/*`).
+**Что проверяют инструменты:** частично — `shared-candidate` в `dma doctor`, когда **один и тот же файл** уже легально импортируют 2+ модуля (часто после перенос в `shared/` или на surface `services/*/public/*`).
 
 ## 4. Правило второго использования
 
@@ -58,14 +58,14 @@ import { CartPanel } from "@/features/cart/public";
 
 Типичный путь:
 
-1. Хелпер colocate внутри feature A — один потребитель.
+1. Хелпер разместите рядом внутри feature A — один потребитель.
 2. Тот же код нужен feature B → **сначала** выносите (в `shared/` или promotion в `services/`), не deep-import из internal A.
 3. Если B импортировал internal A напрямую — `check` упадёт на `public-api` / `feature-to-feature` раньше, чем doctor покажет `shared-candidate`.
 4. После легального второго потребителя `dma doctor` может подсказать `shared-candidate` на общем файле.
 
 **Зачем:** архитектура растёт по факту использования, а не по ожиданиям.
 
-**Что проверяет tooling:** `shared-candidate`, inbound-предикаты при promotion.
+**Что проверяют инструменты:** `shared-candidate`, предикаты входящих рёбер при promotion.
 
 ## Важная деталь про типы
 
@@ -76,5 +76,5 @@ import { CartPanel } from "@/features/cart/public";
 <Cards>
   <Card title="Слои" description="Как определяется принадлежность к app, features, services, shared" href="/concepts/layers" />
   <Card title="Модули и public API" description="Стадии роста модуля и папка public/" href="/concepts/modules" />
-  <Card title="Эволюция кода" description="Promotion, doctor, second-use на практике" href="/concepts/evolution" />
+  <Card title="Эволюция кода" description="Promotion, doctor, второе использование на практике" href="/concepts/evolution" />
 </Cards>

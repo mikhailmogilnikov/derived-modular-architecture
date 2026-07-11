@@ -1,12 +1,12 @@
 ---
 title: "Тесты"
-description: "Где colocate unit-, integration- и e2e-тесты в DMA-проекте."
+description: "Где разместите рядом unit-, integration- и e2e-тесты в DMA-проекте."
 icon: "FlaskConical"
 ---
 
 DMA задаёт **размещение** тестов относительно модулей, но не выбирает раннер, coverage-пороги и пирамиду. Правило одно: тест живёт рядом с кодом, который защищает.
 
-## Unit-тесты — colocate
+## Unit-тесты — разместите рядом
 
 Файл `*.test.ts` (или `*.spec.ts`) — в той же папке, что и реализация:
 
@@ -32,18 +32,18 @@ shared/lib/
 
 | Код | Тест через |
 | --- | --- |
-| Internal store, composable | relative import в том же модуле |
+| Internal store, composable | относительный импорт в том же модуле |
 | `services/*/public/*` | import public-файла |
 | `shared/lib/*` | import хелпера |
 
 ### Что не делать
 
-- Импортировать **internals чужого модуля** из теста — gate упадёт так же, как в production. Тестируйте через `public/` или colocate тест внутри модуля с relative import.
+- Импортировать **внутренности чужого модуля** из теста — проверка упадёт так же, как в production. Тестируйте через `public/` или разместите рядом тест внутри модуля с относительный импорт.
 - Корневой `__tests__/` на весь проект — тесты не едут вместе с модулем при refactor.
 
 ## Компонентные тесты
 
-SFC / React component tests — colocate рядом с компонентом:
+SFC / React component tests — разместите рядом рядом с компонентом:
 
 ```text
 features/catalog/public/
@@ -51,11 +51,11 @@ features/catalog/public/
 └── catalog-page.test.tsx       # опционально
 ```
 
-Раннер на выбор: Vitest + Testing Library, `@vue/test-utils`, `@testing-library/svelte`. В examples DMA runnable-тесты в основном на pure TS (stores, services, lib) — без DOM harness.
+Раннер на выбор: Vitest + Testing Library, `@vue/test-utils`, `@testing-library/svelte`. В examples DMA запускаемый-тесты в основном на pure TS (stores, services, lib) — без DOM-обвязка.
 
 ## Integration / route tests
 
-Тонкий composition root (`app/`, `routes/`) — место для проверки wiring, если нужно. Чаще — отдельная папка в корне приложения:
+Тонкий корень композиции (`app/`, `routes/`) — место для проверки связки, если нужно. Чаще — отдельная папка в корне приложения:
 
 ```text
 apps/web/
@@ -64,7 +64,7 @@ apps/web/
 └── playwright.config.ts
 ```
 
-E2E не colocate внутри `features/` — они пересекают несколько модулей и роутов.
+E2E не разместите рядом внутри `features/` — они пересекают несколько модулей и роутов.
 
 ## Монорепо
 
@@ -72,7 +72,7 @@ Unit-тесты остаются в пакете приложения (`apps/web
 
 ## Примеры в репозитории
 
-| Example | Раннер | Colocate |
+| Example | Раннер | Разместите рядом |
 | --- | --- | --- |
 | [vite-react](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vite-react) | Vitest | `*.test.ts` рядом со stores, cart, lib |
 | [next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app) | Bun test | stores + `format-currency` |

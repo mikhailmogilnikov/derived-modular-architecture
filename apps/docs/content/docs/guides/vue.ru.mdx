@@ -4,15 +4,15 @@ description: "DMA на Vue 3: SFC, composables, provide/inject."
 icon: "Component"
 ---
 
-Runnable **Vue 3 + Vite** пример: composition root `src/app/`, SFC modules, colocated composables, `provide`/`inject` для cross-cutting context.
+Запускаемый **Vue 3 + Vite** пример: корень композиции `src/app/`, SFC modules, размещённый рядом composables, `provide`/`inject` для сквозной контекст.
 
 Исходники: [examples/vue-vite](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vue-vite).
 
-## Composition root
+## Корень композиции
 
 ```text
 src/app/
-├── App.vue            # nav, badges, mount */public/*
+├── App.vue            # nav, badges, монтирование */public/*
 ├── AppProviders.vue   # provide(shopThemeKey, …)
 └── app.css            # global reset + CSS variables
 ```
@@ -69,13 +69,13 @@ Injection keys в `shared/domain/` — portable, без product logic.
 
 | Файл | Слой |
 | --- | --- |
-| `App.vue` | `app/` — mount `*/public/*` only |
+| `App.vue` | `app/` — монтирование `*/public/*` only |
 | `AppProviders.vue` | `app/` — provide context |
 | `catalog-page.vue` | feature `public/` — relative → composables |
-| `profile.vue` | stage-0 — `inject` |
+| `profile.vue` | стадия-0 — `inject` |
 | `cart.ts` | service — framework-agnostic |
 
-`public/` импортирует internals через **relative paths** (`../use-catalog.ts`). Cross-module — `@/` aliases на `*/public/*`.
+`public/` импортирует внутренности через **относительные пути** (`../use-catalog.ts`). Межмодульные — `@/` aliases на `*/public/*`.
 
 ## Куда класть код
 
@@ -83,7 +83,7 @@ Injection keys в `shared/domain/` — portable, без product logic.
 | --- | --- |
 | Shell, layout | `src/app/` |
 | Product screen | `features/<name>/public/<page>.vue` |
-| Feature composable | colocated в feature |
+| Feature composable | размещённый рядом в feature |
 | 2+ consumers | `services/<name>/public/` |
 | UI primitive | `shared/ui/` |
 | Injection keys | `shared/domain/` |
@@ -103,7 +103,7 @@ CSS Modules: `catalog-page.module.css` + `<style module src="…">`.
 
 ## Тесты
 
-Colocated `*.test.ts` (Vitest, `environment: "node"`):
+Размещённый рядом `*.test.ts` (Vitest, `environment: "node"`):
 
 - `use-catalog-search.test.ts`
 - `checkout.store.test.ts`
@@ -124,7 +124,7 @@ bun run test
 ## Что дальше
 
 <Cards>
-  <Card title="Склейка модулей" description="Emit + app wiring" href="/guides/cross-module-wiring" />
+  <Card title="Склейка модулей" description="Emit и app связка" href="/guides/cross-module-wiring" />
   <Card title="Vite + React" description="Та же mini-shop" href="/guides/vite-react" />
-  <Card title="Модули" description="public/ и colocation" href="/concepts/modules" />
+  <Card title="Модули" description="public/ и размещение рядом" href="/concepts/modules" />
 </Cards>

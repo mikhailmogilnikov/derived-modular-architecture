@@ -1,6 +1,6 @@
 ---
 title: "Куда положить файл"
-description: "Алгоритм размещения кода: от composition root до promotion и shared."
+description: "Алгоритм размещения кода: от корня композиции до promotion и shared."
 icon: "GitBranch"
 ---
 
@@ -8,38 +8,38 @@ icon: "GitBranch"
 
 ## Алгоритм
 
-1. **Роут, layout, wiring, провайдеры?** → composition root: `app/`, `pages/` или `routes/`. Только монтирование `*/public/*`, без бизнес-логики.
+1. **Роут, layout, связка, провайдеры?** → корень композиции: `app/`, `pages/` или `routes/`. Только монтирование `*/public/*`, без бизнес-логики.
 2. **Другой модуль должен импортировать этот код (продуктовый сценарий)?** → `services/<name>/public/`. Promotion: перенос + пересмотр public API. Никогда `feature → feature`.
 3. **Переносимый хелпер, UI или тип уже нужен 2+ модулям?** → `shared/{ui,lib,api,model,domain}`. Не выносите при первом использовании.
-4. **Единственный потребитель — один модуль?** → colocate внутри этого модуля (internal файл или сегмент `ui/`, `model/`).
-5. **Новый leaf-flow, монтируемый только из composition root?** → `features/<name>` (stage 0 — один файл, stage 1+ — папка с `public/`).
-6. **Ребро дало бы цикл или шаг вверх?** → порт в `public/ports.ts` + bind в composition root. Не используйте порт, чтобы обойти законный promotion.
+4. **Единственный потребитель — один модуль?** → разместите рядом внутри этого модуля (внутренний файл или сегмент `ui/`, `model/`).
+5. **Новый пользовательский сценарий, монтируемый только из корня композиции?** → `features/<name>` (стадия 0 — один файл, стадия 1+ — папка с `public/`).
+6. **Ребро дало бы цикл или шаг вверх?** → порт в `public/ports.ts` + привязка в корень композиции. Не используйте порт, чтобы обойти законную promotion.
 
 ### Быстрые предикаты
 
 | Путь | Предикат |
 | --- | --- |
 | `app/` / `pages/` / `routes/` | Собирает приложение; модули его не импортируют |
-| `features/` | Нет inbound от других **модулей** |
-| `services/` | Есть inbound от модулей; папку создают при первом promotion |
+| `features/` | Нет входящих рёбер от других **модулей** |
+| `services/` | Есть входящие рёбра от модулей; папку создают при первой promotion |
 | `shared/` | Переносимый код без продуктового сценария |
 
-Inbound для promotion — только от `features/*` и `services/*`. Mount из composition root promotion **не** вызывает.
+Входящие рёбра для promotion — только от `features/*` и `services/*`. Монтирование из корня композиции promotion **не** вызывает.
 
 ## Таблица: типичный файл → папка
 
 | У вас… | Куда | Пример |
 | --- | --- | --- |
-| `page.tsx`, `+page.svelte`, `index.astro` | composition root | `app/page.tsx` |
-| Провайдеры, event wiring | composition root | `app/providers.tsx` |
-| Экран / flow для роута | `features/<name>/public/` или stage-0 файл | `catalog-page.tsx` |
-| Store одного feature | colocate в feature | `checkout.store.ts` |
-| Composable одного feature (Vue) | colocate в feature | `use-catalog-search.ts` |
+| `page.tsx`, `+page.svelte`, `index.astro` | корень композиции | `app/page.tsx` |
+| Провайдеры, связка событий | корень композиции | `app/providers.tsx` |
+| Экран / flow для роута | `features/<name>/public/` или стадия-0 файл | `catalog-page.tsx` |
+| Store одного feature | разместите рядом в feature | `checkout.store.ts` |
+| Composable одного feature (Vue) | разместите рядом в feature | `use-catalog-search.ts` |
 | Логика для catalog **и** checkout | `services/<name>/public/` | `cart.ts` |
 | Кнопка без продуктовой логики | `shared/ui/` | `button.tsx` |
 | `formatCurrency`, даты, i18n | `shared/lib/` | `format-currency.ts` |
 | Базовый HTTP-клиент, interceptors | `shared/api/` | `http.ts` |
-| Эндпоинты одной фичи | colocate в feature | `catalog.api.ts` |
+| Эндпоинты одной фичи | разместите рядом в feature | `catalog.api.ts` |
 | `Product`, injection key | `shared/model/` или `shared/domain/` | `product.ts` |
 | Unit-тест store | рядом с store | `checkout.store.test.ts` |
 | E2E | корень app | `e2e/` рядом с конфигом |
@@ -51,7 +51,7 @@ Inbound для promotion — только от `features/*` и `services/*`. Mou
 - **Да** → `shared/` (форматирование, UI-примитив, тип)
 - **Нет** → `services/` (корзина, сессия, каталог API как продуктовый сценарий)
 
-При сомнении оставьте colocation в feature до второго потребителя. Подробнее — [Services vs Shared](/deep-dive/services-vs-shared).
+При сомнении оставьте размещение рядом в feature до второго потребителя. Подробнее — [Services vs Shared](/deep-dive/services-vs-shared).
 
 ## Склейка модулей
 
@@ -59,20 +59,20 @@ Feature не импортирует feature. Варианты:
 
 | Задача | Механизм |
 | --- | --- |
-| Callback / props | composition root передаёт между `public/` entry |
+| Callback / props | корень композиции передаёт между `public/` entry |
 | Событие без подписчиков | `public/*.events.ts`; подписка в `app/` |
-| Цикл / внешний seed | `public/ports.ts` + bind в `app/` |
+| Цикл / внешние начальные данные | `public/ports.ts` + привязка в `app/` |
 
 Разбор — [Склейка модулей](/guides/cross-module-wiring).
 
-## Что проверяет tooling
+## Что проверяют инструменты
 
 | Ситуация | Правило |
 | --- | --- |
 | Импорт вверх по слоям | `layer-direction` |
 | `features/a` → `features/b` | `feature-to-feature` |
 | Импорт мимо `public/` | `public-api` |
-| Feature с inbound | `feature-has-inbound` |
+| Feature с входящими рёбрами | `feature-has-inbound` |
 | Кандидат в shared/services | `shared-candidate` (doctor) |
 
 Полный разбор ошибок — [dma check: справочник нарушений](/tooling/cli/check#справочник-нарушений).
@@ -81,6 +81,6 @@ Feature не импортирует feature. Варианты:
 
 <Cards>
   <Card title="Модули и public API" description="Стадии 0–4" href="/concepts/modules" />
-  <Card title="Эволюция кода" description="Promotion и second-use" href="/concepts/evolution" />
+  <Card title="Эволюция кода" description="Promotion и второе использование" href="/concepts/evolution" />
   <Card title="Структура проекта" description="Дерево src/" href="/start/project-layout" />
 </Cards>

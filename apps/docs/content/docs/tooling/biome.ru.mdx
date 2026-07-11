@@ -6,7 +6,7 @@ icon: "ScanSearch"
 
 `@derived-modular/biome-plugin` добавляет четыре архитектурных правила DMA в Biome через GritQL-паттерны. Удобно, если Biome у вас уже единственный линтер и форматтер.
 
-Это **best-effort**: плагин смотрит на строки импорта, а не строит полный граф. Точнее работает [ESLint-плагин](/tooling/eslint) — там есть `@derived-modular/boundaries` и нормальный резолв путей.
+Это **приблизительный**: плагин смотрит на строки импорта, а не строит полный граф. Точнее работает [ESLint-плагин](/tooling/eslint) — там есть `@derived-modular/boundaries` и нормальный резолв путей.
 
 В CI всё равно нужен `dma check`.
 
@@ -39,7 +39,7 @@ npm install -D @derived-modular/biome-plugin
 | `public-api` | эвристика | ✓ | ✓ |
 | `no-barrel` | эвристика | ✓ | ✓ |
 | `no-cycle` | — | — | ✓ |
-| inbound-предикаты | — | — | ✓ |
+| предикаты входящих рёбер | — | — | ✓ |
 
 ## Ограничения
 
@@ -47,7 +47,7 @@ npm install -D @derived-modular/biome-plugin
 
 **Пути к Grit-плагинам** резолвятся от корня проекта (`./node_modules/@derived-modular/biome-plugin/...`). В flat `node_modules` (npm, bun) работает стабильно; в некоторых monorepo / PnP раскладках Biome ещё дорабатывает shared-config.
 
-**Нет графовых правил.** Циклы и «feature с inbound → service» — только в CLI.
+**Нет графовых правил.** Циклы и «feature с входящие рёбра → service» — только в CLI.
 
 <Callout type="warn">
   Если можете выбрать — берите ESLint-плагин. Biome оставьте для команд, которые уже полностью на Biome и готовы к эвристикам.

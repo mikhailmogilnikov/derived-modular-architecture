@@ -12,11 +12,11 @@ icon: "ArrowRightLeft"
 
 - перестать спорить об импортах на ревью;
 - ловить циклы и feature-to-feature в CI;
-- расти через colocation, а не через преждевременный `shared/`.
+- расти через размещение рядом, а не через преждевременный `shared/`.
 
 Если достаточно style guide на Confluence — DMA может быть избыточен.
 
-## Фаза 1: Дерево и tooling (день 1)
+## Фаза 1: Дерево и инструменты (день 1)
 
 1. Приведите `src/` к базовой форме:
 
@@ -43,14 +43,14 @@ npx @derived-modular/cli check . --format json
 
 Первый прогон `dma check` покажет реальную картину — не пугайтесь длинного списка.
 
-## Фаза 2: Composition root (неделя 1)
+## Фаза 2: Корень композиции (неделя 1)
 
 **Цель:** роуты и layout импортируют только `*/public/*`.
 
 | Было | Стало |
 | --- | --- |
 | `import { X } from '@/features/foo/internal'` | `import { X } from '@/features/foo/public/foo-page'` |
-| Логика в `page.tsx` | Тонкая оболочка + mount из feature |
+| Логика в `page.tsx` | Тонкая оболочка + монтирование из feature |
 
 Не трогайте внутренности модулей, пока не почините точки входа.
 
@@ -66,7 +66,7 @@ features/catalog → features/checkout/internal
 
 1. **Promotion** — общий продуктовый код в `services/`
 2. **Lift в shared** — переносимый хелпер без продуктовой логики
-3. **Wiring в app** — props, events, providers ([склейка модулей](/guides/cross-module-wiring))
+3. **Связка в app** — props, events, providers ([склейка модулей](/guides/cross-module-wiring))
 
 После каждого рефакторинга — `npx @derived-modular/cli check .`.
 
@@ -81,7 +81,7 @@ features/catalog → features/checkout/internal
 Не создавайте `services/` заранее. Ждите:
 
 - `feature-has-inbound` в `check` — пора промоутить
-- `shared-candidate` в `doctor` — пора подумать о lift
+- `shared-candidate` в `doctor` — пора подумать о перенос
 
 Запускайте `npx @derived-modular/cli doctor .` раз в спринт на планировании.
 
@@ -109,7 +109,7 @@ npx @derived-modular/cli check apps/admin
 ## Чеклист готовности
 
 - [ ] `dma check` в CI на каждый PR
-- [ ] Composition root импортирует только `public/`
+- [ ] Корень композиции импортирует только `public/`
 - [ ] Нет feature → feature
 - [ ] Нет barrel внутри модулей
 - [ ] Линтер в редакторе для быстрой обратной связи
@@ -121,6 +121,6 @@ npx @derived-modular/cli check apps/admin
   <Card title="Быстрый старт" description="С нуля" href="/start/quick-start" />
   <Card title="Монорепо" description="Несколько app roots в CI" href="/guides/monorepo" />
   <Card title="Эволюция кода" description="Promotion и doctor" href="/concepts/evolution" />
-  <Card title="Склейка модулей" description="Events и ports" href="/guides/cross-module-wiring" />
+  <Card title="Склейка модулей" description="События и порты" href="/guides/cross-module-wiring" />
   <Card title="Vite + React" description="Канонический пример" href="/guides/vite-react" />
 </Cards>

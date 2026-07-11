@@ -1,10 +1,10 @@
 ---
 title: "Astro"
-description: "DMA с composition root в pages/ и frontmatter-импортами."
+description: "DMA с корнем композиции в pages/ и frontmatter-импортами."
 icon: "Sparkles"
 ---
 
-Пример для **Astro 5**: слои под `src/`, composition root в `src/pages/`, layout и providers в `src/app/`.
+Пример для **Astro 5**: слои под `src/`, корень композиции в `src/pages/`, layout и providers в `src/app/`.
 
 Исходники: [examples/astro-pages](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/astro-pages).
 
@@ -13,7 +13,7 @@ icon: "Sparkles"
 | Папка | Роль |
 | --- | --- |
 | `src/pages/` | Роуты — тонкие, только монтирование |
-| `src/app/` | Layout, providers, seed — **не** роуты |
+| `src/app/` | Layout, providers, начальные данные — **не** роуты |
 
 В `pages/` — только routable файлы (`index.astro`). `layout.astro` и `shop-providers.astro` живут в `app/`, чтобы Astro не создавал лишние маршруты.
 
@@ -39,7 +39,7 @@ import Layout from "@/app/layout.astro";
 
 Блок `---` выполняется на build time:
 
-1. Импортируйте `*/public/*` и stage-0 модули
+1. Импортируйте `*/public/*` и стадия-0 модули
 2. Вызывайте service helpers до template
 3. Передавайте данные в child через props
 
@@ -59,13 +59,13 @@ provideCartSeed(demoCartSeed);
 <slot />
 ```
 
-Порты невидимы для статического графа — используйте для seed/cycle break, не для обхода promotion. Подробнее — [Склейка модулей](/guides/cross-module-wiring).
+Порты невидимы для статического графа — используйте для начальных данных / разрыва цикла, не для обхода promotion. Подробнее — [Склейка модулей](/guides/cross-module-wiring).
 
 ## State patterns
 
-1. **Colocated store** — `catalog.store.ts`, импорт relative из `public/`
+1. **Размещённый рядом store** — `catalog.store.ts`, импорт relative из `public/`
 2. **Promoted service** — `services/cart/public/cart.ts` (catalog + checkout)
-3. **Provider port** — `ports.ts` + bind в `app/`
+3. **Provider port** — `ports.ts` + привязка в `app/`
 
 ## Куда класть код
 
@@ -83,13 +83,13 @@ provideCartSeed(demoCartSeed);
 | Вид | Где |
 | --- | --- |
 | Scoped `<style>` | В том же `.astro` файле |
-| Feature CSS | colocated `*.css` → import из `public/` |
+| Feature CSS | размещённый рядом `*.css` → import из `public/` |
 | CSS Modules | `public/*.module.css` |
 | Global | `styles/global.css` → import из `app/layout.astro` |
 
-Global CSS — только из composition root.
+Global CSS — только из корня композиции.
 
-## Tooling
+## Инструменты
 
 ```bash
 bun run build       # astro build
@@ -98,7 +98,7 @@ bun run lint        # biome + @derived-modular/biome-plugin
 bun run test
 ```
 
-Biome plugin — **best-effort** (GritQL). Нет полного path resolution и graph cycles. **Всегда** `dma check` в CI.
+Biome plugin — **приблизительный** (GritQL). Нет полного разрешения путей и циклов графа. **Всегда** `dma check` в CI.
 
 ## Что дальше
 

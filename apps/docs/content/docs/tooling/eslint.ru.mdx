@@ -14,7 +14,7 @@ icon: "ShieldCheck"
 npm install -D @derived-modular/eslint-plugin eslint
 ```
 
-Нужен ESLint 9+ с flat config.
+Нужен ESLint 9+ с плоской конфигурацией.
 
 ## Минимальная настройка
 
@@ -51,7 +51,7 @@ export default [
 | Ключ | По умолчанию | Описание |
 | --- | --- | --- |
 | `srcRoot` | `"src"` | Корень исходников |
-| `compositionRoots` | `["app", "pages", "routes"]` | Папки composition root |
+| `compositionRoots` | `["app", "pages", "routes"]` | Папки корень композиции |
 
 Плагин разрешает относительные импорты и `@/` → `srcRoot`. Сложные алиасы из tsconfig, которые ESLint сам не резолвит, могут потребовать дополнительной настройки хоста. Импорты npm-пакетов игнорируются.
 

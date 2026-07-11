@@ -12,9 +12,9 @@ DMA проверяет архитектуру **гибридно**: тяжёлы
 
 | Инструмент | Где запускать | Роль |
 | --- | --- | --- |
-| `npx @derived-modular/cli check` | CI, pre-push | Жёсткий gate: граф, циклы, inbound-предикаты |
-| `npx @derived-modular/cli doctor` | Локально | Мягкие сигналы роста (exit 0) |
-| Agent skill `dma` | Cursor, Claude Code, … | Алгоритм размещения и запреты для LLM |
+| `npx @derived-modular/cli check` | CI, pre-push | Жёсткая блокировка: граф, циклы, предикаты входящих рёбер |
+| `npx @derived-modular/cli doctor` | Локально | Мягкие сигналы роста (код выхода 0) |
+| Навык агента `dma` | Cursor, Claude Code, … | Алгоритм размещения и запреты для LLM |
 | ESLint / Oxlint / Biome | Редактор, `lint` script | Четыре file-scoped правила |
 
 **Всегда запускайте `npx @derived-modular/cli check` в CI.** Линтеры — дополнение для скорости, не замена.
@@ -28,7 +28,7 @@ DMA проверяет архитектуру **гибридно**: тяжёлы
 | `public-api` | ✓ | — | ✓ | эвристика |
 | `no-barrel` | ✓ | — | ✓ | эвристика |
 | `no-cycle` | ✓ | — | — | — |
-| inbound-предикаты | ✓ | — | — | — |
+| предикаты входящих рёбер | ✓ | — | — | — |
 | сигналы эволюции | — | ✓ | — | — |
 
 Циклы и «feature с входящими рёбрами должен быть service» — свойства **графа**. Один файл линтеру не виден весь граф, поэтому эти правила только в CLI.
@@ -42,11 +42,11 @@ DMA проверяет архитектуру **гибридно**: тяжёлы
 | Пакет | Назначение |
 | --- | --- |
 | `@derived-modular/cli` | `check` + `doctor` |
-| `@derived-modular/eslint-plugin` | ESLint flat config |
+| `@derived-modular/eslint-plugin` | ESLint, плоская конфигурация |
 | `@derived-modular/oxlint-plugin` | Те же правила для Oxlint |
 | `@derived-modular/biome-plugin` | GritQL-эвристики (слабее) |
 | `@derived-modular/boundaries` | Общая классификация путей для CLI и ESLint |
-| Skill `dma` ([skills/dma](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/skills/dma)) | Agent skill — не npm-пакет; `npx skills add … --skill dma` |
+| Навык `dma` ([skills/dma](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/skills/dma)) | Навык агента — не npm-пакет; `npx skills add … --навык dma` |
 
 ## Рекомендуемый workflow
 
@@ -59,7 +59,7 @@ DMA проверяет архитектуру **гибридно**: тяжёлы
 
 | Ситуация | Рекомендация |
 | --- | --- |
-| Уже есть ESLint 9+ flat config | `@derived-modular/eslint-plugin` |
+| Уже есть ESLint 9+ с плоской конфигурацией | `@derived-modular/eslint-plugin` |
 | Biome как единый линтер/форматтер | `@derived-modular/biome-plugin` + всё равно `dma check` в CI |
 | Oxlint для скорости | `@derived-modular/oxlint-plugin` (alpha) |
 | Только CI, без редактора | Достаточно `@derived-modular/cli` |
@@ -67,7 +67,7 @@ DMA проверяет архитектуру **гибридно**: тяжёлы
 ## Что дальше
 
 <Cards>
-  <Card title="AI и агенты" description="Skill dma для Cursor и CLI JSON" href="/tooling/ai-agents" />
+  <Card title="AI и агенты" description="Навык dma для Cursor и CLI JSON" href="/tooling/ai-agents" />
   <Card title="dma check" description="Жёсткая проверка для CI" href="/tooling/cli/check" />
   <Card title="dma doctor" description="Сигналы эволюции" href="/tooling/cli/doctor" />
   <Card title="ESLint" description="Плагин для редактора" href="/tooling/eslint" />

@@ -82,23 +82,23 @@ ui     → lib, domain     (✗ api, ✗ model)
 shared/ui/button.tsx  →  shared/ui/button/  (когда файлов стало много)
 ```
 
-`ui` и `api` — наименее стабильные жители shared; первые кандидаты на вынос в пакет (stage 4).
+`ui` и `api` — наименее стабильные жители shared; первые кандидаты на вынос в пакет (стадия 4).
 
 ## Граница shared vs services
 
-Shared — переносимый код. Services — продуктовый сценарий с inbound от модулей. Если сомневаетесь — [Services vs Shared](/deep-dive/services-vs-shared).
+Shared — переносимый код. Services — продуктовый сценарий с входящих рёбер от модулей. Если сомневаетесь — [Services vs Shared](/deep-dive/services-vs-shared).
 
-## Что проверяет tooling
+## Что проверяют инструменты
 
 | Правило | Что ловит |
 | --- | --- |
 | `layer-direction` | Импорт из shared «вверх» |
-| `shared-candidate` (doctor) | Файл импортируют 2+ модуля — пора подумать о lift |
+| `shared-candidate` (doctor) | Файл импортируют 2+ модуля — пора подумать о перенос |
 
 ## Что дальше
 
 <Cards>
-  <Card title="Эволюция кода" description="Second-use, promotion, doctor" href="/concepts/evolution" />
+  <Card title="Эволюция кода" description="Второе использование, promotion, doctor" href="/concepts/evolution" />
   <Card title="Модули и public API" description="Стадии роста модуля" href="/concepts/modules" />
-  <Card title="Services vs Shared" description="Deep dive о границе" href="/deep-dive/services-vs-shared" />
+  <Card title="Services vs Shared" description="Углублённый разбор о границе" href="/deep-dive/services-vs-shared" />
 </Cards>

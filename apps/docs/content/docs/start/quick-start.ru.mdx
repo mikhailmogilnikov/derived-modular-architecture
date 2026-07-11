@@ -16,20 +16,20 @@ icon: "Rocket"
 
 ```text
 src/
-├── app/          # или pages/, routes/ — composition root вашего фреймворка
+├── app/          # или pages/, routes/ — корень композиции вашего фреймворка
 ├── features/
 └── shared/
     ├── ui/
     └── lib/
 ```
 
-Папку `services/` **не создавайте заранее** — она появится при первом promotion, когда **другой модуль** импортирует код (inbound от `features/*` или `services/*`; mount из composition root не считается).
+Папку `services/` **не создавайте заранее** — она появится при первой promotion, когда **другой модуль** импортирует код (входящих рёбер от `features/*` или `services/*`; монтирование из корня композиции не считается).
 
 Подробнее о дереве — в [Структура проекта](/start/project-layout) и [Слои](/concepts/layers).
 
-## 2. Смонтируйте feature из composition root
+## 2. Смонтируйте feature из корня композиции
 
-Composition root импортирует модули **только** через `public/`:
+Корень композиции импортирует модули **только** через `public/`:
 
 ```tsx
 // src/app/page.tsx
@@ -60,7 +60,7 @@ npm install -D @derived-modular/cli
 npx @derived-modular/cli check .
 ```
 
-Если всё чисто — увидите summary без ошибок. Если нет — CLI покажет правило, файл и импорт, который нарушен.
+Если всё чисто — увидите сводку без ошибок. Если нет — CLI покажет правило, файл и импорт, который нарушен.
 
 Типичные первые ошибки:
 
@@ -74,7 +74,7 @@ npx @derived-modular/cli check .
 
 ## 5. Добавьте в CI
 
-Минимальный шаг — одна команда в pipeline:
+Минимальный шаг — одна команда в пайплайне:
 
 ```bash
 npx @derived-modular/cli check . --format json
@@ -107,7 +107,7 @@ export default [
 ];
 ```
 
-Линтер **не заменяет** `dma check` — он не видит циклы и inbound-предикаты. Настройка ESLint — на странице [ESLint](/tooling/eslint).
+Линтер **не заменяет** `dma check` — он не видит циклы и предикаты входящих рёбер. Настройка ESLint — на странице [ESLint](/tooling/eslint).
 
 ## 7. Локальные сигналы роста
 
@@ -115,7 +115,7 @@ export default [
 npx @derived-modular/cli doctor .
 ```
 
-`doctor` не ломает CI (exit 0), но подсказывает: пора вынести в `shared`, раздуть сегменты, промоутить feature в service. Подробнее — [dma doctor](/tooling/cli/doctor).
+`doctor` не ломает CI (код выхода 0), но подсказывает: пора вынести в `shared`, раздуть сегменты, промоутить feature в service. Подробнее — [dma doctor](/tooling/cli/doctor).
 
 ## Что дальше
 
@@ -123,5 +123,5 @@ npx @derived-modular/cli doctor .
   <Card title="Четыре инварианта" description="Правила, которые держит архитектуру" href="/concepts/invariants" />
   <Card title="Модули и public API" description="Стадии роста модуля" href="/concepts/modules" />
   <Card title="Обзор инструментов" description="CLI + линтеры" href="/tooling/overview" />
-  <Card title="AI и агенты" description="Skill dma для Cursor" href="/tooling/ai-agents" />
+  <Card title="AI и агенты" description="Навык dma для Cursor" href="/tooling/ai-agents" />
 </Cards>

@@ -1,17 +1,17 @@
 ---
 title: "Структура проекта"
-description: "Дерево src/, composition roots и куда класть код на разных фреймворках."
+description: "Дерево src/, корни композиции и куда класть код на разных фреймворках."
 icon: "FolderTree"
 ---
 
-DMA не привязан к одному фреймворку. Правила одни; меняется только имя папки composition root — места, где роуты и layout монтируют модули.
+DMA не привязан к одному фреймворку. Правила одни; меняется только имя папки корня композиции — места, где роуты и layout монтируют модули.
 
 ## Базовое дерево
 
 ```text
 src/
-├── app/         # composition root (Next.js App Router, Vite+React)
-├── features/    # leaf-модули
+├── app/         # корень композиции (Next.js App Router, Vite+React)
+├── features/    # изолированные модули
 ├── services/    # появляется при promotion — не создавайте заранее
 └── shared/
     ├── ui/
@@ -21,7 +21,7 @@ src/
     └── domain/  # опционально
 ```
 
-## Composition roots
+## Корни композиции
 
 Под `src/` любая из папок — **один и тот же слой** по правилам DMA:
 
@@ -46,27 +46,27 @@ export default function Page() {
 }
 ```
 
-Если в проекте несколько roots, предпочитайте `app/`. Tooling при конфликте возьмёт `app` первым.
+Если в проекте несколько roots, предпочитайте `app/`. Инструменты при конфликте возьмёт `app` первым.
 
 ## Куда что класть
 
 | У вас есть… | Кладите в… |
 | --- | --- |
-| Роут, layout, провайдеры | Composition root |
-| Экран / пользовательский flow | `features/<name>/public/` или stage-0 файл |
+| Роут, layout, провайдеры | Корень композиции |
+| Экран / пользовательский flow | `features/<name>/public/` или стадия-0 файл |
 | Состояние одной фичи | Внутри feature, рядом с потребителем |
 | Логика, нужная другим модулям (продукт) | `services/<name>/public/` |
 | Переносимая UI / хелперы | `shared/ui/`, `shared/lib/` |
 | Базовый HTTP-клиент, interceptors | `shared/api/` |
 | Эндпоинты одной фичи | Внутри feature (`*.api.ts`) |
-| Склейка фич / события | Composition root — props, providers, ports |
+| Склейка фич / события | Корень композиции — props, providers, ports |
 | Unit-тесты | Рядом с файлом (`*.test.ts`) |
 
 ## Примеры по фреймворкам
 
 В репозитории DMA — пять чистых примеров с одной продуктовой историей (catalog, checkout, cart):
 
-| Пример | Composition root | Стек |
+| Пример | Корень композиции | Стек |
 | --- | --- | --- |
 | [vite-react](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vite-react) | `src/app/` | Vite + React |
 | [next-app](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/next-app) | `src/app/` | Next.js |
@@ -74,7 +74,7 @@ export default function Page() {
 | [sveltekit-routes](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/sveltekit-routes) | `src/routes/` | SvelteKit |
 | [vue-vite](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples/vue-vite) | `src/app/` | Vue 3 + Vite |
 
-Стартовать удобнее с **vite-react** — runnable, с тестами и полной лестницей стадий модулей.
+Стартовать удобнее с **vite-react** — запускаемый, с тестами и полной лестницей стадий модулей.
 
 ## Лестница стадий модуля
 

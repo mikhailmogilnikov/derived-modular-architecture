@@ -4,7 +4,7 @@ description: "Как подключить dma check в пайплайн — GitH
 icon: "Workflow"
 ---
 
-`dma check` — единственная проверка, которая **должна** блокировать merge. Линтеры в CI полезны, но без CLI вы не увидите циклы и inbound-предикаты.
+`dma check` — единственная проверка, которая **должна** блокировать слияние. Линтеры в CI полезны, но без CLI вы не увидите циклы и предикаты входящих рёбер.
 
 ## Минимальный шаг
 
@@ -12,9 +12,9 @@ icon: "Workflow"
 npx @derived-modular/cli check .
 ```
 
-Exit code `1` — есть архитектурные нарушения. Exit code `2` — проблема окружения (нет `src/`, битый tsconfig).
+Код выхода `1` — есть архитектурные нарушения. Код выхода `2` — проблема окружения (нет `src/`, битый tsconfig).
 
-Добавьте команду в pipeline после install и до deploy.
+Добавьте команду в пайплайн после install и до deploy.
 
 ## GitHub Actions
 
@@ -69,13 +69,13 @@ npx @derived-modular/cli check . --format sarif > dma.sarif
 
 ## Что запускать вместе
 
-| Шаг | Команда | Блокирует merge? |
+| Шаг | Команда | Блокирует слияние? |
 | --- | --- | --- |
 | Архитектура (обязательно) | `npx @derived-modular/cli check .` | Да |
 | Линт (опционально) | `eslint .` / `biome check` | По желанию команды |
-| Эволюция (опционально) | `npx @derived-modular/cli doctor .` | Нет (exit 0) |
+| Эволюция (опционально) | `npx @derived-modular/cli doctor .` | Нет (код выхода 0) |
 
-`doctor` в CI имеет смысл только как informational job — сигналы роста, не gate.
+`doctor` в CI имеет смысл только как информационная задача — сигналы роста, не блокировка.
 
 ## Монорепо
 
@@ -108,7 +108,7 @@ npx @derived-modular/cli check apps/admin
 ## Что дальше
 
 <Cards>
-  <Card title="dma check" description="Правила и exit codes" href="/tooling/cli/check" />
+  <Card title="dma check" description="Правила и коды выхода" href="/tooling/cli/check" />
   <Card title="Обзор инструментов" description="CLI + линтеры" href="/tooling/overview" />
   <Card title="Быстрый старт" description="Первый запуск локально" href="/start/quick-start" />
 </Cards>
