@@ -84,13 +84,13 @@ export const homeCopy = {
       },
       {
         description:
-          "Product modules other flows import. For example: catalog service imports product and cart features.",
-        name: "services",
+          "Product flows mounted from app: catalog, checkout. No inbound edges from other modules; may import services and shared.",
+        name: "features",
       },
       {
         description:
-          "Product flow: cart, checkout. Imports between features are forbidden.",
-        name: "features",
+          "Shared product scenarios other modules depend on. Promoted when a second module needs the same code — e.g. catalog and checkout import services/cart.",
+        name: "services",
       },
       {
         description: "Portable helpers and UI: dates, buttons, HTTP client.",
@@ -102,38 +102,39 @@ export const homeCopy = {
     layersTitle: "Four boundaries in src/",
     moduleStages: [
       {
-        change: "Whole file is the public API. Import checkout.tsx directly.",
+        change:
+          "Start with a single file, checkout.tsx. This module also holds the cart logic.",
         stage: "0",
         title: "File module",
       },
       {
         change:
-          "Module grew: public/ holds what app and other modules import. cart-row.tsx and hooks stay inside, only entrypoints go in public/.",
+          "Code in the module keeps growing, and decomposition makes sense. Checkout moves into a folder. checkout-page goes to public/, because the app layer above imports it. Cart files stay as internal dependencies of checkout, with no public access.",
         stage: "1",
         title: "Folder + public/",
       },
       {
         change:
-          "Too many files inside. Split by role: ui/ for components, model/ for state and business logic, api/ for requests, lib/ for helpers used across segments.",
+          "Code inside checkout keeps growing. Cart files are split by role: ui/ for components, model/ for state and logic, api/ for requests, lib/ for helpers. It is still one checkout module, just better organized.",
         stage: "2",
         title: "Segments",
       },
       {
         change:
-          "checkout-form imports checkout. checkout moves to services/, the new flow stays in features/.",
+          "Catalog appears, and cart is now needed in two places. Catalog cannot import cart from checkout: check and the linter will catch it. Move cart to services/cart/ first, then both catalog and checkout import it from there.",
         stage: "3",
-        title: "Promotion",
+        title: "Move to services",
       },
       {
         change:
-          "Extracted to packages/checkout/. Same rules, shared across apps.",
+          "If cart is reused across apps, it can become a package at packages/cart/ with the same import rules.",
         stage: "4",
         title: "Package",
       },
     ],
     moduleStagesExplorer: "Explorer",
     moduleStagesLead:
-      "Start with a single file. Folders appear when the code needs them. Each step builds on the last, no rewrite.",
+      "You do not need the full folder tree on day one. Start with one file and add structure as the code grows.",
     moduleStagesNextAria: "Next stage",
     moduleStagesStageAria: "Stage",
     moduleStagesTitle: "The layout grows with the product",
@@ -234,13 +235,13 @@ export const homeCopy = {
       },
       {
         description:
-          "Продуктовые модули, которые импортируют другие потоки. Например: сервис catalog импортирует фичи product и cart.",
-        name: "services",
+          "Продуктовые потоки, которые монтирует app: catalog, checkout. Нет входящих рёбер от других модулей; могут импортировать services и shared.",
+        name: "features",
       },
       {
         description:
-          "Продуктовый поток: cart, checkout. Импорты между фичами запрещены.",
-        name: "features",
+          "Общие продуктовые сценарии, от которых зависят другие модули. Появляются при promotion — например, catalog и checkout импортируют services/cart.",
+        name: "services",
       },
       {
         description: "Переносимые хелперы и UI: даты, кнопки, HTTP-клиент.",
@@ -252,38 +253,39 @@ export const homeCopy = {
     layersTitle: "Четыре границы в src/",
     moduleStages: [
       {
-        change: "Весь файл публичный. Импортируйте checkout.tsx напрямую.",
+        change:
+          "Начинаем с одного файла checkout.tsx. Этот модуль также содержит в себе логику корзины.",
         stage: "0",
         title: "Файл-модуль",
       },
       {
         change:
-          "Модуль разросся: в public/ лежит то, что импортируют app и другие модули. cart-row.tsx и хуки остаются внутри checkout/, наружу только entrypoint'ы.",
+          "Кода в модуле становится больше, напрашивается декомпозиция. Checkout переезжает в папку. checkout-page кладём в public/, так как её импортирует вышестоящий слой app. Файлы корзины остаются внутренней зависимостью checkout, без публичного доступа.",
         stage: "1",
         title: "Папка + public/",
       },
       {
         change:
-          "Файлов внутри модуля стало много. Делим по ролям: ui/ для компонентов, model/ для состояния и бизнес-логики, api/ для запросов, lib/ для хелперов между сегментами.",
+          "Кода внутри checkout становится ещё больше. Файлы корзины разносим по роли: ui/ для компонентов, model/ для состояния и логики, api/ для запросов, lib/ для хелперов. Это всё ещё один модуль checkout, просто аккуратнее разложенный.",
         stage: "2",
         title: "Сегменты",
       },
       {
         change:
-          "checkout-form импортирует checkout. checkout переезжает в services/, новый поток остаётся в features/.",
+          "Появляется catalog, и корзина нужна уже двум модулям. Из checkout в catalog её не перетащишь: check и линтер это не пропустят. Сначала выносим cart в services/cart/, потом оба подключают её оттуда.",
         stage: "3",
-        title: "Promotion",
+        title: "Вынос в services",
       },
       {
         change:
-          "Вынесли в packages/checkout/. Те же правила, общий модуль для приложений.",
+          "Если корзина нужна в нескольких приложениях, её можно оформить как пакет packages/cart/ с теми же правилами импортов.",
         stage: "4",
         title: "Пакет",
       },
     ],
     moduleStagesExplorer: "Explorer",
     moduleStagesLead:
-      "Начните с одного файла. Папки появляются, когда код этого требует. Каждый шаг наследует предыдущий, без переписывания.",
+      "Не нужно проектировать всю структуру заранее. Начните с одного файла и добавляйте папки по мере роста кода.",
     moduleStagesNextAria: "Следующая стадия",
     moduleStagesStageAria: "Стадия",
     moduleStagesTitle: "Структура растёт вместе с продуктом",
@@ -343,13 +345,19 @@ export const moduleStageTrees = {
                 gitStatus: "added",
                 highlight: "good",
                 kind: "file",
-                name: "use-cart-total.ts",
+                name: "cart.store.ts",
               },
               {
                 gitStatus: "added",
                 highlight: "good",
                 kind: "file",
                 name: "cart-row.tsx",
+              },
+              {
+                gitStatus: "added",
+                highlight: "good",
+                kind: "file",
+                name: "use-cart-total.ts",
               },
             ],
             kind: "folder",
@@ -429,7 +437,7 @@ export const moduleStageTrees = {
                     gitStatus: "added",
                     highlight: "good",
                     kind: "file",
-                    name: "checkout-form.tsx",
+                    name: "catalog-page.tsx",
                   },
                 ],
                 kind: "folder",
@@ -440,7 +448,21 @@ export const moduleStageTrees = {
             gitStatus: "added",
             highlight: "good",
             kind: "folder",
-            name: "checkout-form",
+            name: "catalog",
+            open: true,
+          },
+          {
+            children: [
+              {
+                children: [{ kind: "file", name: "checkout-page.tsx" }],
+                kind: "folder",
+                name: "public",
+                open: true,
+              },
+              { kind: "file", name: "checkout.store.ts" },
+            ],
+            kind: "folder",
+            name: "checkout",
             open: true,
           },
         ],
@@ -453,18 +475,23 @@ export const moduleStageTrees = {
           {
             children: [
               {
-                children: [{ kind: "file", name: "checkout-page.tsx" }],
+                children: [
+                  {
+                    gitStatus: "added",
+                    highlight: "good",
+                    kind: "file",
+                    name: "cart.ts",
+                  },
+                ],
                 kind: "folder",
                 name: "public",
                 open: true,
               },
-              { kind: "folder", name: "ui", open: true },
-              { kind: "folder", name: "model", open: true },
             ],
             gitStatus: "added",
             highlight: "good",
             kind: "folder",
-            name: "checkout",
+            name: "cart",
             open: true,
           },
         ],
@@ -497,7 +524,7 @@ export const moduleStageTrees = {
                         gitStatus: "added",
                         highlight: "good",
                         kind: "file",
-                        name: "checkout-page.tsx",
+                        name: "cart.ts",
                       },
                     ],
                     kind: "folder",
@@ -513,7 +540,7 @@ export const moduleStageTrees = {
             gitStatus: "added",
             highlight: "good",
             kind: "folder",
-            name: "checkout",
+            name: "cart",
             open: true,
           },
         ],
@@ -522,7 +549,7 @@ export const moduleStageTrees = {
         open: true,
       },
     ],
-    window: "packages/checkout/",
+    window: "packages/cart/",
   },
 } as const satisfies Record<
   string,
