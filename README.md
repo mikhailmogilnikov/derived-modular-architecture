@@ -3,63 +3,94 @@
 [![CI](https://github.com/mikhailmogilnikov/derived-modular-architecture/actions/workflows/ci.yml/badge.svg)](https://github.com/mikhailmogilnikov/derived-modular-architecture/actions/workflows/ci.yml)
 [![npm @derived-modular/cli](https://img.shields.io/npm/v/@derived-modular/cli.svg)](https://www.npmjs.com/package/@derived-modular/cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![skills.sh](https://skills.sh/b/mikhailmogilnikov/derived-modular-architecture)](https://skills.sh/mikhailmogilnikov/derived-modular-architecture)
+[![skills.sh](https://www.skills.sh/b/mikhailmogilnikov/derived-modular-architecture)](https://www.skills.sh/mikhailmogilnikov/derived-modular-architecture)
 
-Frontend architecture where **rules are derived from the filesystem and import graph**, then enforced by tooling — not taste.
+A filesystem-first frontend architecture enforced by tooling — not taste.
+
+DMA tells people and agents where code lives, which imports are allowed, and when to promote a module. The folder tree is the rulebook; the CLI, linters, and CI keep it honest — in single apps and monorepos alike.
+
+**[→ Documentation](https://derived-modular.vercel.app)**
+
+## Quick start
+
+```bash
+npm install -D @derived-modular/cli
+npx @derived-modular/cli init .
+npx @derived-modular/cli check .
+```
+
+`init` scaffolds missing `src/` layout, `dma.config.ts`, a `package.json` script, and an `AGENTS.md` block — strict skip, never overwrites. In a monorepo, run inside the app package (e.g. `apps/web`).
+
+Prefer another package manager? Use `pnpm dlx`, `yarn dlx`, or `bunx` the same way.
+
+## Commands
+
+| Command | Description |
+| --- | --- |
+| `dma init [path]` | Bootstrap layout, config, and agent docs (create-if-missing). |
+| `dma check [path]` | Hard rules — graph, cycles, inbound predicates. Fails CI on errors. |
+| `dma doctor [path]` | Soft growth signals (exit 0). Hints when to promote or split. |
+
+`check` and `doctor` accept an optional path (defaults to cwd). Add `--format json` or `--format sarif` for CI and code scanning.
+
+Common flags:
+
+| Flag | Description |
+| --- | --- |
+| `--roots <paths>` | Explicit package roots in a monorepo (comma-separated). |
+| `--include-packages` | Also analyze library packages with `features` / `services` / `shared`. |
+| `--config <file>` | Load `dma.config.*` from a specific path. |
+
+Optional project config: `dma.config.{ts,mts,mjs,js,json}` with `srcRoot`, `compositionRoots`, `roots`, `includePackages`. Helper: `defineConfig` from `@derived-modular/cli`.
+
+Package docs: [`@derived-modular/cli`](./packages/cli/README.md).
+
+## Layout
 
 ```text
 src/
 ├── app/         # composition root (also: pages/, routes/)
 ├── features/    # leaf modules (no inbound edges from other modules)
-├── services/    # modules with inbound edges (created on first promotion)
+├── services/    # appears on first promotion — don't create upfront
 └── shared/      # portable UI / lib / api / model / domain
 ```
 
-`pages/` and `routes/` under `src/` are treated as composition roots (same rules as `app/`) for Astro, TanStack Router, SvelteKit, etc.
+`pages/` and `routes/` are composition roots too (Astro, TanStack Router, SvelteKit, etc.) — same rules as `app/`.
 
-## Spec
+**Four invariants:** downward imports only · public API without barrels (`*/public/*`) · colocation by default · second-use rule for `shared/`.
 
-Normative architecture: [`spec/`](./spec/README.md) (single source of truth).
+Normative spec: [`spec/`](./spec/README.md).
 
-**Four invariants**
+## Key features
 
-1. Downward imports only: `app → features → services → shared`
-2. Public API without barrels — cross-module imports hit `*/public/*` (direct file paths)
-3. Colocation by default
-4. Second-use rule — lift only when a second consumer appears
+### Hybrid enforcement
 
-## Enforcement (hybrid)
+Full graph audit in the CLI; fast file-scoped feedback in the editor. **Always run `dma check` in CI** — linters are complementary, not a substitute.
 
-| Layer | Package | Role |
-| --- | --- | --- |
-| CI / full audit | [`@derived-modular/cli`](./packages/cli) | `check` + `doctor` — graph rules, inbound predicates, cycles |
-| Editor / lint | [`@derived-modular/eslint-plugin`](./packages/eslint-plugin) | Four file-scoped rules (strongest) |
-| Editor / lint | [`@derived-modular/oxlint-plugin`](./packages/oxlint-plugin) | Same rules via Oxlint JS plugins (alpha) |
-| Editor / lint | [`@derived-modular/biome-plugin`](./packages/biome-plugin) | Same four concerns, GritQL heuristics (weaker) |
-| Shared logic | [`@derived-modular/boundaries`](./packages/boundaries) | Path classifier used by CLI + ESLint |
+| Layer | Package |
+| --- | --- |
+| CI / full audit | [`@derived-modular/cli`](./packages/cli) |
+| Editor / lint | [`@derived-modular/eslint-plugin`](./packages/eslint-plugin) |
+| Editor / lint | [`@derived-modular/oxlint-plugin`](./packages/oxlint-plugin) |
+| Editor / lint | [`@derived-modular/biome-plugin`](./packages/biome-plugin) |
 
-**Always run `npx @derived-modular/cli check` in CI.** Linter adapters are complementary, not a substitute.
+### Monorepo ready
 
-## CLI — `@derived-modular/cli`
+No `src/` at the repo root? `dma check .` discovers apps (workspaces first, directory walk fallback). Each root is a separate graph — no cross-package merge.
 
-```bash
-npm install -D @derived-modular/cli
-npx @derived-modular/cli init
-npx @derived-modular/cli check
-npx @derived-modular/cli doctor --format json
-```
+### AI-ready
 
-Docs: [packages/cli/README.md](./packages/cli/README.md)
-
-From this monorepo:
+Install the `dma` agent skill so Cursor, Claude Code, and other hosts follow the same placement rules as the CLI:
 
 ```bash
-npx @derived-modular/cli check .
-bun run dma:build
-bun run --cwd packages/cli test
+npx skills add mikhailmogilnikov/derived-modular-architecture --skill dma
 ```
 
-## ESLint — `@derived-modular/eslint-plugin`
+Source: [`skills/dma`](./skills/dma).
+
+## Linter setup
+
+**ESLint** (recommended):
 
 ```bash
 npm install -D @derived-modular/eslint-plugin eslint
@@ -78,75 +109,32 @@ export default [
 ];
 ```
 
-Docs: [packages/eslint-plugin/README.md](./packages/eslint-plugin/README.md)
-
-## Biome — `@derived-modular/biome-plugin`
-
-```bash
-npm install -D @derived-modular/biome-plugin
-```
-
-```jsonc
-{
-  "extends": ["@derived-modular/biome-plugin"]
-}
-```
-
-Docs: [packages/biome-plugin/README.md](./packages/biome-plugin/README.md)
-
-## Oxlint — `@derived-modular/oxlint-plugin`
-
-```bash
-npm install -D @derived-modular/oxlint-plugin oxlint
-```
-
-```jsonc
-{
-  "extends": ["./node_modules/@derived-modular/oxlint-plugin/configs/recommended.json"]
-}
-```
-
-Docs: [packages/oxlint-plugin/README.md](./packages/oxlint-plugin/README.md)
-
-## Agent skill
-
-```bash
-npx skills add mikhailmogilnikov/derived-modular-architecture --skill dma
-```
-
-Source: [skills/dma](./skills/dma) · [skills/README.md](./skills/README.md)
-
-## Repository layout
-
-| Path | npm package |
-| --- | --- |
-| `packages/cli` | `@derived-modular/cli` |
-| `packages/boundaries` | `@derived-modular/boundaries` |
-| `packages/eslint-plugin` | `@derived-modular/eslint-plugin` |
-| `packages/biome-plugin` | `@derived-modular/biome-plugin` |
-| `packages/oxlint-plugin` | `@derived-modular/oxlint-plugin` |
-| `skills/dma` | installable agent skill |
-| `apps/docs` | documentation site — Next.js + Fumadocs |
-| `examples/` | framework examples — see [examples/README.md](./examples/README.md) |
-| `spec/` | normative DMA architecture (EN) |
+ESLint soft-loads `dma.config.*` when `settings.dma` is unset. Docs: [`eslint-plugin`](./packages/eslint-plugin/README.md) · [`oxlint-plugin`](./packages/oxlint-plugin/README.md) · [`biome-plugin`](./packages/biome-plugin/README.md).
 
 ## Examples
 
-Runnable canon and framework skeletons share one mini-shop domain (catalog, checkout, profile, cart). Each tree is **clean** — `dma check` exits 0.
+Runnable mini-shop trees — each exits 0 on `dma check`:
 
-| Example | Stack | Composition root | Lint adapter | Runnable |
-| --- | --- | --- | --- | --- |
-| [vite-react](./examples/vite-react) | Vite + React | `src/app/` | ESLint | yes (`dev` / `build`) |
-| [next-app](./examples/next-app) | Next App Router | `src/app/` | ESLint | no (v1) |
-| [astro-pages](./examples/astro-pages) | Astro | `src/pages/` | Biome | yes (`build`) |
-| [sveltekit-routes](./examples/sveltekit-routes) | SvelteKit | `src/routes/` | Oxlint | yes (`build`) |
-| [vue-vite](./examples/vue-vite) | Vue + Vite | `src/app/` | Biome | yes (`dev` / `build`) |
+| Example | Stack | Composition root |
+| --- | --- | --- |
+| [vite-react](./examples/vite-react) | Vite + React | `src/app/` |
+| [next-app](./examples/next-app) | Next App Router | `src/app/` |
+| [astro-pages](./examples/astro-pages) | Astro | `src/pages/` |
+| [sveltekit-routes](./examples/sveltekit-routes) | SvelteKit | `src/routes/` |
+| [vue-vite](./examples/vue-vite) | Vue + Vite | `src/app/` |
 
-Tour: [examples/README.md](./examples/README.md)
+Tour: [examples/README.md](./examples/README.md).
+
+## Documentation
+
+- **Website:** [derived-modular.vercel.app](https://derived-modular.vercel.app)
+- **Spec (normative):** [`spec/`](./spec/README.md)
+- **Docs site source:** [`apps/docs`](./apps/docs)
+- **Issues:** [github.com/mikhailmogilnikov/derived-modular-architecture/issues](https://github.com/mikhailmogilnikov/derived-modular-architecture/issues)
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+MIT © [Mikhail Mogilnikov](./LICENSE)
 
 ## Contributing
 
