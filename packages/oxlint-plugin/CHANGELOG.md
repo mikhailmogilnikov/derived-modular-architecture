@@ -1,5 +1,13 @@
 # @derived-modular/oxlint-plugin
 
+## 1.1.0
+
+### Patch Changes
+
+- f83fa49: ESLint: `no-barrel` import autofix; soft-load `srcRoot`/`compositionRoots` from `dma.config.*` (settings win). Oxlint inherits via eslint-plugin.
+- Updated dependencies [f83fa49]
+  - @derived-modular/eslint-plugin@1.1.0
+
 ## 1.0.1
 
 ### Patch Changes

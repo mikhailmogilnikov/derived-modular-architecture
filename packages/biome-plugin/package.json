@@ -1,6 +1,6 @@
 {
   "name": "@derived-modular/biome-plugin",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Biome GritQL plugins for Derived Modular Architecture",
   "type": "module",
   "files": [
