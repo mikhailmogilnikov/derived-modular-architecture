@@ -81,7 +81,7 @@ Typical `ruleId` values from the `check` report and what to do about them.
 | `public-api` | Cross-module import bypasses `*/public/*` | Import `*/public/<file>` directly; internal — relative only inside the module | [Modules](/concepts/modules) |
 | `no-barrel` | `index.ts` with re-exports inside a module | Remove the barrel; import specific files | [Why no barrels](/deep-dive/why-no-barrels) |
 | `no-cycle` | Cycle in the module graph | Extract to `shared/`, promotion to `services/`, or port + bind in `app/` | [Cross-module wiring](/guides/cross-module-wiring) |
-| `feature-has-inbound` | Feature has inbound from another module | Move the module to `services/<name>/`, revisit `public/` | [Code evolution](/concepts/evolution) |
+| `feature-has-inbound` | Feature has inbound from another module | `dma promote <name> --apply`, then revisit `public/` | [dma promote](/tooling/cli/promote) · [Code evolution](/concepts/evolution) |
 | `service-no-inbound` | Service with no consumers among modules | Move back to feature colocation or remove empty service | [Layers](/concepts/layers) |
 
 ### Exit code 2 (environment)

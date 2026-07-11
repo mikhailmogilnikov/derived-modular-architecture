@@ -29,7 +29,9 @@ describe("runDoctorSignals", () => {
     expect(hit?.severity).toBe("warning");
     expect(hit?.file?.endsWith("format-date.ts")).toBe(true);
     expect(hit?.file?.startsWith(root)).toBe(true);
-    expect(hit?.help).toBeTruthy();
+    expect(hit?.help).toBe(
+      "Placement #2–3: second use — keep in services/ if product flow, else extract to shared/{ui,lib,api,model,domain}. Don't extract on first use."
+    );
   });
 
   test("orphan-public is info and includes dead public file", () => {
@@ -45,6 +47,11 @@ describe("runDoctorSignals", () => {
     const hits = diagnostics.filter((d) => d.ruleId === "stage-growth");
     expect(hits.length).toBeGreaterThan(0);
     expect(hits.every((d) => d.severity === "warning")).toBe(true);
+    expect(
+      hits.every((d) =>
+        d.help?.startsWith("Placement #4–5: related siblings share a basename")
+      )
+    ).toBe(true);
     expect(
       hits.some(
         (d) =>
@@ -65,6 +72,9 @@ describe("runDoctorSignals", () => {
     expect(hit?.severity).toBe("warning");
     expect(hit?.message).toContain("Stage-1");
     expect(hit?.message).toContain("widget");
+    expect(hit?.help).toBe(
+      "Placement #4: module is large enough — introduce ui/model/api segments and keep sole-consumer code colocated."
+    );
   });
 
   test("dense-services warns on long services dependency path", () => {

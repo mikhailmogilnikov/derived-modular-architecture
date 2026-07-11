@@ -10,6 +10,7 @@ const miniMonorepo = join(import.meta.dir, "../fixtures/mini-monorepo");
 const fixtureClean = join(import.meta.dir, "../fixtures/clean");
 
 const baseArgs = (overrides: Partial<CliArgs> = {}): CliArgs => ({
+  apply: false,
   command: "check",
   format: "json",
   includePackages: false,

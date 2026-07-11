@@ -1,0 +1,60 @@
+---
+title: "dma promote"
+description: "Safely move a folder feature to services/ and rewrite imports (dry-run by default)."
+icon: "ArrowUpFromLine"
+---
+
+```bash
+npx @derived-modular/cli promote <module> [path]
+npx @derived-modular/cli promote <module> [path] --apply
+```
+
+Moves a **folder** feature `features/<name>/` → `services/<name>/` and rewrites import literals that resolve into that module. Use this when `feature-has-inbound` fires (another module imports the feature).
+
+## Safety
+
+| Guard | Behavior |
+| --- | --- |
+| Default | **Dry-run** — prints the move + rewrite plan; disk unchanged |
+| `--apply` | Required to write |
+| Module kind | Folder with `public/` only; stage-0 file modules are rejected |
+| Target | Aborts if `services/<name>` already exists |
+| Scope | Single app package (`src/` present); not multi-root |
+| Post-check | After apply, re-runs `dma check`; **new** errors or leftover `feature-has-inbound` → **rollback** snapshot |
+
+Does **not** prune `public/` or invent ports — revisit the API manually after a successful promote. See [Code evolution](/concepts/evolution).
+
+## Examples
+
+```bash
+# Plan only
+npx @derived-modular/cli promote features/promo
+
+# Write + verify
+npx @derived-modular/cli promote promo --apply
+npx @derived-modular/cli promote promo apps/web --apply --config ./dma.config.ts
+```
+
+`<module>` may be `promo`, `features/promo`, or `src/features/promo`.
+
+## Flags
+
+- `--apply` — write changes
+- `--config <file>` — layout config for `srcRoot`
+
+Does **not** accept `--format`, `--roots`, or `--include-packages`.
+
+## Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| `0` | Dry-run ok, or apply + post-check ok |
+| `2` | Preflight failure, rewrite failure, or rolled-back apply |
+
+## What's next
+
+<Cards>
+  <Card title="dma check" description="Hard rules including feature-has-inbound" href="/tooling/cli/check" />
+  <Card title="Code evolution" description="When to promote" href="/concepts/evolution" />
+  <Card title="dma doctor" description="Soft growth signals" href="/tooling/cli/doctor" />
+</Cards>

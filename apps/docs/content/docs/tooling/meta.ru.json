@@ -6,6 +6,7 @@
     "cli/check",
     "cli/doctor",
     "cli/init",
+    "cli/promote",
     "cli/config",
     "eslint",
     "biome",

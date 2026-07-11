@@ -9,6 +9,7 @@ import { formatSarif } from "./format-sarif";
 import { runInit } from "./init";
 import { mergeOptions } from "./merge-options";
 import { parseCliArgs } from "./parse-args";
+import { runPromote } from "./promote";
 import { resolveRoots } from "./resolve-roots";
 
 export interface FormatOptions {
@@ -47,6 +48,9 @@ export const runCli = async (argv: string[]): Promise<number> => {
     const args = parseCliArgs(argv);
     if (args.command === "init") {
       return await runInit(args);
+    }
+    if (args.command === "promote") {
+      return await runPromote(args);
     }
 
     const loaded = await loadConfig(args.path, args.config);

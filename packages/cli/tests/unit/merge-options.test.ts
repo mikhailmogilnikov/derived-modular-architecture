@@ -5,6 +5,7 @@ import type { CliArgs } from "../../src/cli/parse-args";
 import type { LoadedConfig } from "../../src/core/load-config";
 
 const baseArgs = (overrides: Partial<CliArgs> = {}): CliArgs => ({
+  apply: false,
   command: "check",
   format: "json",
   includePackages: false,

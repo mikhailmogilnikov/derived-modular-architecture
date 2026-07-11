@@ -14,6 +14,19 @@ When sources conflict, resolve in this order:
 
 Schema: [`rules.schema.json`](./rules.schema.json).
 
+### Keeping the catalog in sync (CI gate)
+
+`packages/cli` tests extract ruleIds from CLI (`rules.ts`, `signals.ts`) and ESLint plugin (`index.ts`) and require an exact match with `rules.json` surfaces. A locked `version` + fingerprints live in `rules-catalog.test.ts`.
+
+When you **add / remove / rename** a ruleId:
+
+1. Implement it in CLI and/or `@derived-modular/eslint-plugin`
+2. Update this `rules.json` entry (`severity`, `surfaces`, `doc`)
+3. Bump `version` in `rules.json`
+4. Update `CATALOG_GATE` in `packages/cli/tests/unit/rules-catalog.test.ts` (same `version` + fingerprints)
+
+CI runs these tests via `bun run test` — no separate workflow job.
+
 ## What DMA is
 
 Frontend architecture where **rules are derived from the filesystem and import graph**, then enforced by tooling — not taste.

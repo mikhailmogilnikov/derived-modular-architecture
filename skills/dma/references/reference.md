@@ -25,7 +25,7 @@ Detail: [spec/modules.md](https://github.com/mikhailmogilnikov/derived-modular-a
 | Stage-0 gains sibling file | Stage 1 |
 | ~8+ internals / mixed ui·model·api names | Stage 2 segments (`stage-growth`) |
 | Bloated `public/` implementations | Stage 3 split (review; no doctor rule yet) |
-| Feature needed by **another** module | Promote to `services/` (one inbound edge) |
+| Feature needed by **another** module | `dma promote <name>` (dry-run) then `--apply` for folder+`public/`; else make folder first |
 | Portable asset needed by 2+ modules | `shared/…` (second-use) |
 | Cycle / upward | Port + composition-root wiring, or extract shared |
 | Dense `services` | Horizontal split (`domains/*` / packages) — not new vertical layers |
@@ -73,7 +73,9 @@ Hard (`dma check`): `layer-direction`, `feature-to-feature`, `public-api`, `no-b
 
 Soft (`dma doctor`): `shared-candidate`, `stage-growth`, `dense-services`, `orphan-public`.
 
-`shared-candidate` = file imported by 2+ other modules — often a healthy `services/*/public/*`; confirm before moving to `shared/`.
+Codemod: `dma promote <name> [--apply]` — folder feature → `services/` + import rewrite (dry-run default; post-check rollback).
+
+`shared-candidate` = file imported by 2+ other modules — often a healthy `services/*/public/*`; confirm before moving to `shared/`. On a **feature**, prefer `dma promote` when the whole module should become a service.
 
 File-scoped subset (not a substitute for `dma check`):
 

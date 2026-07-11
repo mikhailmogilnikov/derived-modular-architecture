@@ -1,0 +1,60 @@
+---
+title: "dma promote"
+description: "Безопасно перенести folder-feature в services/ и переписать импорты (по умолчанию dry-run)."
+icon: "ArrowUpFromLine"
+---
+
+```bash
+npx @derived-modular/cli promote <module> [path]
+npx @derived-modular/cli promote <module> [path] --apply
+```
+
+Переносит **папочный** feature `features/<name>/` → `services/<name>/` и переписывает import-литералы, которые резолвятся в этот модуль. Нужен, когда срабатывает `feature-has-inbound` (другой модуль импортирует feature).
+
+## Безопасность
+
+| Защита | Поведение |
+| --- | --- |
+| По умолчанию | **Dry-run** — план move + rewrite; диск не трогаем |
+| `--apply` | Нужен для записи |
+| Тип модуля | Только folder с `public/`; stage-0 file — отказ |
+| Цель | Abort, если `services/<name>` уже есть |
+| Scope | Один app-пакет (есть `src/`); не multi-root |
+| Post-check | После apply снова `dma check`; **новые** errors или оставшийся `feature-has-inbound` → **rollback** snapshot |
+
+Не чистит `public/` и не создаёт ports — API пересмотрите вручную после успешного promote. См. [Эволюция кода](/concepts/evolution).
+
+## Примеры
+
+```bash
+# Только план
+npx @derived-modular/cli promote features/promo
+
+# Запись + проверка
+npx @derived-modular/cli promote promo --apply
+npx @derived-modular/cli promote promo apps/web --apply --config ./dma.config.ts
+```
+
+`<module>`: `promo`, `features/promo` или `src/features/promo`.
+
+## Флаги
+
+- `--apply` — записать изменения
+- `--config <file>` — layout-конфиг для `srcRoot`
+
+Не принимает `--format`, `--roots`, `--include-packages`.
+
+## Коды выхода
+
+| Код | Смысл |
+| --- | --- |
+| `0` | Dry-run ок, или apply + post-check ок |
+| `2` | Preflight, rewrite или откат после apply |
+
+## Дальше
+
+<Cards>
+  <Card title="dma check" description="Жёсткие правила, включая feature-has-inbound" href="/tooling/cli/check" />
+  <Card title="Эволюция кода" description="Когда промоутить" href="/concepts/evolution" />
+  <Card title="dma doctor" description="Мягкие сигналы роста" href="/tooling/cli/doctor" />
+</Cards>

@@ -1,15 +1,19 @@
 import { parseArgs } from "node:util";
 import type { AnalyzeMode } from "../core/types";
 
-export type CliCommand = AnalyzeMode | "init";
+export type CliCommand = AnalyzeMode | "init" | "promote";
 
 export interface CliArgs {
+  /** Promote only: write to disk when true. */
+  apply: boolean;
   command: CliCommand;
   config?: string;
   format: "human" | "json" | "sarif";
   includePackages: boolean;
   /** True only when `--include-packages` appears on argv. */
   includePackagesExplicit: boolean;
+  /** Promote only: feature module name or path. */
+  module?: string;
   path: string;
   roots?: string[];
 }
@@ -18,7 +22,7 @@ const isAnalyzeMode = (value: string): value is AnalyzeMode =>
   value === "check" || value === "doctor";
 
 const isCliCommand = (value: string): value is CliCommand =>
-  isAnalyzeMode(value) || value === "init";
+  isAnalyzeMode(value) || value === "init" || value === "promote";
 
 const isFormat = (value: string): value is CliArgs["format"] =>
   value === "human" || value === "json" || value === "sarif";
@@ -50,8 +54,63 @@ const argvHasFlag = (argv: string[], names: string[]): boolean => {
   return false;
 };
 
+const parseInitArgs = (
+  argv: string[],
+  positionals: string[],
+  config?: string
+): CliArgs => {
+  if (
+    argvHasFlag(argv, ["--format", "--roots", "--include-packages", "--apply"])
+  ) {
+    throw new Error(
+      "init does not accept --format, --roots, --include-packages, or --apply."
+    );
+  }
+  const [, path = process.cwd()] = positionals;
+  return {
+    apply: false,
+    command: "init",
+    config,
+    format: "human",
+    includePackages: false,
+    includePackagesExplicit: false,
+    path,
+    roots: undefined,
+  };
+};
+
+const parsePromoteArgs = (
+  argv: string[],
+  positionals: string[],
+  values: { apply?: boolean; config?: string }
+): CliArgs => {
+  if (argvHasFlag(argv, ["--format", "--roots", "--include-packages"])) {
+    throw new Error(
+      "promote does not accept --format, --roots, or --include-packages."
+    );
+  }
+  const [, moduleArg, path = process.cwd()] = positionals;
+  if (!moduleArg) {
+    throw new Error(
+      "promote requires a module name, e.g. dma promote features/promo"
+    );
+  }
+  return {
+    apply: values.apply === true,
+    command: "promote",
+    config: values.config,
+    format: "human",
+    includePackages: false,
+    includePackagesExplicit: false,
+    module: moduleArg,
+    path,
+    roots: undefined,
+  };
+};
+
 export const parseCliArgs = (argv: string[]): CliArgs => {
   let values: {
+    apply?: boolean;
     config?: string;
     format?: string;
     "include-packages"?: boolean;
@@ -64,6 +123,7 @@ export const parseCliArgs = (argv: string[]): CliArgs => {
       allowPositionals: true,
       args: argv,
       options: {
+        apply: { type: "boolean" },
         config: { type: "string" },
         format: { default: "human", type: "string" },
         "include-packages": { type: "boolean" },
@@ -76,28 +136,23 @@ export const parseCliArgs = (argv: string[]): CliArgs => {
     throw new Error(message, { cause: error });
   }
 
-  const [command, path = process.cwd()] = positionals;
+  const [command] = positionals;
   if (!(command && isCliCommand(command))) {
     throw new Error(
-      `Unknown command: ${command ?? "(missing)"}. Expected check, doctor, or init.`
+      `Unknown command: ${command ?? "(missing)"}. Expected check, doctor, init, or promote.`
     );
   }
 
   if (command === "init") {
-    if (argvHasFlag(argv, ["--format", "--roots", "--include-packages"])) {
-      throw new Error(
-        "init does not accept --format, --roots, or --include-packages."
-      );
-    }
-    return {
-      command: "init",
-      config: values.config,
-      format: "human",
-      includePackages: false,
-      includePackagesExplicit: false,
-      path,
-      roots: undefined,
-    };
+    return parseInitArgs(argv, positionals, values.config);
+  }
+
+  if (command === "promote") {
+    return parsePromoteArgs(argv, positionals, values);
+  }
+
+  if (values.apply === true) {
+    throw new Error("--apply is only valid with promote.");
   }
 
   const format = values.format ?? "human";
@@ -108,8 +163,10 @@ export const parseCliArgs = (argv: string[]): CliArgs => {
   }
 
   const includePackagesExplicit = values["include-packages"] !== undefined;
+  const [, path = process.cwd()] = positionals;
 
   return {
+    apply: false,
     command,
     config: values.config,
     format,

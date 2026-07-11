@@ -9,12 +9,65 @@ import type { Diagnostic, ModuleRef } from "./types";
 const SEGMENT_NAMES = ["ui", "model", "api"] as const;
 const SEGMENT_DIR_SET = new Set<string>(SEGMENT_NAMES);
 
+type PlacementLayer = "features" | "services" | "shared" | "unknown";
+
+const HELP_SHARED_CANDIDATE_FEATURES =
+  "Placement #2: another module imports this — promote the feature with `dma promote <name>` (dry-run) then `--apply` (folder + public/ only). Never feature→feature.";
+const HELP_SHARED_CANDIDATE_SERVICES =
+  "Placement #2–3: second use — keep in services/ if product flow, else extract to shared/{ui,lib,api,model,domain}. Don't extract on first use.";
+const HELP_SHARED_CANDIDATE_SHARED =
+  "Placement #3: already under shared/ — check that the helper stays portable and coupling stays intentional.";
+const HELP_SHARED_CANDIDATE_UNKNOWN =
+  "Placement #2–3: imported by 2+ modules — `dma promote <name>` if this is a folder feature, else services/<name>/public/ or shared/ if portable.";
+const HELP_STAGE_GROWTH_0 =
+  "Placement #4–5: related siblings share a basename — promote to features/<name>/ (or services/) with public/; colocate internals inside the module.";
+const HELP_STAGE_GROWTH_1 =
+  "Placement #4: module is large enough — introduce ui/model/api segments and keep sole-consumer code colocated.";
+
 interface SignalContext {
   classified: ClassifiedProject;
   graph: ProjectGraph;
   project: DiscoveredProject;
   thresholds: Thresholds;
 }
+
+const placementLayerForFile = (
+  filePath: string,
+  ctx: SignalContext
+): PlacementLayer => {
+  const moduleId = ctx.graph.moduleOfFile.get(filePath) ?? null;
+  if (moduleId !== null) {
+    const mod = ctx.project.modules.find((entry) => entry.id === moduleId);
+    if (mod?.layer === "features" || mod?.layer === "services") {
+      return mod.layer;
+    }
+  }
+
+  const sharedDir = ctx.project.layers.shared;
+  if (sharedDir && isUnderDir(filePath, sharedDir)) {
+    return "shared";
+  }
+
+  const [top] = relative(ctx.project.srcRoot, filePath).split(sep);
+  if (top === "shared") {
+    return "shared";
+  }
+
+  return "unknown";
+};
+
+const helpForSharedCandidate = (layer: PlacementLayer): string => {
+  switch (layer) {
+    case "features":
+      return HELP_SHARED_CANDIDATE_FEATURES;
+    case "services":
+      return HELP_SHARED_CANDIDATE_SERVICES;
+    case "shared":
+      return HELP_SHARED_CANDIDATE_SHARED;
+    default:
+      return HELP_SHARED_CANDIDATE_UNKNOWN;
+  }
+};
 
 const isUnderDir = (filePath: string, dirPath: string): boolean => {
   const rel = relative(dirPath, filePath);
@@ -61,7 +114,7 @@ const checkSharedCandidate = (ctx: SignalContext): Diagnostic[] => {
     }
     out.push({
       file: filePath,
-      help: "Second use detected — consider extracting to shared/ or a dedicated service.",
+      help: helpForSharedCandidate(placementLayerForFile(filePath, ctx)),
       message: `File is imported by ${consumers.size} other modules`,
       ruleId: "shared-candidate",
       severity: "warning",
@@ -134,7 +187,7 @@ const checkStageGrowth = (ctx: SignalContext): Diagnostic[] => {
       }
       out.push({
         file: mod.rootPath,
-        help: "Related sibling files share a basename prefix — promote to a folder module with public/.",
+        help: HELP_STAGE_GROWTH_0,
         message: `Stage-0 module "${mod.id}" has related sibling files`,
         ruleId: "stage-growth",
         severity: "warning",
@@ -150,7 +203,7 @@ const checkStageGrowth = (ctx: SignalContext): Diagnostic[] => {
     }
     out.push({
       file: mod.rootPath,
-      help: "Module is large enough for ui/model/api segments — introduce segment directories.",
+      help: HELP_STAGE_GROWTH_1,
       message: `Stage-1 module "${mod.id}" warrants segment structure`,
       ruleId: "stage-growth",
       severity: "warning",

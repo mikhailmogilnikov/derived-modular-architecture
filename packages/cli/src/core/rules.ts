@@ -191,7 +191,7 @@ const checkFeatureToFeature = (ctx: RuleContext): Diagnostic[] => {
     const fileEdge = findFileEdgeForModules(ctx, edge.from, edge.to);
     out.push({
       file: fileEdge?.fromFile ?? fromMod.rootPath,
-      help: "Features must not import other features; promote shared flow to services/.",
+      help: `Do not import features from features. Promote the shared module with \`dma promote ${toMod.name}\` (dry-run) then \`--apply\` if it is a folder with public/; or wire via the composition root.`,
       message: `Feature "${fromMod.name}" imports feature "${toMod.name}"`,
       range: fileEdge ? edgeRange(fileEdge.line, fileEdge.column) : undefined,
       ruleId: "feature-to-feature",
@@ -292,7 +292,7 @@ const checkFeatureHasInbound = (ctx: RuleContext): Diagnostic[] => {
     }
     out.push({
       file: mod.rootPath,
-      help: "Promote this feature to services/ — it has inbound edges from other modules.",
+      help: `Auto-promote: \`dma promote ${mod.name}\` (dry-run), then \`dma promote ${mod.name} --apply\`. Folder + public/ only; revisit public/ after.`,
       message: `Feature "${mod.name}" has inbound module dependencies`,
       ruleId: "feature-has-inbound",
       severity: "error",

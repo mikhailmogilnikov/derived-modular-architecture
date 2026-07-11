@@ -4,7 +4,7 @@ description: >-
   Applies Derived Modular Architecture (DMA) when placing or moving frontend
   files under src/{app,pages,routes,features,services,shared}, reviewing imports,
   promoting modules, choosing public API paths, migrating from FSD/ED, configuring
-  dma.config.*, or running dma init / dma check / dma doctor / @derived-modular/* linters
+  dma.config.*, or running dma init / dma check / dma doctor / dma promote / @derived-modular/* linters
   (including monorepo multi-root). Prefer this over inventing layers (widgets,
   entities) or barrels.
 license: MIT
@@ -35,7 +35,12 @@ Before creating/moving anything under the source root (default `src/`):
 Answer in order; **stop at first match**.
 
 1. **Composition / wiring / route shell?** → composition root: `src/app/`, `src/pages/`, or `src/routes/` (thin mount of `*/public/*` only).
-2. **Another module must import this module (product scenario)?** → target MUST be in `services/` (promote + review `public/`). Never `feature → feature`. One inbound module edge is enough.
+2. **Another module must import this module (product scenario)?** → target MUST be in `services/`. Prefer the CLI:
+   ```bash
+   npx @derived-modular/cli promote <name>            # dry-run (default)
+   npx @derived-modular/cli promote <name> --apply    # move + rewrite + post-check rollback
+   ```
+   Folder modules with `public/` only. Stage-0 file → make folder + `public/` first. Never `feature → feature`. One inbound module edge is enough.
 3. **Portable helper/UI/type already imported by 2+ modules?** → `shared/{domain,lib,ui,api,model}` (second-use). Do not extract on first use.
 4. **Only one consumer module?** → colocate inside that module (internal file or segment).
 5. **New leaf UI/flow mounted only from composition root?** → `features/<name>` (stage 0 file or stage 1+ folder).
@@ -75,7 +80,13 @@ outside module   → */public/* only (not ui/model/api internals)
    ```
    Creates missing dirs/config, appends DMA block to `AGENTS.md` if markers absent. Run inside the app package in a monorepo.
 3. **Place/move** via the algorithm; rewrite imports to **direct** public files.
-4. **Verify** if CLI is available:
+4. **Promote** when `feature-has-inbound` (or you know another module must import a folder feature):
+   ```bash
+   npx @derived-modular/cli promote features/<name>           # dry-run — prints move + rewrites
+   npx @derived-modular/cli promote features/<name> --apply   # write; rolls back if new check errors
+   ```
+   Then revisit `public/` manually. Do **not** hand-move if promote applies (safer rewrite + verify).
+5. **Verify** if CLI is available:
    ```bash
    # single app (path with src/)
    npx @derived-modular/cli check . --format json
@@ -87,8 +98,21 @@ outside module   → */public/* only (not ui/model/api internals)
    npx @derived-modular/cli check . --include-packages
    ```
    Exit: `0` ok · `1` check errors (must fix) · `2` env/args/config.
-5. Use **editor linter plugins** when the project already has that linter (see below) — still run `npx @derived-modular/cli check` in CI.
-6. Never “fix” with barrels, deep imports, empty `services/`, or ports that hide a legal downward import.
+6. Use **editor linter plugins** when the project already has that linter (see below) — still run `npx @derived-modular/cli check` in CI.
+7. Never “fix” with barrels, deep imports, empty `services/`, or ports that hide a legal downward import.
+
+## CLI: promote
+
+`dma promote <module> [path] [--apply]` moves `features/<name>/` → `services/<name>/` and rewrites import literals that resolve into that module.
+
+| Rule | Detail |
+| --- | --- |
+| Default | Dry-run only (no disk writes) |
+| `--apply` | Required to write; then re-runs `check` and **rolls back** on new errors |
+| Eligible | Folder feature with `public/` |
+| Rejected | Stage-0 file modules, existing `services/<name>`, multi-root path without `src/` |
+
+When `check` reports `feature-has-inbound`, run dry-run promote for that name, then `--apply`. Still review `public/` afterward.
 
 ## CLI: monorepo + config
 

@@ -81,7 +81,7 @@ npx @derived-modular/cli check .
 | `public-api` | Межмодульный импорт мимо `*/public/*` | Импортируйте `*/public/<file>` напрямую; internal — только relative внутри модуля | [Модули](/concepts/modules) |
 | `no-barrel` | `index.ts` с реэкспортами внутри модуля | Удалите barrel; импортируйте конкретные файлы | [Почему нет barrel](/deep-dive/why-no-barrels) |
 | `no-cycle` | Цикл в графе модулей | Вынесите в `shared/`, promotion в `services/`, или порт + привязка в `app/` | [Склейка модулей](/guides/cross-module-wiring) |
-| `feature-has-inbound` | У feature есть входящих рёбер от другого модуля | Перенесите модуль в `services/<name>/`, пересмотрите `public/` | [Эволюция кода](/concepts/evolution) |
+| `feature-has-inbound` | У feature есть входящих рёбер от другого модуля | `dma promote <name> --apply`, затем пересмотрите `public/` | [dma promote](/tooling/cli/promote) · [Эволюция кода](/concepts/evolution) |
 | `service-no-inbound` | Service без потребителей среди модулей | Верните размещение рядом в feature или удалите пустой service | [Слои](/concepts/layers) |
 
 ### Код выхода 2 (окружение)

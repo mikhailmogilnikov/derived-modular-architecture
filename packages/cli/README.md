@@ -30,6 +30,7 @@ Requires Node.js `>=18`.
 npx @derived-modular/cli init
 npx @derived-modular/cli check
 npx @derived-modular/cli doctor
+npx @derived-modular/cli promote features/cart --apply
 ```
 
 ## Commands
@@ -38,6 +39,7 @@ npx @derived-modular/cli doctor
 npx @derived-modular/cli init [path]           # scaffold dirs/config/AGENTS (strict skip)
 npx @derived-modular/cli check [path]          # hard rules (fails CI on errors)
 npx @derived-modular/cli doctor [path]         # evolution signals (exit 0 by default)
+npx @derived-modular/cli promote <module> [path] [--apply]  # feature → services (dry-run default)
 npx @derived-modular/cli check --format json
 npx @derived-modular/cli doctor --format sarif
 npx @derived-modular/cli check .               # multi-root if path has no src/
@@ -50,6 +52,10 @@ npx @derived-modular/cli check --config ./dma.config.ts
 
 Bootstraps a **single** package: missing `src/` layout (`app` unless `pages`/`routes` exist, plus `features`/`shared`), create-if-missing `dma.config.ts`, optional `scripts.dma`, append-only `AGENTS.md` DMA block. Never overwrites existing files. Does not wire linters (prints install hints). In a monorepo, run inside the app package. See docs: tooling → dma init.
 
+### `promote`
+
+Moves a **folder** feature (`features/<name>/` with `public/`) to `services/<name>/` and rewrites imports that resolve into that module. **Dry-run by default**; `--apply` writes, then re-runs `check` and **rolls back** if new errors appear. Stage-0 file modules are rejected. See docs: tooling → dma promote.
+
 Invoke only via the package name — do not rely on a short global binary.
 
 `path` defaults to the current working directory. If `path` contains the configured source root (default `src/`), that single tree is analyzed. If not, the CLI discovers DMA app packages (workspaces first, directory walk fallback). Use `--roots` or `dma.config` `roots` for an explicit list; `--include-packages` / config `includePackages` also includes library packages with layer dirs but no composition root.
@@ -60,9 +66,9 @@ Optional project config: `dma.config.ts` | `.mts` | `.mjs` | `.js` | `.json` (up
 
 | Code | Meaning |
 | --- | --- |
-| `0` | OK — `check` found no errors; `doctor` / `init` return 0 unless the tool itself fails |
+| `0` | OK — `check` found no errors; `doctor` / `init` / dry-run `promote` return 0 unless the tool itself fails |
 | `1` | `check` found architectural errors |
-| `2` | Environment failure (missing `src/` for check/doctor, unreadable tree, invalid tsconfig, bad args) |
+| `2` | Environment failure (missing `src/` for check/doctor, unreadable tree, invalid tsconfig, bad args, promote preflight/rollback) |
 
 ### Output formats
 
@@ -89,11 +95,11 @@ Graph rules (`no-cycle`, inbound predicates) and `doctor` signals exist only her
 | Rule | Meaning |
 | --- | --- |
 | `layer-direction` | Imports only downward: `app → features → services → shared` |
-| `feature-to-feature` | Features must not import other features |
+| `feature-to-feature` | Features must not import other features — tip suggests `dma promote` on the imported module |
 | `public-api` | Cross-module imports must hit `*/public/*` (stage-0 file modules are entirely public) |
 | `no-barrel` | No barrel `index` re-export surfaces inside modules |
 | `no-cycle` | No cycles in the module graph |
-| `feature-has-inbound` | A feature with inbound module edges must live in `services/` |
+| `feature-has-inbound` | A feature with inbound module edges must live in `services/` — tip: `dma promote <name>` |
 | `service-no-inbound` | A service without inbound module edges violates its predicate |
 
 Inbound edges are counted from other **modules** only (`features/*`, `services/*`). Mounts from composition roots (`app/`, `pages/`, `routes/`) do not promote a feature.
@@ -102,12 +108,12 @@ Inbound edges are counted from other **modules** only (`features/*`, `services/*
 
 | Signal | Meaning |
 | --- | --- |
-| `shared-candidate` | A module file is imported by 2+ other modules |
-| `stage-growth` | Module structure lags measured size (stage 0 siblings / stage 1 segments) |
+| `shared-candidate` | A module file is imported by 2+ other modules — on a feature, `help` suggests `dma promote` |
+| `stage-growth` | Module structure lags measured size — `help` points at folder/`public/` or `ui/model/api` colocation |
 | `dense-services` | `services` subgraph looks dense/deep enough to suggest a split |
 | `orphan-public` | A `public/` file has no external importers |
 
-`doctor` does **not** re-emit hard `check` rule IDs.
+`doctor` does **not** re-emit hard `check` rule IDs. Placement wording follows the algorithm in the docs site (`concepts/placement`); no URLs are printed.
 
 ## Supported sources
 
@@ -147,7 +153,7 @@ bun run build
 
 ## Out of scope
 
-Autofix/codemods (кроме ESLint `no-barrel` import fix), project scaffolding, LSP, `domains/*` layout, cross-package graph merge, watch mode. Biome does not read `dma.config` yet.
+Autofix/codemods beyond `promote` and ESLint `no-barrel` import fix, LSP, `domains/*` layout, cross-package graph merge, watch mode. Biome does not read `dma.config` yet.
 
 ## License
 

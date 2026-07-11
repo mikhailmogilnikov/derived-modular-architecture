@@ -49,6 +49,27 @@ describe("formatHuman", () => {
     }
   });
 
+  test("prints promote tip for feature-has-inbound", () => {
+    process.env.NO_COLOR = "1";
+    try {
+      const diagnostics: Diagnostic[] = [
+        {
+          help: "Auto-promote…",
+          message: 'Feature "promo" has inbound module dependencies',
+          ruleId: "feature-has-inbound",
+          severity: "error",
+        },
+      ];
+      const out = formatHuman("check", diagnostics);
+      expect(out).toContain(
+        "tip  Auto-promote (dry-run first): dma promote promo"
+      );
+      expect(out).toContain("--apply");
+    } finally {
+      delete process.env.NO_COLOR;
+    }
+  });
+
   test("multi-root banners and footer", () => {
     process.env.NO_COLOR = "1";
     try {

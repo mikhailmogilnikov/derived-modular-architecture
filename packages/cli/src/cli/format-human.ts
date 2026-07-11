@@ -58,6 +58,43 @@ const formatLocation = (diagnostic: Diagnostic, color: boolean): string => {
   return paint(color, CYAN, loc);
 };
 
+const FEATURE_INBOUND_NAME_RE = /Feature "([^"]+)" has inbound/;
+const FEATURE_IMPORT_TARGET_RE = /imports feature "([^"]+)"/;
+
+const formatPromoteTip = (
+  diagnostics: Diagnostic[],
+  color: boolean
+): string | null => {
+  const names = new Set<string>();
+  for (const diagnostic of diagnostics) {
+    if (diagnostic.ruleId === "feature-has-inbound") {
+      const match = FEATURE_INBOUND_NAME_RE.exec(diagnostic.message);
+      if (match?.[1]) {
+        names.add(match[1]);
+      }
+      continue;
+    }
+    if (diagnostic.ruleId === "feature-to-feature") {
+      const match = FEATURE_IMPORT_TARGET_RE.exec(diagnostic.message);
+      if (match?.[1]) {
+        names.add(match[1]);
+      }
+    }
+  }
+  if (names.size === 0) {
+    return null;
+  }
+  const commands = [...names]
+    .sort((a, b) => a.localeCompare(b))
+    .map((name) => `dma promote ${name}`)
+    .join(" · ");
+  return paint(
+    color,
+    DIM,
+    `tip  Auto-promote (dry-run first): ${commands}  ·  then add --apply`
+  );
+};
+
 const formatDiagnostic = (diagnostic: Diagnostic, color: boolean): string => {
   const { color: sevColor, label } = severityStyle(diagnostic.severity);
   const severity = paint(color, `${BOLD}${sevColor}`, label);
@@ -186,7 +223,9 @@ const formatSingle = (
   const blocks = orderDiagnostics(diagnostics).map((diagnostic) =>
     formatDiagnostic(diagnostic, color)
   );
-  return `${blocks.join("\n\n")}\n\n${summary}`;
+  const tip = formatPromoteTip(diagnostics, color);
+  const body = `${blocks.join("\n\n")}\n\n${summary}`;
+  return tip === null ? body : `${body}\n${tip}`;
 };
 
 const formatMulti = (
@@ -220,7 +259,9 @@ const formatMulti = (
     infos,
     color
   );
-  return `${header}\n${sections.join("\n")}\n${footer}`;
+  const tip = formatPromoteTip(diagnostics, color);
+  const body = `${header}\n${sections.join("\n")}\n${footer}`;
+  return tip === null ? body : `${body}\n${tip}`;
 };
 
 export const formatHuman = (

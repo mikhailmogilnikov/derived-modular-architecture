@@ -30,6 +30,7 @@ Prefer another package manager? Use `pnpm dlx`, `yarn dlx`, or `bunx` the same w
 | `dma init [path]` | Bootstrap layout, config, and agent docs (create-if-missing). |
 | `dma check [path]` | Hard rules — graph, cycles, inbound predicates. Fails CI on errors. |
 | `dma doctor [path]` | Soft growth signals (exit 0). Hints when to promote or split. |
+| `dma promote <module> [--apply]` | Folder feature → `services/` + import rewrite (dry-run default). |
 
 `check` and `doctor` accept an optional path (defaults to cwd). Add `--format json` or `--format sarif` for CI and code scanning.
 

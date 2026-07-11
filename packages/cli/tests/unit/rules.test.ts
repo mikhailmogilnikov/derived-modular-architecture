@@ -67,7 +67,8 @@ describe("runCheckRules", () => {
     const diagnostics = diagnosticsFor("inbound-feature");
     const hit = diagnostics.find((d) => d.ruleId === "feature-has-inbound");
     expect(hit?.severity).toBe("error");
-    expect(hit?.help?.toLowerCase()).toContain("services");
+    expect(hit?.help?.toLowerCase()).toContain("dma promote");
+    expect(hit?.help).toContain("promo");
   });
 
   test("service-no-inbound", () => {

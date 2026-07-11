@@ -35,14 +35,20 @@ Doctor **does not duplicate** `check` errors. If `check` is red — fix check fi
 
 A module file is imported by **2+ other modules**.
 
-What to do: decide whether this is a product scenario (→ `services/`) or a portable helper (→ `shared/`). Do not lift to shared automatically — understand the code first.
+`help` names the next [placement](/concepts/placement) step by the file's current layer:
+
+- under `features/` → promote to `services/<name>/public/` (Placement #2)
+- under `services/` → keep if product flow, else extract to `shared/{ui,lib,…}` (Placement #2–3)
+- under `shared/` → already shared; keep portability intentional (Placement #3)
+
+Do not lift to shared automatically — understand the code first.
 
 ### stage-growth
 
-Module structure lags behind size:
+Module structure lags behind size. `help` ties the fix to placement colocation:
 
-- file-module (stage 0) gained **sibling files with the same basename prefix** (e.g. `checkout.tsx` + `checkout.store.ts`) → create a folder and `public/`
-- many files without segments → add `ui/`, `model/`, `api/`
+- file-module (stage 0) gained **sibling files with the same basename prefix** (e.g. `checkout.tsx` + `checkout.store.ts`) → folder + `public/` (Placement #4–5)
+- many files without segments → add `ui/`, `model/`, `api/` (Placement #4)
 
 Default threshold is about 8 files (`stage1FileCount`).
 
