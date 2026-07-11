@@ -1,5 +1,13 @@
 # @derived-modular/eslint-plugin
 
+## 1.2.0
+
+### Patch Changes
+
+- acfa80b: Share barrel-fix helpers in boundaries; CLI bin `dma`; dma.config `thresholds`; promote resolve-verify after rewrite.
+- Updated dependencies [acfa80b]
+  - @derived-modular/boundaries@1.2.0
+
 ## 1.1.0
 
 ### Minor Changes

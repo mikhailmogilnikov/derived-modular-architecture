@@ -1,5 +1,12 @@
 # @derived-modular/oxlint-plugin
 
+## 1.2.0
+
+### Patch Changes
+
+- Updated dependencies [acfa80b]
+  - @derived-modular/eslint-plugin@1.2.0
+
 ## 1.1.0
 
 ### Patch Changes

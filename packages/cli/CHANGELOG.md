@@ -1,5 +1,19 @@
 # @derived-modular/cli
 
+## 1.2.0
+
+### Minor Changes
+
+- acfa80b: Share barrel-fix helpers in boundaries; CLI bin `dma`; dma.config `thresholds`; promote resolve-verify after rewrite.
+- acfa80b: Add `dma check|doctor --suggest|--fix` for safe remediations: no-barrel importer rewrite, public-api path to existing public/, orphan-public delete.
+- 574c7f2: Add `dma promote` — dry-run by default; `--apply` moves a folder feature to `services/` with import rewrite, post-check, and snapshot rollback.
+
+### Patch Changes
+
+- 574c7f2: Enrich doctor `help` for `shared-candidate` and `stage-growth` with placement-algorithm next steps (no new rule IDs).
+- Updated dependencies [acfa80b]
+  - @derived-modular/boundaries@1.2.0
+
 ## 1.1.0
 
 ### Minor Changes
