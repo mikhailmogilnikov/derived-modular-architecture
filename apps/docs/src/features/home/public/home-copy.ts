@@ -3,7 +3,7 @@ import { agentPromptCopy } from "@/shared/model/agent-prompt-copy";
 
 export const homeCopy = {
   en: {
-    badge: "Latest update — release v1.0.1",
+    badge: "Latest update: release v1.0.1",
     ctaAgentPrompt: agentPromptCopy.en.label,
     ctaAgentPromptTooltip: agentPromptCopy.en.tooltip,
     ctaDocs: "What is DMA",
@@ -56,7 +56,7 @@ export const homeCopy = {
       },
     ],
     heroLead:
-      "DMA tells people and agents where frontend code lives — and verifies boundaries through the linter, CLI, and CI.",
+      "DMA tells people and agents where frontend code lives and verifies boundaries through the linter, CLI, and CI.",
     heroTitle: "A modular architecture for",
     heroTooling: {
       aiSkill: {
@@ -79,7 +79,7 @@ export const homeCopy = {
     },
     layers: [
       {
-        description: "Entry point — routes and pages where the app starts.",
+        description: "Entry point: routes and pages where the app starts.",
         name: "app",
       },
       {
@@ -93,47 +93,47 @@ export const homeCopy = {
         name: "features",
       },
       {
-        description: "Portable helpers and UI — dates, buttons, HTTP client.",
+        description: "Portable helpers and UI: dates, buttons, HTTP client.",
         name: "shared",
       },
     ],
     layersLead:
-      "No components/, utils/, or ad-hoc folders by taste. The folder tree is the rulebook — linter and CI enforce it. One-way imports: a lower layer never imports a higher one.",
+      "No components/, utils/, or ad-hoc folders by taste. The folder tree is the rulebook; linter and CI enforce it. One-way imports: a lower layer never imports a higher one.",
     layersTitle: "Four boundaries in src/",
     moduleStages: [
       {
-        change: "Whole file is the public API — import checkout.tsx directly.",
+        change: "Whole file is the public API. Import checkout.tsx directly.",
         stage: "0",
         title: "File module",
       },
       {
         change:
-          "Module grew — public/ holds what app and other modules import. cart-row.tsx and hooks stay inside, only entrypoints go in public/.",
+          "Module grew: public/ holds what app and other modules import. cart-row.tsx and hooks stay inside, only entrypoints go in public/.",
         stage: "1",
         title: "Folder + public/",
       },
       {
         change:
-          "Too many files inside — split by role: ui/ for components, model/ for state and business logic, api/ for requests, lib/ for helpers used across segments.",
+          "Too many files inside. Split by role: ui/ for components, model/ for state and business logic, api/ for requests, lib/ for helpers used across segments.",
         stage: "2",
         title: "Segments",
       },
       {
         change:
-          "checkout-form imports checkout — checkout moves to services/, the new flow stays in features/.",
+          "checkout-form imports checkout. checkout moves to services/, the new flow stays in features/.",
         stage: "3",
         title: "Promotion",
       },
       {
         change:
-          "Extracted to packages/checkout/ — same rules, shared across apps.",
+          "Extracted to packages/checkout/. Same rules, shared across apps.",
         stage: "4",
         title: "Package",
       },
     ],
     moduleStagesExplorer: "Explorer",
     moduleStagesLead:
-      "Start with a single file. Folders appear when the code needs them — each step builds on the last, no rewrite.",
+      "Start with a single file. Folders appear when the code needs them. Each step builds on the last, no rewrite.",
     moduleStagesNextAria: "Next stage",
     moduleStagesStageAria: "Stage",
     moduleStagesTitle: "The layout grows with the product",
@@ -144,20 +144,20 @@ export const homeCopy = {
       error: "feature-to-feature",
       fileName: "features/checkout/model.ts",
       importLine: 'import { getCatalog } from "@/features/catalog/public/api";',
-      note: "One import graph — the same result in the editor and in CI.",
+      note: "One import graph. The same result in the editor and in CI.",
       terminalLabel: "terminal",
     },
     violationLead:
-      "Rich tooling won't let you slip — linter, agent, and CLI enforce the same rules.",
+      "Rich tooling won't let you slip: linter, agent, and CLI enforce the same rules.",
     violationTitle: "Boundaries are checked, not debated",
   },
   ru: {
-    badge: "Последнее обновление — релиз v1.0.1",
+    badge: "Последнее обновление: релиз v1.0.1",
     ctaAgentPrompt: agentPromptCopy.ru.label,
     ctaAgentPromptTooltip: agentPromptCopy.ru.tooltip,
     ctaDocs: "Что такое DMA",
     ctaLead:
-      "Документация объяснит идею. Промпт для агента — предложит шаги по интеграции архитектуры в ваш код.",
+      "Документация объяснит идею. Промпт для агента подскажет шаги по интеграции архитектуры в ваш код.",
 
     ctaTitle: "Следующий шаг — ваш проект",
     footerGitHubAria: "Открыть на GitHub",
@@ -205,7 +205,7 @@ export const homeCopy = {
       },
     ],
     heroLead:
-      "DMA говорит людям и агентам, где живёт фронтенд-код — и проверяет границы через линтер, CLI и CI.",
+      "DMA говорит людям и агентам, где живёт фронтенд-код, и проверяет границы через линтер, CLI и CI.",
     heroTitle: "Модульная архитектура для",
     heroTooling: {
       aiSkill: {
@@ -229,7 +229,7 @@ export const homeCopy = {
     layers: [
       {
         description:
-          "Точка входа — маршруты и страницы, с чего начинается приложение.",
+          "Точка входа: маршруты и страницы, с чего начинается приложение.",
         name: "app",
       },
       {
@@ -243,47 +243,47 @@ export const homeCopy = {
         name: "features",
       },
       {
-        description: "Переносимые хелперы и UI — даты, кнопки, HTTP-клиент.",
+        description: "Переносимые хелперы и UI: даты, кнопки, HTTP-клиент.",
         name: "shared",
       },
     ],
     layersLead:
-      "Без components, utils и прочего «на глаз». Дерево папок задаёт правила — линтер и CI проверяют. Импорты однонаправленные: нижестоящий слой не импортирует вышестоящий.",
+      "Без components, utils и прочего «на глаз». Дерево папок задаёт правила, линтер и CI проверяют. Импорты однонаправленные: нижестоящий слой не импортирует вышестоящий.",
     layersTitle: "Четыре границы в src/",
     moduleStages: [
       {
-        change: "Весь файл публичный — импортируйте checkout.tsx напрямую.",
+        change: "Весь файл публичный. Импортируйте checkout.tsx напрямую.",
         stage: "0",
         title: "Файл-модуль",
       },
       {
         change:
-          "Модуль разросся — в public/ лежит то, что импортируют app и другие модули. cart-row.tsx и хуки остаются внутри checkout/, наружу — только entrypoint'ы.",
+          "Модуль разросся: в public/ лежит то, что импортируют app и другие модули. cart-row.tsx и хуки остаются внутри checkout/, наружу только entrypoint'ы.",
         stage: "1",
         title: "Папка + public/",
       },
       {
         change:
-          "Файлов внутри модуля стало много — делим по ролям: ui/ для компонентов, model/ для состояния и бизнес-логики, api/ для запросов, lib/ для хелперов между сегментами.",
+          "Файлов внутри модуля стало много. Делим по ролям: ui/ для компонентов, model/ для состояния и бизнес-логики, api/ для запросов, lib/ для хелперов между сегментами.",
         stage: "2",
         title: "Сегменты",
       },
       {
         change:
-          "checkout-form импортирует checkout — checkout переезжает в services/, новый поток остаётся в features/.",
+          "checkout-form импортирует checkout. checkout переезжает в services/, новый поток остаётся в features/.",
         stage: "3",
         title: "Promotion",
       },
       {
         change:
-          "Вынесли в packages/checkout/ — те же правила, общий модуль для приложений.",
+          "Вынесли в packages/checkout/. Те же правила, общий модуль для приложений.",
         stage: "4",
         title: "Пакет",
       },
     ],
     moduleStagesExplorer: "Explorer",
     moduleStagesLead:
-      "Начните с одного файла. Папки появляются, когда код этого требует — каждый шаг наследует предыдущий, без переписывания.",
+      "Начните с одного файла. Папки появляются, когда код этого требует. Каждый шаг наследует предыдущий, без переписывания.",
     moduleStagesNextAria: "Следующая стадия",
     moduleStagesStageAria: "Стадия",
     moduleStagesTitle: "Структура растёт вместе с продуктом",
@@ -294,11 +294,11 @@ export const homeCopy = {
       error: "feature-to-feature",
       fileName: "features/checkout/model.ts",
       importLine: 'import { getCatalog } from "@/features/catalog/public/api";',
-      note: "Один граф импортов — один результат в редакторе и в CI.",
+      note: "Один граф импортов. Один результат в редакторе и в CI.",
       terminalLabel: "terminal",
     },
     violationLead:
-      "Ошибиться не даст богатый tooling — линтер, агент и CLI держат одни и те же правила.",
+      "Ошибиться не даст богатый tooling: линтер, агент и CLI держат одни и те же правила.",
     violationTitle: "Границы проверяются, а не обсуждаются",
   },
 } as const;
