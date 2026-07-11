@@ -3,7 +3,7 @@ import { agentPromptCopy } from "@/shared/model/agent-prompt-copy";
 
 export const homeCopy = {
   en: {
-    badge: "Latest update: release v1.1.0",
+    badge: "Latest update: release v1.2.0",
     ctaAgentPrompt: agentPromptCopy.en.label,
     ctaAgentPromptTooltip: agentPromptCopy.en.tooltip,
     ctaCommand:
@@ -157,7 +157,7 @@ export const homeCopy = {
     violationTitle: "Boundaries are checked, not debated",
   },
   ru: {
-    badge: "Последнее обновление: релиз v1.1.0",
+    badge: "Последнее обновление: релиз v1.2.0",
     ctaAgentPrompt: agentPromptCopy.ru.label,
     ctaAgentPromptTooltip: agentPromptCopy.ru.tooltip,
     ctaCommand:
