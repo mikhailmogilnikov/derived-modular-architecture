@@ -1,5 +1,6 @@
-import { ArrowRight, Layers, Rocket } from "lucide-react";
+import { ArrowRight, Layers } from "lucide-react";
 import Link from "next/link";
+import { HomeAgentPromptButton } from "@/features/home/public/home-agent-prompt-button";
 import {
   getHomeLocale,
   homeCopy,
@@ -28,7 +29,7 @@ export function HomePage({ lang }: { lang: string }) {
 
   return (
     <div className="landing-page w-full">
-      <section className="landing-hero relative overflow-hidden">
+      <section className="landing-hero relative">
         <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-12 px-4 pt-12 pb-20 text-center md:gap-14 md:py-28">
           <div className="max-w-4xl space-y-5">
             <Link
@@ -57,13 +58,11 @@ export function HomePage({ lang }: { lang: string }) {
                 <Layers className="size-5" />
                 {content.ctaDocs}
               </Link>
-              <Link
+              <HomeAgentPromptButton
                 className={ctaSecondaryClass}
-                href={`/${lang}/docs/start/quick-start`}
-              >
-                <Rocket className="size-5" />
-                {content.ctaStart}
-              </Link>
+                label={content.ctaAgentPrompt}
+                tooltip={content.ctaAgentPromptTooltip}
+              />
             </div>
           </div>
 
@@ -141,13 +140,11 @@ export function HomePage({ lang }: { lang: string }) {
               <Layers className="size-5" />
               {content.ctaDocs}
             </Link>
-            <Link
+            <HomeAgentPromptButton
               className={ctaSecondaryClass}
-              href={`/${lang}/docs/start/quick-start`}
-            >
-              <Rocket className="size-5" />
-              {content.ctaStart}
-            </Link>
+              label={content.ctaAgentPrompt}
+              tooltip={content.ctaAgentPromptTooltip}
+            />
           </div>
         </div>
       </section>

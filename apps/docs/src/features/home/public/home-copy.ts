@@ -3,12 +3,14 @@ import type { FileTreeNode } from "@/features/home/public/home-file-tree";
 export const homeCopy = {
   en: {
     badge: "Latest update — release v1.0.1",
+    ctaAgentPrompt: "Agent prompt",
+    ctaAgentPromptTooltip:
+      "Copied! Paste into your agent chat — it'll suggest next steps for integrating the architecture into your project.",
     ctaDocs: "What is DMA",
     ctaLead:
-      "Two minutes to understand the idea. Then wire the check when you’re ready.",
-    ctaStart: "Quick start",
+      "The docs explain the idea. The agent prompt suggests steps to integrate the architecture into your codebase.",
 
-    ctaTitle: "Start here",
+    ctaTitle: "Next — your project",
     footerGitHubAria: "View on GitHub",
     footerNav: [
       {
@@ -142,20 +144,23 @@ export const homeCopy = {
       error: "feature-to-feature",
       fileName: "features/checkout/model.ts",
       importLine: 'import { getCatalog } from "@/features/catalog/public/api";',
-      note: "Same ruleId in ESLint and in CI.",
+      note: "One import graph — the same result in the editor and in CI.",
       terminalLabel: "terminal",
     },
     violationLead:
-      "Checkout can't reach into catalog — in the editor or in CI.",
-    violationTitle: "feature-to-feature is an error",
+      "Rich tooling won't let you slip — linter, agent, and CLI enforce the same rules.",
+    violationTitle: "Boundaries are checked, not debated",
   },
   ru: {
     badge: "Последнее обновление — релиз v1.0.1",
+    ctaAgentPrompt: "Промпт для агента",
+    ctaAgentPromptTooltip:
+      "Скопировано! Вставьте в чат агента — он предложит дальнейшие шаги по интеграции архитектуры в проект.",
     ctaDocs: "Что такое DMA",
-    ctaLead: "Две минуты на идею. Проверку подключите, когда будете готовы.",
-    ctaStart: "Быстрый старт",
+    ctaLead:
+      "Документация объяснит идею. Промпт для агента — предложит шаги по интеграции архитектуры в ваш код.",
 
-    ctaTitle: "Начните здесь",
+    ctaTitle: "Следующий шаг — ваш проект",
     footerGitHubAria: "Открыть на GitHub",
     footerNav: [
       {
@@ -290,11 +295,12 @@ export const homeCopy = {
       error: "feature-to-feature",
       fileName: "features/checkout/model.ts",
       importLine: 'import { getCatalog } from "@/features/catalog/public/api";',
-      note: "Тот же ruleId в ESLint и в CI.",
+      note: "Один граф импортов — один результат в редакторе и в CI.",
       terminalLabel: "terminal",
     },
-    violationLead: "Checkout не залезает в catalog — ни в редакторе, ни в CI.",
-    violationTitle: "feature-to-feature — ошибка",
+    violationLead:
+      "Ошибиться не даст богатый tooling — линтер, агент и CLI держат одни и те же правила.",
+    violationTitle: "Границы проверяются, а не обсуждаются",
   },
 } as const;
 
