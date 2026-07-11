@@ -3,7 +3,7 @@
 [![CI](https://github.com/mikhailmogilnikov/derived-modular-architecture/actions/workflows/ci.yml/badge.svg)](https://github.com/mikhailmogilnikov/derived-modular-architecture/actions/workflows/ci.yml)
 [![npm @derived-modular/cli](https://img.shields.io/npm/v/@derived-modular/cli.svg)](https://www.npmjs.com/package/@derived-modular/cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![skills.sh](https://www.skills.sh/b/mikhailmogilnikov/derived-modular-architecture/dma)](https://www.skills.sh/s/mikhailmogilnikov/derived-modular-architecture/dma)
+[![skills.sh](https://www.skills.sh/b/mikhailmogilnikov/derived-modular-architecture)](https://www.skills.sh/s/mikhailmogilnikov/derived-modular-architecture/dma)
 
 A filesystem-first frontend architecture enforced by tooling — not taste.
 
