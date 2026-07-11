@@ -1,5 +1,12 @@
 # @derived-modular/cli
 
+## 1.2.1
+
+### Patch Changes
+
+- e192ab9: Print a human tip for `check|doctor --suggest|--fix` when fixable diagnostics are present.
+  - @derived-modular/boundaries@1.2.1
+
 ## 1.2.0
 
 ### Minor Changes

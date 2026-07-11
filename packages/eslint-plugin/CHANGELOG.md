@@ -1,5 +1,11 @@
 # @derived-modular/eslint-plugin
 
+## 1.2.1
+
+### Patch Changes
+
+- @derived-modular/boundaries@1.2.1
+
 ## 1.2.0
 
 ### Patch Changes
