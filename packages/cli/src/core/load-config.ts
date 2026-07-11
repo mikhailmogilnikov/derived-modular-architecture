@@ -2,8 +2,9 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createJiti } from "jiti";
-import type { DmaConfig } from "./config-types";
+import type { DmaConfig, DmaThresholdsConfig } from "./config-types";
 import { DmaEnvironmentError } from "./errors";
+import { DEFAULT_THRESHOLDS, type Thresholds } from "./thresholds";
 
 export const CONFIG_FILENAMES = [
   "dma.config.ts",
@@ -18,7 +19,10 @@ const ALLOWED_KEYS = new Set([
   "includePackages",
   "roots",
   "srcRoot",
+  "thresholds",
 ]);
+
+const THRESHOLD_KEYS = new Set(Object.keys(DEFAULT_THRESHOLDS));
 
 export interface LoadedConfig {
   config: DmaConfig;
@@ -103,7 +107,35 @@ export const validateDmaConfig = (value: unknown): DmaConfig => {
     config.includePackages = record.includePackages;
   }
 
+  if (record.thresholds !== undefined) {
+    config.thresholds = validateThresholds(record.thresholds);
+  }
+
   return config;
+};
+
+const validateThresholds = (value: unknown): DmaThresholdsConfig => {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new DmaEnvironmentError(
+      'Invalid dma.config: "thresholds" must be an object'
+    );
+  }
+  const record = value as Record<string, unknown>;
+  const out: Partial<Record<keyof Thresholds, number>> = {};
+  for (const [key, entry] of Object.entries(record)) {
+    if (!THRESHOLD_KEYS.has(key)) {
+      throw new DmaEnvironmentError(
+        `Invalid dma.config: unknown thresholds key "${key}"`
+      );
+    }
+    if (typeof entry !== "number" || !Number.isFinite(entry) || entry <= 0) {
+      throw new DmaEnvironmentError(
+        `Invalid dma.config: thresholds.${key} must be a positive number`
+      );
+    }
+    out[key as keyof Thresholds] = entry;
+  }
+  return out;
 };
 
 const unwrapExport = (mod: unknown): unknown => {

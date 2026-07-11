@@ -62,7 +62,7 @@ describe("formatHuman", () => {
       ];
       const out = formatHuman("check", diagnostics);
       expect(out).toContain(
-        "tip  Auto-promote (dry-run first): dma promote promo"
+        "tip  Auto-promote (dry-run first): npx @derived-modular/cli promote promo"
       );
       expect(out).toContain("--apply");
     } finally {

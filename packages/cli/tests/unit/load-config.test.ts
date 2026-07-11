@@ -41,6 +41,22 @@ describe("load-config", () => {
     );
   });
 
+  test("accepts thresholds overrides", () => {
+    const config = validateDmaConfig({
+      thresholds: { sharedCandidateConsumers: 3 },
+    });
+    expect(config.thresholds?.sharedCandidateConsumers).toBe(3);
+  });
+
+  test("rejects invalid thresholds", () => {
+    expect(() =>
+      validateDmaConfig({ thresholds: { sharedCandidateConsumers: 0 } })
+    ).toThrow(DmaEnvironmentError);
+    expect(() =>
+      validateDmaConfig({ thresholds: { unknownMetric: 1 } })
+    ).toThrow(DmaEnvironmentError);
+  });
+
   test("invalid fixture exits via loadConfig", async () => {
     await expect(loadConfig(invalid)).rejects.toThrow(DmaEnvironmentError);
   });

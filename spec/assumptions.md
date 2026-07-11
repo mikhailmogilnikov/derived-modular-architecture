@@ -27,8 +27,8 @@ Edge forms: static `import` / `export … from`, `import type`, dynamic `import(
 
 ## Tooling defaults
 
-- No user config file for CLI thresholds / roots in v1 (hard-coded defaults + composition-root defaults).
-- Doctor thresholds (stage growth, second-use count, dense services) use package defaults (`DEFAULT_THRESHOLDS` in the CLI).
+- Monorepo roots / layout via `dma.config.*` and CLI flags (`--roots`, `--include-packages`, `srcRoot`, `compositionRoots`).
+- Doctor thresholds default to `DEFAULT_THRESHOLDS`; optional overrides via `dma.config` `thresholds`.
 - Node.js `>=18` for published packages.
 
 ## Authority

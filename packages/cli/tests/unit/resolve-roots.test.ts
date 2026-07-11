@@ -12,10 +12,12 @@ const fixtureClean = join(import.meta.dir, "../fixtures/clean");
 const baseArgs = (overrides: Partial<CliArgs> = {}): CliArgs => ({
   apply: false,
   command: "check",
+  fix: false,
   format: "json",
   includePackages: false,
   includePackagesExplicit: false,
   path: fixtureClean,
+  suggest: false,
   ...overrides,
 });
 
@@ -25,6 +27,7 @@ const baseOptions = (
   compositionRoots: DEFAULT_DMA_CONFIG.compositionRoots,
   includePackages: DEFAULT_DMA_CONFIG.includePackages,
   srcRoot: DEFAULT_DMA_CONFIG.srcRoot,
+  thresholds: DEFAULT_DMA_CONFIG.thresholds,
   ...overrides,
 });
 

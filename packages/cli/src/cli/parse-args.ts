@@ -8,6 +8,8 @@ export interface CliArgs {
   apply: boolean;
   command: CliCommand;
   config?: string;
+  /** check/doctor: apply safe fixes. */
+  fix: boolean;
   format: "human" | "json" | "sarif";
   includePackages: boolean;
   /** True only when `--include-packages` appears on argv. */
@@ -16,6 +18,8 @@ export interface CliArgs {
   module?: string;
   path: string;
   roots?: string[];
+  /** check/doctor: print safe fix plan without writing. */
+  suggest: boolean;
 }
 
 const isAnalyzeMode = (value: string): value is AnalyzeMode =>
@@ -60,10 +64,17 @@ const parseInitArgs = (
   config?: string
 ): CliArgs => {
   if (
-    argvHasFlag(argv, ["--format", "--roots", "--include-packages", "--apply"])
+    argvHasFlag(argv, [
+      "--format",
+      "--roots",
+      "--include-packages",
+      "--apply",
+      "--fix",
+      "--suggest",
+    ])
   ) {
     throw new Error(
-      "init does not accept --format, --roots, --include-packages, or --apply."
+      "init does not accept --format, --roots, --include-packages, --apply, --fix, or --suggest."
     );
   }
   const [, path = process.cwd()] = positionals;
@@ -71,11 +82,13 @@ const parseInitArgs = (
     apply: false,
     command: "init",
     config,
+    fix: false,
     format: "human",
     includePackages: false,
     includePackagesExplicit: false,
     path,
     roots: undefined,
+    suggest: false,
   };
 };
 
@@ -84,9 +97,17 @@ const parsePromoteArgs = (
   positionals: string[],
   values: { apply?: boolean; config?: string }
 ): CliArgs => {
-  if (argvHasFlag(argv, ["--format", "--roots", "--include-packages"])) {
+  if (
+    argvHasFlag(argv, [
+      "--format",
+      "--roots",
+      "--include-packages",
+      "--fix",
+      "--suggest",
+    ])
+  ) {
     throw new Error(
-      "promote does not accept --format, --roots, or --include-packages."
+      "promote does not accept --format, --roots, --include-packages, --fix, or --suggest."
     );
   }
   const [, moduleArg, path = process.cwd()] = positionals;
@@ -99,12 +120,14 @@ const parsePromoteArgs = (
     apply: values.apply === true,
     command: "promote",
     config: values.config,
+    fix: false,
     format: "human",
     includePackages: false,
     includePackagesExplicit: false,
     module: moduleArg,
     path,
     roots: undefined,
+    suggest: false,
   };
 };
 
@@ -112,9 +135,11 @@ export const parseCliArgs = (argv: string[]): CliArgs => {
   let values: {
     apply?: boolean;
     config?: string;
+    fix?: boolean;
     format?: string;
     "include-packages"?: boolean;
     roots?: string[];
+    suggest?: boolean;
   } = {};
   let positionals: string[] = [];
 
@@ -125,9 +150,11 @@ export const parseCliArgs = (argv: string[]): CliArgs => {
       options: {
         apply: { type: "boolean" },
         config: { type: "string" },
+        fix: { type: "boolean" },
         format: { default: "human", type: "string" },
         "include-packages": { type: "boolean" },
         roots: { multiple: true, type: "string" },
+        suggest: { type: "boolean" },
       },
     });
     ({ values, positionals } = parsed);
@@ -155,6 +182,12 @@ export const parseCliArgs = (argv: string[]): CliArgs => {
     throw new Error("--apply is only valid with promote.");
   }
 
+  const fix = values.fix === true;
+  const suggest = values.suggest === true;
+  if (fix && suggest) {
+    throw new Error("Use either --suggest or --fix, not both.");
+  }
+
   const format = values.format ?? "human";
   if (!isFormat(format)) {
     throw new Error(
@@ -169,10 +202,12 @@ export const parseCliArgs = (argv: string[]): CliArgs => {
     apply: false,
     command,
     config: values.config,
+    fix,
     format,
     includePackages: values["include-packages"] ?? false,
     includePackagesExplicit,
     path,
     roots: flattenRoots(values.roots),
+    suggest,
   };
 };

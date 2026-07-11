@@ -101,14 +101,20 @@ describe("ensurePackageScript", () => {
 
   test("adds dma script once", () => {
     const root = tempDir();
-    writeFileSync(join(root, "package.json"), JSON.stringify({ name: "x" }));
+    writeFileSync(
+      join(root, "package.json"),
+      '{\n  "name": "x",\n  "version": "1.0.0"\n}\n'
+    );
     expect(ensurePackageScript(root)[0]?.action).toBe("created");
-    const pkg = JSON.parse(
-      readFileSync(join(root, "package.json"), "utf8")
-    ) as {
+    const raw = readFileSync(join(root, "package.json"), "utf8");
+    const pkg = JSON.parse(raw) as {
+      name: string;
       scripts: { dma: string };
+      version: string;
     };
     expect(pkg.scripts.dma).toBe("dma check .");
+    expect(Object.keys(pkg)).toEqual(["name", "version", "scripts"]);
+    expect(raw.endsWith("\n")).toBe(true);
     expect(ensurePackageScript(root)[0]?.action).toBe("skipped");
   });
 });

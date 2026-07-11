@@ -2,9 +2,9 @@ import { describe, expect, test } from "bun:test";
 import {
   collectExportFromSources,
   rewriteBarrelSpecifier,
-} from "../src/barrel-fix";
+} from "@derived-modular/boundaries";
 
-describe("barrel-fix", () => {
+describe("barrel-fix (boundaries)", () => {
   test("collectExportFromSources finds unique source", () => {
     expect(
       collectExportFromSources('export { Widget } from "./public/widget";\n')

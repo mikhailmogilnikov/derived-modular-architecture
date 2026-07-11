@@ -50,7 +50,7 @@ When `public/` is bloated (~8+ entrypoints) — split the module. No dedicated `
 | Project scaffolding | [Quick start](/start/quick-start), examples |
 | LSP / architecture server | CLI + linters in the editor |
 | Watch mode | `dma check` in pre-push or CI |
-| User config for doctor thresholds | CLI defaults; changes — post-v1 |
+| User config for doctor thresholds | ✅ | `dma.config` `thresholds` merges over `DEFAULT_THRESHOLDS` |
 | Cross-package graph in monorepo | Separate graphs per root ([Monorepo](/guides/monorepo)) |
 | Full graph parity in Biome/Oxlint | Always `dma check` in CI |
 | Runtime loading of `rules.json` in CLI | Rules built into `@derived-modular/cli` |

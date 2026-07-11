@@ -7,10 +7,12 @@ import type { LoadedConfig } from "../../src/core/load-config";
 const baseArgs = (overrides: Partial<CliArgs> = {}): CliArgs => ({
   apply: false,
   command: "check",
+  fix: false,
   format: "json",
   includePackages: false,
   includePackagesExplicit: false,
   path: ".",
+  suggest: false,
   ...overrides,
 });
 
@@ -21,6 +23,7 @@ describe("mergeOptions", () => {
     expect(options.compositionRoots).toContain("app");
     expect(options.includePackages).toBe(false);
     expect(options.roots).toBeUndefined();
+    expect(options.thresholds.sharedCandidateConsumers).toBe(2);
   });
 
   test("config supplies roots relative to configDir", () => {
@@ -67,5 +70,15 @@ describe("mergeOptions", () => {
     };
     const options = mergeOptions(baseArgs(), loaded);
     expect(options.includePackages).toBe(true);
+  });
+
+  test("merges thresholds from config", () => {
+    const options = mergeOptions(baseArgs(), {
+      config: { thresholds: { sharedCandidateConsumers: 5 } },
+      configDir: "/repo",
+      configPath: "/repo/dma.config.json",
+    });
+    expect(options.thresholds.sharedCandidateConsumers).toBe(5);
+    expect(options.thresholds.stage1FileCount).toBe(8);
   });
 });

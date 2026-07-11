@@ -5,6 +5,20 @@ import type { InitAction } from "./init-types";
 const SCRIPT_NAME = "dma";
 const SCRIPT_VALUE = "dma check .";
 const ALT_SCRIPT = "dma:check";
+const INDENT_RE = /\n([ \t]+)"/;
+
+const detectIndent = (raw: string): number => {
+  const match = INDENT_RE.exec(raw);
+  if (!match?.[1]) {
+    return 2;
+  }
+  if (match[1].includes("\t")) {
+    return 2;
+  }
+  return Math.min(8, Math.max(2, match[1].length));
+};
+
+const endsWithNewline = (raw: string): boolean => raw.endsWith("\n");
 
 export const ensurePackageScript = (projectRoot: string): InitAction[] => {
   const packagePath = join(resolve(projectRoot), "package.json");
@@ -70,8 +84,12 @@ export const ensurePackageScript = (projectRoot: string): InitAction[] => {
     ];
   }
 
+  // Mutate in place to preserve top-level key order from JSON.parse.
   pkg.scripts = { ...scripts, [SCRIPT_NAME]: SCRIPT_VALUE };
-  writeFileSync(`${packagePath}`, `${JSON.stringify(pkg, null, 2)}\n`);
+  const indent = detectIndent(raw);
+  const body = `${JSON.stringify(pkg, null, indent)}`;
+  const next = endsWithNewline(raw) ? `${body}\n` : body;
+  writeFileSync(packagePath, next);
   return [
     {
       action: "created",

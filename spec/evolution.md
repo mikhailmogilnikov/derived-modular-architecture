@@ -26,7 +26,7 @@ Composition-root mounts do **not** promote.
 
 ## Evolution triggers (defaults)
 
-Numbers are **CLI defaults** (`DEFAULT_THRESHOLDS`); the principle is that thresholds are explicit and project-wide. v1 has no user config file — changing them requires tooling work.
+Numbers are **CLI defaults** (`DEFAULT_THRESHOLDS`); override via `dma.config` `thresholds` when needed. Thresholds stay explicit and project-wide.
 
 | Signal | Action | Tooling |
 | --- | --- | --- |

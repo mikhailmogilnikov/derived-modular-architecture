@@ -38,7 +38,10 @@ npx @derived-modular/cli promote features/cart --apply
 ```bash
 npx @derived-modular/cli init [path]           # scaffold dirs/config/AGENTS (strict skip)
 npx @derived-modular/cli check [path]          # hard rules (fails CI on errors)
+npx @derived-modular/cli check --suggest       # print safe fix plan (no writes)
+npx @derived-modular/cli check --fix          # apply safe fixes, then re-check
 npx @derived-modular/cli doctor [path]         # evolution signals (exit 0 by default)
+npx @derived-modular/cli doctor --suggest|--fix  # orphan-public delete plan / apply
 npx @derived-modular/cli promote <module> [path] [--apply]  # feature → services (dry-run default)
 npx @derived-modular/cli check --format json
 npx @derived-modular/cli doctor --format sarif
@@ -56,11 +59,22 @@ Bootstraps a **single** package: missing `src/` layout (`app` unless `pages`/`ro
 
 Moves a **folder** feature (`features/<name>/` with `public/`) to `services/<name>/` and rewrites imports that resolve into that module. **Dry-run by default**; `--apply` writes, then re-runs `check` and **rolls back** if new errors appear. Stage-0 file modules are rejected. See docs: tooling → dma promote.
 
+### `--suggest` / `--fix` (check & doctor)
+
+Safe mechanical remediations only (single project root):
+
+| Command | What it can change |
+| --- | --- |
+| `check --suggest\|--fix` | `no-barrel` importer → unique public path; `public-api` deep import → existing **mirrored** `public/<rel>` |
+| `doctor --suggest\|--fix` | delete `orphan-public` files with **no importers at all** |
+
+`--suggest` prints the plan; `--fix` writes then re-runs the command. Mutually exclusive. Does **not** create public files, delete barrels, or run promote.
+
 Invoke only via the package name — do not rely on a short global binary.
 
 `path` defaults to the current working directory. If `path` contains the configured source root (default `src/`), that single tree is analyzed. If not, the CLI discovers DMA app packages (workspaces first, directory walk fallback). Use `--roots` or `dma.config` `roots` for an explicit list; `--include-packages` / config `includePackages` also includes library packages with layer dirs but no composition root.
 
-Optional project config: `dma.config.ts` | `.mts` | `.mjs` | `.js` | `.json` (upward lookup). Fields: `srcRoot`, `compositionRoots`, `roots`, `includePackages`. See docs: tooling → dma.config. Helper: `defineConfig` from `@derived-modular/cli`.
+Optional project config: `dma.config.ts` | `.mts` | `.mjs` | `.js` | `.json` (upward lookup). Fields: `srcRoot`, `compositionRoots`, `roots`, `includePackages`, `thresholds`. See docs: tooling → dma.config. Helper: `defineConfig` from `@derived-modular/cli`.
 
 ### Exit codes
 
@@ -153,7 +167,7 @@ bun run build
 
 ## Out of scope
 
-Autofix/codemods beyond `promote` and ESLint `no-barrel` import fix, LSP, `domains/*` layout, cross-package graph merge, watch mode. Biome does not read `dma.config` yet.
+Autofix/codemods beyond `promote` / `check --fix` / ESLint `no-barrel`, LSP, `domains/*` layout, cross-package graph merge, watch mode. Biome does not read `dma.config` yet.
 
 ## License
 

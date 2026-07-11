@@ -18,7 +18,8 @@ export const isPathInside = (filePath: string, dirPath: string): boolean => {
 const replacePathSegment = (
   specifier: string,
   from: string,
-  to: string
+  to: string,
+  requireBeforeBoundary: boolean
 ): string | null => {
   let out = "";
   let i = 0;
@@ -29,15 +30,21 @@ const replacePathSegment = (
       out += specifier.slice(i);
       break;
     }
+    const before = idx === 0 ? undefined : specifier[idx - 1];
     const after = idx + from.length;
     const next = specifier[after];
-    const boundaryOk =
+    const beforeOk =
+      !requireBeforeBoundary ||
+      before === undefined ||
+      before === "/" ||
+      before === "\\";
+    const afterOk =
       next === undefined ||
       next === "/" ||
       next === "\\" ||
       next === "?" ||
       next === "#";
-    if (!boundaryOk) {
+    if (!(beforeOk && afterOk)) {
       out += specifier.slice(i, after);
       i = after;
       continue;
@@ -51,6 +58,7 @@ const replacePathSegment = (
 
 /**
  * Replace `features/<name>` as a path segment only (not `features/<name>-extra`).
+ * After-boundary only — also used on free-text diagnostic messages.
  */
 export const replaceFeaturesSegment = (
   specifier: string,
@@ -59,7 +67,8 @@ export const replaceFeaturesSegment = (
   replacePathSegment(
     specifier,
     `features/${moduleName}`,
-    `services/${moduleName}`
+    `services/${moduleName}`,
+    false
   );
 
 /** Stabilize features/services module refs for post-check fingerprint compare. */
@@ -71,16 +80,25 @@ export const canonicalizeModuleRefs = (
   const fromServices = replacePathSegment(
     text,
     `services/${moduleName}`,
-    token
+    token,
+    false
   );
   const step = fromServices ?? text;
   const fromFeatures = replacePathSegment(
     step,
     `features/${moduleName}`,
-    token
+    token,
+    false
   );
   return fromFeatures ?? step;
 };
+
+/** Path infix bounded on both sides (for deep-import → public rewrites). */
+export const replacePathInfix = (
+  specifier: string,
+  from: string,
+  to: string
+): string | null => replacePathSegment(specifier, from, to, true);
 
 export const normalizeModuleName = (
   raw: string,

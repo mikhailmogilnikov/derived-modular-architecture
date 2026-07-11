@@ -1,13 +1,10 @@
 import {
   isBarrelIndexFilename,
   moduleRefOfPath,
+  rewriteBarrelSpecifier,
 } from "@derived-modular/boundaries";
 import type { Rule } from "eslint";
-import {
-  isBarrelReexportFile,
-  rewriteBarrelSpecifier,
-  uniqueBarrelTarget,
-} from "../barrel-fix.js";
+import { isBarrelReexportFile, uniqueBarrelTarget } from "../barrel-fix.js";
 import { resolveImportTarget } from "../resolve-import.js";
 import { getPathContext } from "../settings.js";
 

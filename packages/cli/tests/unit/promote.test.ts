@@ -36,6 +36,7 @@ const options = {
   compositionRoots: DEFAULT_DMA_CONFIG.compositionRoots,
   includePackages: false,
   srcRoot: DEFAULT_DMA_CONFIG.srcRoot,
+  thresholds: DEFAULT_DMA_CONFIG.thresholds,
 };
 
 const REJECTS_FLAGS_RE = /does not accept/;

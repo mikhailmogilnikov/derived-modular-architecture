@@ -21,7 +21,7 @@ Honest boundaries of the DMA **specification** and of **v1 tooling**.
 - Project scaffolding
 - LSP / architecture server
 - Watch mode
-- Doctor thresholds / rule allowlists in config (layout + monorepo `roots` are supported via `dma.config.*`)
+- Doctor thresholds / rule allowlists in config (layout + monorepo `roots` are supported via `dma.config.*`; doctor `thresholds` overrides are supported)
 - `domains/*` roots and cross-package graph merge
 - Biome/Oxlint parity with full graph rules
 - Runtime loading of [`rules.json`](./rules.json) inside the CLI

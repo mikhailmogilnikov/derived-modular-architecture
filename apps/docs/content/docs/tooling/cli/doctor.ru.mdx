@@ -14,6 +14,8 @@ icon: "Stethoscope"
 npx @derived-modular/cli doctor .
 npx @derived-modular/cli doctor . --format json
 npx @derived-modular/cli doctor . --format sarif
+npx @derived-modular/cli doctor . --suggest   # план удаления orphan-public
+npx @derived-modular/cli doctor . --fix      # удалить orphan public файлы
 ```
 
 Те же форматы вывода, что у `check`: human, json, SARIF.
@@ -89,6 +91,8 @@ features/checkout/
 ### orphan-public
 
 Файл в `public/` никто не импортирует. Мёртвый контракт — удалите или сделайте внутренним.
+
+`--suggest` / `--fix` могут **удалить** такие файлы только если в графе **нет никаких** импортеров (включая внутри модуля). Только single project root.
 
 ## Типичный workflow
 

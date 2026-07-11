@@ -22,6 +22,8 @@ Run only via the package name:
 npx @derived-modular/cli check
 npx @derived-modular/cli check .          # explicit path to project root
 npx @derived-modular/cli check --format json
+npx @derived-modular/cli check --suggest  # safe fix plan (no writes)
+npx @derived-modular/cli check --fix     # apply safe fixes, then re-check
 ```
 
 In `package.json`:
@@ -53,6 +55,22 @@ npx @derived-modular/cli check .
 For GitHub Actions and agents — `--format json` (stable report `version: 1`).
 
 Disable colored output with `NO_COLOR=1`.
+
+## Safe autofix (`--suggest` / `--fix`)
+
+Mechanical remediations that do not invent architecture:
+
+| Flag | Behavior |
+| --- | --- |
+| `--suggest` | Print a plan; do not write files |
+| `--fix` | Apply the plan, then re-run `check` |
+
+Supported today:
+
+- **`no-barrel`** — rewrite importers of a **single-target** barrel to the direct public path (same idea as ESLint autofix). The barrel file itself is not deleted.
+- **`public-api`** — rewrite a deep import to mirrored `public/<same-relative-path>` **only if that file already exists**.
+
+Requires a single project root (not multi-root discover). Mutually exclusive with each other. Does not create `public/` files or run `promote`.
 
 ## What is checked
 

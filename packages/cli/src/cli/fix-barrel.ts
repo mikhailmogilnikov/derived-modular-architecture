@@ -3,7 +3,13 @@ import {
   isBarrelReexportSource,
   uniqueBarrelExportSpecifier,
 } from "@derived-modular/boundaries";
-import { resolveImportTarget } from "./resolve-import.js";
+import { resolveImport } from "../core/resolve";
+import type { PathAlias } from "../core/tsconfig-paths";
+
+const EXTENSION_RE = /\.(?:[cm]?[jt]sx?|vue|svelte|astro|mdx?)$/i;
+
+export const stripSourceExtension = (filePath: string): string =>
+  filePath.replace(EXTENSION_RE, "");
 
 export const isBarrelReexportFile = (
   filePath: string,
@@ -18,7 +24,8 @@ export const isBarrelReexportFile = (
 
 export const uniqueBarrelTarget = (
   barrelFile: string,
-  srcRoot: string,
+  aliases: PathAlias[],
+  projectRoot: string,
   sourceText?: string
 ): string | null => {
   if (!existsSync(barrelFile)) {
@@ -29,5 +36,5 @@ export const uniqueBarrelTarget = (
   if (source === null) {
     return null;
   }
-  return resolveImportTarget(barrelFile, source, srcRoot);
+  return resolveImport(barrelFile, source, aliases, projectRoot);
 };

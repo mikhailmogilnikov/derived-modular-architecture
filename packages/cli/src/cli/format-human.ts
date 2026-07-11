@@ -86,7 +86,7 @@ const formatPromoteTip = (
   }
   const commands = [...names]
     .sort((a, b) => a.localeCompare(b))
-    .map((name) => `dma promote ${name}`)
+    .map((name) => `npx @derived-modular/cli promote ${name}`)
     .join(" · ");
   return paint(
     color,

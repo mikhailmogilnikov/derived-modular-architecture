@@ -22,6 +22,8 @@ npm install -D @derived-modular/cli
 npx @derived-modular/cli check
 npx @derived-modular/cli check .          # явный путь к корню проекта
 npx @derived-modular/cli check --format json
+npx @derived-modular/cli check --suggest  # план безопасных фиксов (без записи)
+npx @derived-modular/cli check --fix     # применить фиксы, затем снова check
 ```
 
 В `package.json`:
@@ -53,6 +55,22 @@ npx @derived-modular/cli check .
 Для GitHub Actions и агентов — `--format json` (стабильный отчёт `version: 1`).
 
 Цветной вывод отключается через `NO_COLOR=1`.
+
+## Безопасный autofix (`--suggest` / `--fix`)
+
+Механические правки, которые не «придумывают» архитектуру:
+
+| Флаг | Поведение |
+| --- | --- |
+| `--suggest` | Печатает план; файлы не трогает |
+| `--fix` | Применяет план, затем снова запускает `check` |
+
+Сейчас поддерживается:
+
+- **`no-barrel`** — переписать импорты в barrel с **одним** `export … from` на прямой public path (как ESLint autofix). Сам barrel-файл не удаляется.
+- **`public-api`** — переписать deep import на mirrored `public/<тот-же-относительный-путь>`, **только если такой файл уже есть**.
+
+Нужен один project root (не multi-root discover). Флаги взаимоисключающие. Не создаёт `public/` и не вызывает `promote`.
 
 ## Что именно проверяется
 

@@ -4,10 +4,13 @@ import { discover } from "./discover";
 import { buildGraph } from "./graph";
 import { runCheckRules } from "./rules";
 import { runDoctorSignals } from "./signals";
+import type { Thresholds } from "./thresholds";
 import { loadPathAliases } from "./tsconfig-paths";
 import type { AnalyzeMode, AnalyzeResult } from "./types";
 
-export type AnalyzeOptions = DiscoverOptions;
+export type AnalyzeOptions = DiscoverOptions & {
+  thresholds?: Thresholds;
+};
 
 export const analyze = (
   projectRoot: string,
@@ -21,7 +24,7 @@ export const analyze = (
   const diagnostics =
     mode === "check"
       ? runCheckRules(project, graph, classified)
-      : runDoctorSignals(project, graph, classified);
+      : runDoctorSignals(project, graph, classified, options?.thresholds);
 
   return {
     diagnostics,

@@ -2,6 +2,7 @@ import { resolve } from "node:path";
 import {
   DEFAULT_DMA_CONFIG,
   type DmaConfig,
+  mergeThresholds,
   type ResolvedDmaOptions,
 } from "../core/config-types";
 import type { LoadedConfig } from "../core/load-config";
@@ -36,5 +37,6 @@ export const mergeOptions = (
     includePackages,
     roots,
     srcRoot,
+    thresholds: mergeThresholds(config.thresholds),
   };
 };

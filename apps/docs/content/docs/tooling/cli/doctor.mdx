@@ -14,6 +14,8 @@ Think of doctor as an "architectural linter ahead of time": it hints at what to 
 npx @derived-modular/cli doctor .
 npx @derived-modular/cli doctor . --format json
 npx @derived-modular/cli doctor . --format sarif
+npx @derived-modular/cli doctor . --suggest   # plan orphan-public deletes
+npx @derived-modular/cli doctor . --fix      # delete orphan public files
 ```
 
 Same output formats as `check`: human, json, SARIF.
@@ -89,6 +91,8 @@ The `services/` subgraph looks dense or deep. Time to split **horizontally** —
 ### orphan-public
 
 A file in `public/` is imported by nobody. Dead contract — remove it or make it internal.
+
+`--suggest` / `--fix` can **delete** such files only when the graph shows **no importers at all** (including inside the module). Single project root only.
 
 ## Typical workflow
 

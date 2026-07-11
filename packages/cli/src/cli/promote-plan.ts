@@ -210,6 +210,7 @@ export const baselineErrors = (
   const result = analyze(plan.projectRoot, "check", {
     compositionRoots: options.compositionRoots,
     srcRoot: options.srcRoot,
+    thresholds: options.thresholds,
   });
   return collectErrorFingerprints(result.diagnostics, plan);
 };

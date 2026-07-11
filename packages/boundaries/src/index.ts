@@ -1,4 +1,10 @@
 export {
+  collectExportFromSources,
+  isBarrelReexportSource,
+  rewriteBarrelSpecifier,
+  uniqueBarrelExportSpecifier,
+} from "./barrel-fix.js";
+export {
   isBarrelIndexFilename,
   isInsideModule,
   isPublicImportTarget,

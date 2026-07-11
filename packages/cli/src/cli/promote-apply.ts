@@ -11,6 +11,8 @@ import { dirname, join, relative } from "node:path";
 import { analyze } from "../core/analyze";
 import type { ResolvedDmaOptions } from "../core/config-types";
 import { DmaEnvironmentError } from "../core/errors";
+import { resolveImport } from "../core/resolve";
+import { loadPathAliases } from "../core/tsconfig-paths";
 import {
   baselineErrors,
   collectErrorFingerprints,
@@ -136,9 +138,26 @@ export const applyPromote = (
       writeFileSync(write.path, write.content, "utf8");
     }
 
+    const aliases = loadPathAliases(plan.projectRoot);
+    for (const rewrite of plan.rewrites) {
+      const file = mapPathAfterMove(rewrite.file, plan.oldRoot, plan.newRoot);
+      const resolved = resolveImport(
+        file,
+        rewrite.newSpecifier,
+        aliases,
+        plan.projectRoot
+      );
+      if (resolved === null) {
+        throw new DmaEnvironmentError(
+          `Rewritten import does not resolve after promote: ${rewrite.newSpecifier} in ${relative(plan.projectRoot, file)}`
+        );
+      }
+    }
+
     const result = analyze(plan.projectRoot, "check", {
       compositionRoots: options.compositionRoots,
       srcRoot: options.srcRoot,
+      thresholds: options.thresholds,
     });
     const afterErrors = collectErrorFingerprints(result.diagnostics, plan);
 
