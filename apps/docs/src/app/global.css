@@ -7,6 +7,7 @@
   --font-mono: var(--font-geist-mono);
   --color-fd-primary: oklch(0.68 0.19 45);
   --color-fd-primary-foreground: oklch(0.99 0.01 95);
+  --breakpoint-pipeline: 1047px;
 }
 
 .dark {
@@ -44,4 +45,64 @@ html > body[data-scroll-locked] {
 
 #nd-home-layout nav {
   border-bottom: none;
+}
+
+@keyframes landing-text-shimmer {
+  0% {
+    background-position: 200% center;
+  }
+
+  100% {
+    background-position: -200% center;
+  }
+}
+
+.landing-shimmer-text {
+  color: transparent;
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--color-fd-muted-foreground) 55%, transparent) 0%,
+    color-mix(in oklab, var(--color-fd-foreground) 95%, transparent) 45%,
+    color-mix(in oklab, var(--color-fd-muted-foreground) 55%, transparent) 90%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  background-size: 200% auto;
+  animation: landing-text-shimmer 2.5s linear infinite;
+}
+
+.landing-tone-success {
+  color: oklch(0.46 0.17 145);
+}
+
+.landing-tone-warning {
+  color: oklch(0.53 0.14 70);
+}
+
+.landing-tone-success-badge {
+  color: oklch(0.46 0.17 145);
+  background-color: color-mix(in oklab, oklch(0.46 0.17 145) 14%, transparent);
+}
+
+.dark .landing-tone-success {
+  color: oklch(0.76 0.13 163);
+}
+
+.dark .landing-tone-warning {
+  color: oklch(0.78 0.12 85);
+}
+
+.dark .landing-tone-success-badge {
+  color: oklch(0.76 0.13 163);
+  background-color: color-mix(in oklab, oklch(0.76 0.13 163) 15%, transparent);
+}
+
+.landing-tone-agent-badge {
+  color: oklch(0.46 0.21 293);
+  background-color: color-mix(in oklab, oklch(0.46 0.21 293) 16%, transparent);
+}
+
+.dark .landing-tone-agent-badge {
+  color: oklch(0.78 0.12 293);
+  background-color: color-mix(in oklab, oklch(0.78 0.12 293) 15%, transparent);
 }

@@ -9,6 +9,7 @@ import {
 import { HomeExplorer } from "@/features/home/public/home-explorer";
 import { HomeFooter } from "@/features/home/public/home-footer";
 import { HomeFrameworkIcons } from "@/features/home/public/home-framework-icons";
+import { HomeToolingPipeline } from "@/features/home/public/home-tooling-pipeline";
 
 const ctaPrimaryClass =
   "inline-flex items-center gap-2.5 rounded-full bg-fd-primary px-7 py-3.5 font-medium text-base text-fd-primary-foreground transition-opacity hover:opacity-90";
@@ -54,10 +55,9 @@ export function HomePage({ lang }: { lang: string }) {
             </div>
           </div>
 
-          <HomeExplorer
-            className="w-full max-w-sm text-left"
-            nodes={content.heroTree}
-            title={content.explorerTitle}
+          <HomeToolingPipeline
+            className="w-full max-w-5xl"
+            copy={content.heroTooling}
           />
         </div>
       </section>

@@ -1,10 +1,12 @@
 import { ChevronDown, ChevronRight, File, Folder } from "lucide-react";
 
 export type TreeHighlight = "selected" | "bad" | "good" | "dim";
+export type TreeGitStatus = "modified" | "added" | "deleted";
 
 export interface FileTreeNode {
   children?: readonly FileTreeNode[];
   comment?: string;
+  gitStatus?: TreeGitStatus;
   highlight?: TreeHighlight;
   kind: "folder" | "file";
   name: string;
@@ -21,6 +23,18 @@ const highlightClass: Record<TreeHighlight, string> = {
   dim: "text-fd-muted-foreground/70",
   good: "bg-emerald-500/10 text-emerald-300/95",
   selected: "bg-fd-accent text-fd-accent-foreground",
+};
+
+const gitStatusNameClass: Record<TreeGitStatus, string> = {
+  added: "landing-tone-success",
+  deleted: "text-red-400/80 line-through",
+  modified: "landing-tone-warning",
+};
+
+const gitStatusBadge: Record<TreeGitStatus, string> = {
+  added: "A",
+  deleted: "D",
+  modified: "M",
 };
 
 function TreeNode({ depth, node }: { depth: number; node: FileTreeNode }) {
@@ -49,8 +63,25 @@ function TreeNode({ depth, node }: { depth: number; node: FileTreeNode }) {
               : "text-fd-muted-foreground"
           }`}
         />
-        <span className="truncate">{node.name}</span>
-        {node.comment ? (
+        <span
+          className={`truncate ${
+            node.gitStatus && !node.highlight
+              ? gitStatusNameClass[node.gitStatus]
+              : ""
+          }`}
+        >
+          {node.name}
+        </span>
+        {node.gitStatus ? (
+          <span
+            className={`ml-auto shrink-0 pl-2 font-medium text-[10px] ${
+              gitStatusNameClass[node.gitStatus]
+            }`}
+          >
+            {gitStatusBadge[node.gitStatus]}
+          </span>
+        ) : null}
+        {!node.gitStatus && node.comment ? (
           <span className="ml-auto truncate pl-2 text-[11px] text-fd-muted-foreground">
             {node.comment}
           </span>

@@ -57,46 +57,25 @@ export const homeCopy = {
     heroLead:
       "DMA tells you where frontend code lives — and stops features from quietly importing each other.",
     heroTitle: "A modular architecture for",
-    heroTree: [
-      {
-        kind: "folder",
-        name: "app",
-        open: true,
+    heroTooling: {
+      aiSkill: {
+        diff: { added: 3, path: "features/checkout/public/api.ts", removed: 1 },
+        label: "Agent",
+        skillLines: ["layers", "imports", "public"],
+        studying: "Reading derived-modular skill",
       },
-      {
-        children: [
-          { kind: "folder", name: "cart" },
-          { kind: "folder", name: "payment" },
-          { kind: "folder", name: "shipping" },
-        ],
-        kind: "folder",
-        name: "features",
-        open: true,
+      cli: {
+        command: "npx @derived-modular/cli check .",
+        signal: "1 signal · stage-growth · checkout",
+        success: "12 modules scanned",
       },
-      {
-        children: [
-          {
-            comment: "cart + shipping + payment",
-            highlight: "good",
-            kind: "folder",
-            name: "checkout",
-          },
-        ],
-        kind: "folder",
-        name: "services",
-        open: true,
+      release: {
+        check: "dma check",
+        deploy: "Deploy",
+        install: "Install",
+        workflow: "ci.yml",
       },
-      {
-        children: [
-          { kind: "folder", name: "api" },
-          { kind: "folder", name: "lib" },
-          { kind: "folder", name: "ui" },
-        ],
-        kind: "folder",
-        name: "shared",
-        open: true,
-      },
-    ],
+    },
     problemsTitle: "Problems",
     structureLead:
       "Screens on top. User flows in features. Shared pieces only when needed. That’s the whole idea.",
@@ -183,46 +162,25 @@ export const homeCopy = {
     heroLead:
       "DMA говорит, где живёт фронтенд-код — и не даёт фичам тихо импортировать друг друга.",
     heroTitle: "Модульная архитектура для",
-    heroTree: [
-      {
-        kind: "folder",
-        name: "app",
-        open: true,
+    heroTooling: {
+      aiSkill: {
+        diff: { added: 3, path: "features/checkout/public/api.ts", removed: 1 },
+        label: "Agent",
+        skillLines: ["layers", "imports", "public"],
+        studying: "Изучаю skill derived-modular",
       },
-      {
-        children: [
-          { kind: "folder", name: "cart" },
-          { kind: "folder", name: "payment" },
-          { kind: "folder", name: "shipping" },
-        ],
-        kind: "folder",
-        name: "features",
-        open: true,
+      cli: {
+        command: "npx @derived-modular/cli check .",
+        signal: "1 сигнал · stage-growth · checkout",
+        success: "12 модулей проверено",
       },
-      {
-        children: [
-          {
-            comment: "cart + shipping + payment",
-            highlight: "good",
-            kind: "folder",
-            name: "checkout",
-          },
-        ],
-        kind: "folder",
-        name: "services",
-        open: true,
+      release: {
+        check: "dma check",
+        deploy: "Deploy",
+        install: "Install",
+        workflow: "ci.yml",
       },
-      {
-        children: [
-          { kind: "folder", name: "api" },
-          { kind: "folder", name: "lib" },
-          { kind: "folder", name: "ui" },
-        ],
-        kind: "folder",
-        name: "shared",
-        open: true,
-      },
-    ],
+    },
     problemsTitle: "Problems",
     structureLead:
       "Экраны сверху. Пользовательские потоки в features. Общее — только когда нужно. Вся идея в этом.",
@@ -260,6 +218,34 @@ export type HomeLocale = keyof typeof homeCopy;
 export function getHomeLocale(lang: string): HomeLocale {
   return lang in homeCopy ? (lang as HomeLocale) : "en";
 }
+
+export const heroLayersTree: FileTreeNode[] = [
+  { kind: "folder", name: "app" },
+  {
+    children: [
+      { kind: "folder", name: "catalog" },
+      {
+        children: [
+          {
+            children: [{ gitStatus: "modified", kind: "file", name: "api.ts" }],
+            kind: "folder",
+            name: "public",
+            open: true,
+          },
+        ],
+        gitStatus: "modified",
+        kind: "folder",
+        name: "checkout",
+        open: true,
+      },
+    ],
+    kind: "folder",
+    name: "features",
+    open: true,
+  },
+  { kind: "folder", name: "services" },
+  { kind: "folder", name: "shared" },
+];
 
 export const teamTree: FileTreeNode[] = [
   {

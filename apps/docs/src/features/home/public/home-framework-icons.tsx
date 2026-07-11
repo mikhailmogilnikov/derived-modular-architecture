@@ -131,19 +131,22 @@ function FrameworkIconStack({
 
         return (
           <Link
+            aria-label={item.label}
             className={iconClass}
             href={`/${lang}${item.href}`}
             key={item.label}
             style={{
               zIndex: globalIndex + 1,
             }}
-            title={item.label}
           >
             <span
               className="flex size-full items-center justify-center rounded-full"
               style={{ background: item.background }}
             >
               <BrandIcon fill={item.fill} icon={item.icon} />
+            </span>
+            <span className="pointer-events-none absolute top-full left-1/2 z-[60] mt-2.5 -translate-x-1/2 whitespace-nowrap rounded-md border border-fd-border/80 bg-fd-popover px-2.5 py-1 font-medium text-fd-popover-foreground text-xs tracking-tight opacity-0 shadow-md transition-opacity group-focus-visible:opacity-100 [@media(hover:hover)]:group-hover:opacity-100">
+              {item.label}
             </span>
           </Link>
         );
