@@ -41,11 +41,14 @@ npx @derived-modular/cli doctor --format sarif
 npx @derived-modular/cli check .               # multi-root if path has no src/
 npx @derived-modular/cli check --roots apps/web,apps/admin
 npx @derived-modular/cli check . --include-packages
+npx @derived-modular/cli check --config ./dma.config.ts
 ```
 
 Invoke only via the package name — do not rely on a short global binary.
 
-`path` defaults to the current working directory. If `path` contains `src/`, that single tree is analyzed. If not, the CLI discovers DMA app packages (workspaces first, directory walk fallback). Use `--roots` for an explicit list; `--include-packages` also includes library packages with `src/{features|services|shared}` but no composition root.
+`path` defaults to the current working directory. If `path` contains the configured source root (default `src/`), that single tree is analyzed. If not, the CLI discovers DMA app packages (workspaces first, directory walk fallback). Use `--roots` or `dma.config` `roots` for an explicit list; `--include-packages` / config `includePackages` also includes library packages with layer dirs but no composition root.
+
+Optional project config: `dma.config.ts` | `.mts` | `.mjs` | `.js` | `.json` (upward lookup). Fields: `srcRoot`, `compositionRoots`, `roots`, `includePackages`. See docs: tooling → dma.config. Helper: `defineConfig` from `@derived-modular/cli`.
 
 ### Exit codes
 
@@ -138,7 +141,7 @@ bun run build
 
 ## Out of scope
 
-Autofix/codemods, project scaffolding, LSP, `domains/*` layout, user config files (`dma.config.*`), cross-package graph merge, watch mode.
+Autofix/codemods (кроме ESLint `no-barrel` import fix), project scaffolding, LSP, `domains/*` layout, cross-package graph merge, watch mode. Biome does not read `dma.config` yet.
 
 ## License
 

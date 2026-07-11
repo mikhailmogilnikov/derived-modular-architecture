@@ -47,11 +47,11 @@ describe("golden check-multi", () => {
     restore = undefined;
   });
 
-  test("check monorepo root finds apps and fails on dirty admin", () => {
+  test("check monorepo root finds apps and fails on dirty admin", async () => {
     const captured = captureStdout();
     ({ restore } = captured);
 
-    const code = runCli(["check", fixtureMini, "--format", "json"]);
+    const code = await runCli(["check", fixtureMini, "--format", "json"]);
     const report = JSON.parse(captured.chunks.join("")) as {
       projects?: string[];
       summary: { errors: number };
@@ -69,11 +69,11 @@ describe("golden check-multi", () => {
     ).toBe(true);
   });
 
-  test("include-packages adds cart root", () => {
+  test("include-packages adds cart root", async () => {
     const captured = captureStdout();
     ({ restore } = captured);
 
-    const code = runCli([
+    const code = await runCli([
       "check",
       fixtureMini,
       "--include-packages",
@@ -91,12 +91,12 @@ describe("golden check-multi", () => {
     ).toBe(true);
   });
 
-  test("single --roots uses single-root json shape", () => {
+  test("single --roots uses single-root json shape", async () => {
     const captured = captureStdout();
     ({ restore } = captured);
 
     const web = join(fixtureMini, "apps/web");
-    const code = runCli(["check", "--roots", web, "--format", "json"]);
+    const code = await runCli(["check", "--roots", web, "--format", "json"]);
     const report = JSON.parse(captured.chunks.join("")) as {
       projects?: string[];
       diagnostics: Array<{ project?: string }>;
@@ -109,13 +109,13 @@ describe("golden check-multi", () => {
     expect(report.summary.errors).toBe(0);
   });
 
-  test("human multi includes root banners", () => {
+  test("human multi includes root banners", async () => {
     process.env.NO_COLOR = "1";
     const captured = captureStdout();
     ({ restore } = captured);
 
     try {
-      const code = runCli(["check", fixtureMini, "--format", "human"]);
+      const code = await runCli(["check", fixtureMini, "--format", "human"]);
       const out = captured.chunks.join("");
       expect(code).toBe(1);
       expect(out).toContain("Checking 2 roots");
@@ -127,11 +127,11 @@ describe("golden check-multi", () => {
     }
   });
 
-  test("single-root clean still omits projects field", () => {
+  test("single-root clean still omits projects field", async () => {
     const captured = captureStdout();
     ({ restore } = captured);
 
-    const code = runCli(["check", fixtureClean, "--format", "json"]);
+    const code = await runCli(["check", fixtureClean, "--format", "json"]);
     const report = JSON.parse(captured.chunks.join("")) as {
       projects?: string[];
       summary: { errors: number };
@@ -142,7 +142,7 @@ describe("golden check-multi", () => {
     expect(report.summary.errors).toBe(0);
   });
 
-  test("bad --roots exits 2", () => {
+  test("bad --roots exits 2", async () => {
     const err = captureStderr();
     const out = captureStdout();
     restore = () => {
@@ -150,16 +150,22 @@ describe("golden check-multi", () => {
       out.restore();
     };
 
-    const code = runCli(["check", "--roots", fixtureMini, "--format", "json"]);
+    const code = await runCli([
+      "check",
+      "--roots",
+      fixtureMini,
+      "--format",
+      "json",
+    ]);
     expect(code).toBe(2);
     expect(err.chunks.join("")).toContain("src/ not found");
   });
 
-  test("relative project labels are stable", () => {
+  test("relative project labels are stable", async () => {
     const captured = captureStdout();
     ({ restore } = captured);
 
-    runCli(["check", fixtureMini, "--format", "json"]);
+    await runCli(["check", fixtureMini, "--format", "json"]);
     const report = JSON.parse(captured.chunks.join("")) as {
       projects: string[];
     };

@@ -79,11 +79,27 @@ File-scoped subset (not a substitute for `dma check`):
 
 | Package | When |
 | --- | --- |
-| `@derived-modular/eslint-plugin` | ESLint flat config — strongest |
-| `@derived-modular/oxlint-plugin` | Oxlint JS plugins (alpha) |
-| `@derived-modular/biome-plugin` | Biome GritQL — heuristics only |
+| `@derived-modular/eslint-plugin` | ESLint flat config — strongest; soft-loads `dma.config` (`srcRoot`/`compositionRoots`); `no-barrel` can autofix unique barrel imports |
+| `@derived-modular/oxlint-plugin` | Oxlint JS plugins (alpha); inherits ESLint plugin config behavior |
+| `@derived-modular/biome-plugin` | Biome GritQL — heuristics only; does **not** read `dma.config` |
 
 Matrix: [spec/enforcement.md](https://github.com/mikhailmogilnikov/derived-modular-architecture/blob/main/spec/enforcement.md)
+
+## CLI: monorepo + `dma.config`
+
+**Discovery:** path with no `srcRoot` → multi-root (workspaces, else walk). Default apps = composition roots under src. `--include-packages` / `includePackages` also includes packages with `features|services|shared`. Each root = separate graph.
+
+| Flag / config | Meaning |
+| --- | --- |
+| `--roots a,b` / `roots` | Explicit package roots (relative to cwd / config file) |
+| `--include-packages` / `includePackages` | Widen monorepo discovery |
+| `--config <path>` | Force config file |
+| `srcRoot` | Source dir name (default `"src"`) |
+| `compositionRoots` | Composition folders (default `app`, `pages`, `routes`) |
+
+Formats: `dma.config.{ts,mts,mjs,js,json}`; upward lookup; CLI overrides config. `defineConfig` from `@derived-modular/cli`.
+
+Human multi-root: banners per project. JSON: `projects` / single `project`. SARIF: `properties.project`.
 
 ## Migration shorts
 

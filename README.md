@@ -1,5 +1,10 @@
 # Derived Modular Architecture (DMA)
 
+[![CI](https://github.com/mikhailmogilnikov/derived-modular-architecture/actions/workflows/ci.yml/badge.svg)](https://github.com/mikhailmogilnikov/derived-modular-architecture/actions/workflows/ci.yml)
+[![npm @derived-modular/cli](https://img.shields.io/npm/v/@derived-modular/cli.svg)](https://www.npmjs.com/package/@derived-modular/cli)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![skills.sh](https://skills.sh/b/mikhailmogilnikov/derived-modular-architecture)](https://skills.sh/mikhailmogilnikov/derived-modular-architecture)
+
 Frontend architecture where **rules are derived from the filesystem and import graph**, then enforced by tooling — not taste.
 
 ```text

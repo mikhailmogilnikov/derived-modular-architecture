@@ -1,0 +1,88 @@
+---
+title: "dma.config"
+description: "Опциональный конфиг проекта: srcRoot, composition roots и monorepo roots."
+icon: "Settings"
+---
+
+Zero-config остаётся default. Добавляйте `dma.config.*` только для нестандартного `src/` или общих monorepo roots.
+
+## Форматы
+
+Первый найденный в каталоге побеждает:
+
+1. `dma.config.ts`
+2. `dma.config.mts`
+3. `dma.config.mjs`
+4. `dma.config.js`
+5. `dma.config.json`
+
+CLI ищет конфиг **вверх** от positional `path`. Явно: `--config <file>`.
+
+## Схема
+
+```ts
+import { defineConfig } from "@derived-modular/cli";
+
+export default defineConfig({
+  srcRoot: "src", // default
+  compositionRoots: ["app", "pages", "routes"], // default
+  roots: ["apps/web", "apps/admin"], // опционально; относительно каталога конфига
+  includePackages: false, // опционально
+});
+```
+
+| Поле | Default | Смысл |
+| --- | --- | --- |
+| `srcRoot` | `"src"` | Каталог исходников в пакете |
+| `compositionRoots` | `["app","pages","routes"]` | Папки composition root под `srcRoot` |
+| `roots` | — | Явные DMA-корни (как `--roots`) |
+| `includePackages` | `false` | Включать library-пакеты без composition root |
+
+Неизвестные ключи — ошибка (exit `2`).
+
+## Precedence
+
+1. Встроенные defaults  
+2. Файл конфига  
+3. CLI-флаги (`--roots`, `--include-packages`, `--config`)
+
+`--include-packages` перекрывает конфиг **только если флаг есть** в argv.
+
+## Примеры
+
+### Кастомная папка исходников
+
+```json
+{
+  "srcRoot": "source",
+  "compositionRoots": ["pages"]
+}
+```
+
+### Корни монорепо
+
+```ts
+import { defineConfig } from "@derived-modular/cli";
+
+export default defineConfig({
+  roots: ["apps/web", "apps/admin"],
+});
+```
+
+```bash
+npx @derived-modular/cli check .
+# без конфига:
+npx @derived-modular/cli check --roots apps/web,apps/admin
+```
+
+## Линтеры
+
+ESLint / Oxlint (`@derived-modular/eslint-plugin`) читают **`srcRoot`** и **`compositionRoots`** из `dma.config.*`, если они не заданы в `settings.dma` (settings побеждают). Biome **пока не** читает `dma.config`.
+
+## Что дальше
+
+<Cards>
+  <Card title="dma check" description="Правила и коды выхода" href="/tooling/cli/check" />
+  <Card title="Монорепо" description="Multi-root discovery" href="/guides/monorepo" />
+  <Card title="CI" description="Подключение в пайплайн" href="/tooling/ci" />
+</Cards>

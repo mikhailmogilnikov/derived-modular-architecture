@@ -1,10 +1,12 @@
 import { relative } from "node:path";
 import { analyze } from "../core/analyze";
 import { DmaEnvironmentError } from "../core/errors";
+import { loadConfig } from "../core/load-config";
 import type { AnalyzeMode, Diagnostic } from "../core/types";
 import { formatHuman } from "./format-human";
 import { formatJson } from "./format-json";
 import { formatSarif } from "./format-sarif";
+import { mergeOptions } from "./merge-options";
 import { parseCliArgs } from "./parse-args";
 import { resolveRoots } from "./resolve-roots";
 
@@ -39,16 +41,22 @@ const formatCliError = (message: string): string => {
   return `${prefix} ${message}\n`;
 };
 
-export const runCli = (argv: string[]): number => {
+export const runCli = async (argv: string[]): Promise<number> => {
   try {
     const args = parseCliArgs(argv);
-    const roots = resolveRoots(args);
+    const loaded = await loadConfig(args.path, args.config);
+    const options = mergeOptions(args, loaded);
+    const roots = resolveRoots(args, options);
     const isMulti = roots.length > 1;
     const cwd = process.cwd();
     const diagnostics: Diagnostic[] = [];
+    const layout = {
+      compositionRoots: options.compositionRoots,
+      srcRoot: options.srcRoot,
+    };
 
     for (const root of roots) {
-      const result = analyze(root, args.command);
+      const result = analyze(root, args.command, layout);
       if (isMulti) {
         const project = toProjectLabel(root, cwd);
         for (const diagnostic of result.diagnostics) {

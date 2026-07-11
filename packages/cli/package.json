@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@derived-modular/boundaries": "workspace:*",
+    "jiti": "^2.7.0",
     "typescript": "5.9.3"
   },
   "devDependencies": {

@@ -5,6 +5,7 @@ import {
   type PathContext,
 } from "@derived-modular/boundaries";
 import type { Rule } from "eslint";
+import { loadLayoutConfigNear } from "./load-layout-config.js";
 
 export interface DmaSettings {
   compositionRoots?: string[];
@@ -13,15 +14,24 @@ export interface DmaSettings {
 
 export type DmaPathContext = PathContext & { projectRoot: string };
 
-export const readDmaSettings = (context: Rule.RuleContext): DmaSettings =>
-  (context.settings?.dma ?? {}) as DmaSettings;
+export const readDmaSettings = (
+  context: Rule.RuleContext,
+  filename: string
+): DmaSettings => {
+  const fromEslint = (context.settings?.dma ?? {}) as DmaSettings;
+  const fromFile = loadLayoutConfigNear(filename) ?? {};
+  return {
+    compositionRoots: fromEslint.compositionRoots ?? fromFile.compositionRoots,
+    srcRoot: fromEslint.srcRoot ?? fromFile.srcRoot,
+  };
+};
 
 /** Resolve project root + absolute srcRoot from the linted filename. */
 export const getPathContext = (
   context: Rule.RuleContext,
   filename: string
 ): DmaPathContext => {
-  const settings = readDmaSettings(context);
+  const settings = readDmaSettings(context, filename);
   const srcRootName = settings.srcRoot ?? "src";
   const compositionRootDirnames = settings.compositionRoots ?? [
     ...DEFAULT_COMPOSITION_ROOT_DIRNAMES,

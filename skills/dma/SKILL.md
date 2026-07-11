@@ -3,9 +3,10 @@ name: dma
 description: >-
   Applies Derived Modular Architecture (DMA) when placing or moving frontend
   files under src/{app,pages,routes,features,services,shared}, reviewing imports,
-  promoting modules, choosing public API paths, migrating from FSD/ED, or running
-  dma check / dma doctor / @derived-modular/* linters. Prefer this over inventing
-  layers (widgets, entities) or barrels.
+  promoting modules, choosing public API paths, migrating from FSD/ED, configuring
+  dma.config.*, or running dma check / dma doctor / @derived-modular/* linters
+  (including monorepo multi-root). Prefer this over inventing layers (widgets,
+  entities) or barrels.
 license: MIT
 metadata:
   author: mikhailmogilnikov
@@ -22,11 +23,12 @@ Rules come from the **filesystem + import graph**, enforced by tooling — not t
 
 ## Hard gate
 
-Before creating/moving anything under `src/`:
+Before creating/moving anything under the source root (default `src/`):
 
 1. Run the **placement algorithm** below.
 2. Do **not** invent FSD-style module layers (`widgets`, `entities`, or `pages`/`features` as taste ranks) or barrels (`index.ts` re-exports). `src/pages/` / `src/routes/` as **composition roots** are fine.
 3. Prefer direct paths to `*/public/*` (stage-0 file modules are entirely public).
+4. If the project uses `dma.config.*`, honor `srcRoot` / `compositionRoots` (and monorepo `roots`) — do not assume hardcoded `src/`.
 
 ## Placement algorithm
 
@@ -66,16 +68,37 @@ outside module   → */public/* only (not ui/model/api internals)
 
 ## Agent workflow
 
-1. **Inspect** real `src/{app|pages|routes,features,services?,shared}` and imports — do not assume FSD layers.
+1. **Inspect** real `{srcRoot}/{app|pages|routes,features,services?,shared}` and imports — do not assume FSD layers. Check for `dma.config.*` first.
 2. **Place/move** via the algorithm; rewrite imports to **direct** public files.
 3. **Verify** if CLI is available:
    ```bash
+   # single app (path with src/)
    npx @derived-modular/cli check . --format json
-   npx @derived-modular/cli doctor . --format json   # soft signals; do not invent layers from these
+   npx @derived-modular/cli doctor . --format json
+
+   # monorepo root (no src/) — discovers apps; or explicit:
+   npx @derived-modular/cli check .
+   npx @derived-modular/cli check --roots apps/web,apps/admin
+   npx @derived-modular/cli check . --include-packages
    ```
-   Exit: `0` ok · `1` check errors (must fix) · `2` env/args.
+   Exit: `0` ok · `1` check errors (must fix) · `2` env/args/config.
 4. Use **editor linter plugins** when the project already has that linter (see below) — still run `npx @derived-modular/cli check` in CI.
 5. Never “fix” with barrels, deep imports, empty `services/`, or ports that hide a legal downward import.
+
+## CLI: monorepo + config
+
+**Multi-root:** if `path` has no source root → discover DMA apps (workspaces, else directory walk). Default: packages with composition roots. `--include-packages` also includes library packages with `features|services|shared`. Each root = **separate graph** (no cross-package merge).
+
+**Optional `dma.config.{ts,mts,mjs,js,json}`** (upward lookup; `--config` override):
+
+| Field | Default | Meaning |
+| --- | --- | --- |
+| `srcRoot` | `"src"` | Source directory name |
+| `compositionRoots` | `["app","pages","routes"]` | Composition folders under srcRoot |
+| `roots` | — | Explicit package roots (like `--roots`; relative to config file dir) |
+| `includePackages` | `false` | Widen monorepo discovery |
+
+Precedence: defaults < config < CLI flags. Helper: `defineConfig` from `@derived-modular/cli`.
 
 ## Linter plugins (editor / `lint` script)
 
@@ -84,11 +107,11 @@ File-scoped only: `layer-direction`, `feature-to-feature`, `public-api`, `no-bar
 
 | Stack | Package | Notes |
 | --- | --- | --- |
-| ESLint flat config | `@derived-modular/eslint-plugin` | Strongest file-scoped; prefer when ESLint is present |
-| Oxlint | `@derived-modular/oxlint-plugin` | Same rules via JS plugins (alpha) |
-| Biome | `@derived-modular/biome-plugin` | GritQL heuristics — weaker, no full resolve |
+| ESLint flat config | `@derived-modular/eslint-plugin` | Strongest; reads `srcRoot`/`compositionRoots` from `dma.config.*` if `settings.dma` unset; `no-barrel` can autofix unique barrel imports |
+| Oxlint | `@derived-modular/oxlint-plugin` | Same rules via JS plugins (alpha); inherits ESLint plugin behavior |
+| Biome | `@derived-modular/biome-plugin` | GritQL heuristics — weaker; does **not** read `dma.config` |
 
-When configuring or reviewing lint setup, point at package READMEs / [examples/](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples) (each wires a matching adapter). Normative matrix: [spec/enforcement.md](https://github.com/mikhailmogilnikov/derived-modular-architecture/blob/main/spec/enforcement.md).
+When configuring or reviewing lint setup, point at package READMEs / [examples/](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples). Normative matrix: [spec/enforcement.md](https://github.com/mikhailmogilnikov/derived-modular-architecture/blob/main/spec/enforcement.md).
 
 ## Refuse / rewrite
 
@@ -102,6 +125,7 @@ When configuring or reviewing lint setup, point at package READMEs / [examples/]
 - Port outside `public/ports.ts` (convention; CLI does not enforce the filename)
 - Treating `shared-candidate` on a healthy `services/*/public/*` as a hard error
 - “We’re fine, ESLint/Biome passed” without `dma check` in CI
+- Passing monorepo root to `check` and expecting one merged graph (graphs stay per root)
 
 ## When to open more context
 
@@ -111,6 +135,7 @@ When configuring or reviewing lint setup, point at package READMEs / [examples/]
 | Stages, triggers, shared groups, migration shorts, CLI ruleIds | [references/reference.md](references/reference.md) |
 | Copy-paste layout + lint wiring | [examples/](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/examples) |
 | Intentional violations (tests only) | `packages/cli/tests/fixtures/` |
+| Monorepo / config docs | [guides/monorepo](https://github.com/mikhailmogilnikov/derived-modular-architecture/tree/main/apps/docs/content/docs/guides/monorepo.mdx), tooling `dma.config` |
 
 ## Out of scope
 

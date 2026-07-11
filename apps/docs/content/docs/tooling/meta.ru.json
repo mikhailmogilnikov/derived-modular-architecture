@@ -5,6 +5,7 @@
     "ai-agents",
     "cli/check",
     "cli/doctor",
+    "cli/config",
     "eslint",
     "biome",
     "oxlint",

@@ -28,7 +28,10 @@ bun test --cwd packages/biome-plugin
 bun test --cwd packages/oxlint-plugin
 ```
 
-4. Commit with [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `chore:`, …). `commitlint` runs on `commit-msg` via lefthook.
+4. Commit with [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `chore:`, …). Lefthook runs:
+   - **pre-commit:** `ultracite fix` on staged files
+   - **commit-msg:** `commitlint`
+   - **pre-push:** `turbo` `check-types` + `test` for `packages/*` (when package files are in the push)
 
 ## Changesets
 

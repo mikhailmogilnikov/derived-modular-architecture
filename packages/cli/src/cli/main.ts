@@ -1,3 +1,4 @@
 import { runCli } from "./run";
 
-process.exit(runCli(process.argv.slice(2)));
+const code = await runCli(process.argv.slice(2));
+process.exit(code);

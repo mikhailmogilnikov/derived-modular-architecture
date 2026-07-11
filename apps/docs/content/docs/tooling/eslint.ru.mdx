@@ -53,7 +53,11 @@ export default [
 | `srcRoot` | `"src"` | Корень исходников |
 | `compositionRoots` | `["app", "pages", "routes"]` | Папки корень композиции |
 
+Если не заданы, плагин читает `srcRoot` / `compositionRoots` из [`dma.config.*`](/tooling/cli/config) (поиск вверх). Precedence: `settings.dma` > конфиг > defaults.
+
 Плагин разрешает относительные импорты и `@/` → `srcRoot`. Сложные алиасы из tsconfig, которые ESLint сам не резолвит, могут потребовать дополнительной настройки хоста. Импорты npm-пакетов игнорируются.
+
+`@derived-modular/no-barrel` умеет autofix импортов в barrel с одним re-export target (переписать на public path).
 
 `pages/` и `routes/` обрабатываются как `app/` — для Next.js App Router, Astro, TanStack Router, SvelteKit.
 

@@ -21,10 +21,11 @@ Honest boundaries of the DMA **specification** and of **v1 tooling**.
 - Project scaffolding
 - LSP / architecture server
 - Watch mode
-- User config files for roots/thresholds
-- Monorepo / `domains/*` roots as first-class discovery
+- Doctor thresholds / rule allowlists in config (layout + monorepo `roots` are supported via `dma.config.*`)
+- `domains/*` roots and cross-package graph merge
 - Biome/Oxlint parity with full graph rules
 - Runtime loading of [`rules.json`](./rules.json) inside the CLI
+- Linter plugins reading full `dma.config.*` in Biome (ESLint/Oxlint read layout fields)
 
 ## Declarations
 

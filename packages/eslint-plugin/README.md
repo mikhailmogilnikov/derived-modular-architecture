@@ -57,10 +57,16 @@ export default [
 
 | Key | Default |
 | --- | --- |
-| `srcRoot` | `"src"` |
-| `compositionRoots` | `["app", "pages", "routes"]` |
+| `srcRoot` | `"src"` (or from `dma.config.*`) |
+| `compositionRoots` | `["app", "pages", "routes"]` (or from `dma.config.*`) |
+
+Precedence: `settings.dma` **>** upward `dma.config.{ts,mts,mjs,js,json}` **>** defaults. Only `srcRoot` / `compositionRoots` are read from the file (`roots` / `includePackages` are CLI-only).
 
 Resolves relative imports and `@/` → `srcRoot`. Other tsconfig path aliases need a host resolver; bare npm packages are ignored.
+
+### Autofix
+
+`@derived-modular/no-barrel` can autofix **imports** that resolve to a module barrel when the barrel has a single `export … from` target (rewrite to that public path). The barrel file itself is still reported without an autofix.
 
 ## Oxlint
 

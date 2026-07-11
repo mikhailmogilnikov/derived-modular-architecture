@@ -1,0 +1,4 @@
+{
+  "roots": ["apps/web"],
+  "includePackages": true
+}

@@ -16,6 +16,7 @@ const publicFile = join(
   fixtures,
   "barrel/src/features/widget/public/widget.ts"
 );
+const consumer = join(fixtures, "barrel-import/src/features/consumer/page.tsx");
 
 tester.run("no-barrel", noBarrel, {
   invalid: [
@@ -23,6 +24,15 @@ tester.run("no-barrel", noBarrel, {
       code: readFileSync(barrel, "utf8"),
       errors: [{ messageId: "barrel" }],
       filename: barrel,
+    },
+    {
+      code: readFileSync(consumer, "utf8"),
+      errors: [{ messageId: "barrelImport" }],
+      filename: consumer,
+      output: `import { Widget } from "@/features/widget/public/widget";
+
+export const Consumer = () => Widget;
+`,
     },
   ],
   valid: [

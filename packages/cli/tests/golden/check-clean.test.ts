@@ -29,11 +29,11 @@ describe("golden check-clean", () => {
     restore = undefined;
   });
 
-  test("check clean fixture exits 0 with zero errors", () => {
+  test("check clean fixture exits 0 with zero errors", async () => {
     const captured = captureStdout();
     ({ restore } = captured);
 
-    const code = runCli(["check", fixtureClean, "--format", "json"]);
+    const code = await runCli(["check", fixtureClean, "--format", "json"]);
     const report = JSON.parse(captured.chunks.join("")) as {
       summary: { errors: number };
     };

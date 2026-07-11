@@ -23,12 +23,19 @@ describe("parseCliArgs monorepo flags", () => {
   test("parses --include-packages", () => {
     const args = parseCliArgs(["check", ".", "--include-packages"]);
     expect(args.includePackages).toBe(true);
+    expect(args.includePackagesExplicit).toBe(true);
   });
 
   test("defaults includePackages to false", () => {
     const args = parseCliArgs(["check", "."]);
     expect(args.includePackages).toBe(false);
+    expect(args.includePackagesExplicit).toBe(false);
     expect(args.roots).toBeUndefined();
+  });
+
+  test("parses --config", () => {
+    const args = parseCliArgs(["check", ".", "--config", "dma.config.json"]);
+    expect(args.config).toBe("dma.config.json");
   });
 
   test("rejects unknown flags", () => {

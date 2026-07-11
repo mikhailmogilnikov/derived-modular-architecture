@@ -53,7 +53,11 @@ The `recommended` preset enables all four rules at `error` level.
 | `srcRoot` | `"src"` | Source root |
 | `compositionRoots` | `["app", "pages", "routes"]` | Composition root folders |
 
+If unset, the plugin also reads `srcRoot` / `compositionRoots` from an upward [`dma.config.*`](/tooling/cli/config). Precedence: `settings.dma` > config file > defaults.
+
 The plugin resolves relative imports and `@/` → `srcRoot`. Complex aliases from tsconfig that ESLint does not resolve on its own may need extra host configuration. npm package imports are ignored.
+
+`@derived-modular/no-barrel` can autofix imports that hit a single-target barrel (rewrite to the public path).
 
 `pages/` and `routes/` are treated like `app/` — for Next.js App Router, Astro, TanStack Router, SvelteKit.
 

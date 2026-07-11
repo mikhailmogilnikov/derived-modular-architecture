@@ -3,8 +3,11 @@ import type { AnalyzeMode } from "../core/types";
 
 export interface CliArgs {
   command: AnalyzeMode;
+  config?: string;
   format: "human" | "json" | "sarif";
   includePackages: boolean;
+  /** True only when `--include-packages` appears on argv. */
+  includePackagesExplicit: boolean;
   path: string;
   roots?: string[];
 }
@@ -33,6 +36,7 @@ const flattenRoots = (values: string[] | undefined): string[] | undefined => {
 
 export const parseCliArgs = (argv: string[]): CliArgs => {
   let values: {
+    config?: string;
     format?: string;
     "include-packages"?: boolean;
     roots?: string[];
@@ -44,8 +48,9 @@ export const parseCliArgs = (argv: string[]): CliArgs => {
       allowPositionals: true,
       args: argv,
       options: {
+        config: { type: "string" },
         format: { default: "human", type: "string" },
-        "include-packages": { default: false, type: "boolean" },
+        "include-packages": { type: "boolean" },
         roots: { multiple: true, type: "string" },
       },
     });
@@ -69,10 +74,14 @@ export const parseCliArgs = (argv: string[]): CliArgs => {
     );
   }
 
+  const includePackagesExplicit = values["include-packages"] !== undefined;
+
   return {
     command,
+    config: values.config,
     format,
     includePackages: values["include-packages"] ?? false,
+    includePackagesExplicit,
     path,
     roots: flattenRoots(values.roots),
   };

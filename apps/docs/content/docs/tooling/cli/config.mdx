@@ -1,0 +1,88 @@
+---
+title: "dma.config"
+description: "Optional project config for srcRoot, composition roots, and monorepo roots."
+icon: "Settings"
+---
+
+Zero-config remains the default. Add `dma.config.*` only when you need a non-default `src/` layout or shared monorepo roots.
+
+## Formats
+
+First match wins (same directory):
+
+1. `dma.config.ts`
+2. `dma.config.mts`
+3. `dma.config.mjs`
+4. `dma.config.js`
+5. `dma.config.json`
+
+The CLI walks **upward** from the positional `path` until a config file is found. Override with `--config <file>`.
+
+## Schema
+
+```ts
+import { defineConfig } from "@derived-modular/cli";
+
+export default defineConfig({
+  srcRoot: "src", // default
+  compositionRoots: ["app", "pages", "routes"], // default
+  roots: ["apps/web", "apps/admin"], // optional; relative to config file dir
+  includePackages: false, // optional
+});
+```
+
+| Field | Default | Meaning |
+| --- | --- | --- |
+| `srcRoot` | `"src"` | Source directory under each package root |
+| `compositionRoots` | `["app","pages","routes"]` | Folders under `srcRoot` treated as composition roots |
+| `roots` | — | Explicit DMA roots (like `--roots`) |
+| `includePackages` | `false` | Include library packages without composition roots |
+
+Unknown keys are rejected (exit `2`).
+
+## Precedence
+
+1. Built-in defaults  
+2. Config file  
+3. CLI flags (`--roots`, `--include-packages`, `--config`)
+
+`--include-packages` overrides the config **only when the flag is present** on argv.
+
+## Examples
+
+### Custom source folder
+
+```json
+{
+  "srcRoot": "source",
+  "compositionRoots": ["pages"]
+}
+```
+
+### Monorepo roots
+
+```ts
+import { defineConfig } from "@derived-modular/cli";
+
+export default defineConfig({
+  roots: ["apps/web", "apps/admin"],
+});
+```
+
+```bash
+npx @derived-modular/cli check .
+# equivalent without config:
+npx @derived-modular/cli check --roots apps/web,apps/admin
+```
+
+## Linters
+
+ESLint / Oxlint (`@derived-modular/eslint-plugin`) read **`srcRoot`** and **`compositionRoots`** from `dma.config.*` when `settings.dma` does not set them (plugin settings win). Biome does **not** read `dma.config` yet.
+
+## What's next
+
+<Cards>
+  <Card title="dma check" description="Rules and exit codes" href="/tooling/cli/check" />
+  <Card title="Monorepo" description="Multi-root discovery" href="/guides/monorepo" />
+  <Card title="CI" description="Pipeline wiring" href="/tooling/ci" />
+</Cards>

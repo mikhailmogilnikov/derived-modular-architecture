@@ -29,11 +29,11 @@ describe("golden doctor-soft", () => {
     restore = undefined;
   });
 
-  test("doctor exits 0 even with stage-growth warnings", () => {
+  test("doctor exits 0 even with stage-growth warnings", async () => {
     const captured = captureStdout();
     ({ restore } = captured);
 
-    const code = runCli(["doctor", fixture, "--format", "json"]);
+    const code = await runCli(["doctor", fixture, "--format", "json"]);
     const report = JSON.parse(captured.chunks.join("")) as {
       diagnostics: { ruleId: string; severity: string }[];
       summary: { errors: number; warnings: number };

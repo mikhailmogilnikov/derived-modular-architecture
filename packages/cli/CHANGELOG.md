@@ -4,6 +4,7 @@
 
 ### Minor Changes
 
+- Optional `dma.config.{ts,mts,mjs,js,json}` (`srcRoot`, `compositionRoots`, `roots`, `includePackages`) with upward lookup and `--config`
 - Multi-root monorepo support: discover DMA apps from workspaces (or directory walk), `--roots`, `--include-packages`; each root analyzed as a separate graph
 
 ## 1.0.1

@@ -1,3 +1,4 @@
+import type { Dirent } from "node:fs";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { DEFAULT_COMPOSITION_ROOT_DIRNAMES } from "@derived-modular/boundaries";
@@ -16,24 +17,37 @@ const SKIP_DIR_NAMES = new Set([
 const LAYER_DIR_NAMES = ["features", "services", "shared"] as const;
 
 export interface DiscoverRootsOptions {
+  compositionRoots?: readonly string[];
   includePackages: boolean;
   /** Max depth for walk fallback (default 4). */
   maxDepth?: number;
   /** Absolute monorepo / search root */
   searchRoot: string;
+  srcRoot?: string;
 }
 
 const isDirectory = (path: string): boolean =>
   existsSync(path) && statSync(path).isDirectory();
 
-const hasSrc = (dir: string): boolean => isDirectory(join(dir, "src"));
+const hasSrcRoot = (dir: string, srcRootName: string): boolean =>
+  isDirectory(join(dir, srcRootName));
 
-export const isDmaRoot = (dir: string, includePackages: boolean): boolean => {
-  if (!hasSrc(dir)) {
+export const isDmaRoot = (
+  dir: string,
+  includePackages: boolean,
+  layout?: {
+    compositionRoots?: readonly string[];
+    srcRoot?: string;
+  }
+): boolean => {
+  const srcRootName = layout?.srcRoot ?? "src";
+  const compositionDirnames =
+    layout?.compositionRoots ?? DEFAULT_COMPOSITION_ROOT_DIRNAMES;
+  if (!hasSrcRoot(dir, srcRootName)) {
     return false;
   }
-  const srcRoot = join(dir, "src");
-  for (const name of DEFAULT_COMPOSITION_ROOT_DIRNAMES) {
+  const srcRoot = join(dir, srcRootName);
+  for (const name of compositionDirnames) {
     if (isDirectory(join(srcRoot, name))) {
       return true;
     }
@@ -168,15 +182,16 @@ const walkSrcCandidates = (
   dir: string,
   depth: number,
   maxDepth: number,
+  srcRootName: string,
   out: string[]
 ): void => {
   if (depth > maxDepth) {
     return;
   }
-  if (hasSrc(dir)) {
+  if (hasSrcRoot(dir, srcRootName)) {
     out.push(dir);
   }
-  let entries: ReturnType<typeof readdirSync>;
+  let entries: Dirent[];
   try {
     entries = readdirSync(dir, { withFileTypes: true });
   } catch {
@@ -189,7 +204,13 @@ const walkSrcCandidates = (
     if (SKIP_DIR_NAMES.has(entry.name) || entry.name.startsWith(".")) {
       continue;
     }
-    walkSrcCandidates(join(dir, entry.name), depth + 1, maxDepth, out);
+    walkSrcCandidates(
+      join(dir, entry.name),
+      depth + 1,
+      maxDepth,
+      srcRootName,
+      out
+    );
   }
 };
 
@@ -201,17 +222,22 @@ const uniqueSorted = (paths: string[]): string[] =>
 export const discoverRoots = (options: DiscoverRootsOptions): string[] => {
   const searchRoot = resolve(options.searchRoot);
   const maxDepth = options.maxDepth ?? 4;
+  const srcRootName = options.srcRoot ?? "src";
+  const layout = {
+    compositionRoots: options.compositionRoots,
+    srcRoot: srcRootName,
+  };
   const workspaceCandidates = collectWorkspaceCandidates(searchRoot);
   const candidates =
     workspaceCandidates ??
     (() => {
       const walked: string[] = [];
-      walkSrcCandidates(searchRoot, 0, maxDepth, walked);
+      walkSrcCandidates(searchRoot, 0, maxDepth, srcRootName, walked);
       return walked;
     })();
 
   const roots = candidates.filter((candidate) =>
-    isDmaRoot(candidate, options.includePackages)
+    isDmaRoot(candidate, options.includePackages, layout)
   );
   return uniqueSorted(roots);
 };

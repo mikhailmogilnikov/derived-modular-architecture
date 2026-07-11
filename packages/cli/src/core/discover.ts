@@ -13,6 +13,11 @@ const STRUCTURAL_LAYERS = [
 const MODULE_LAYERS = ["features", "services"] as const;
 const SEGMENT_DIRS = new Set(["ui", "model", "api"]);
 
+export interface DiscoverOptions {
+  compositionRoots?: readonly string[];
+  srcRoot?: string;
+}
+
 export interface DiscoveredProject {
   /** Absolute paths of composition-root dirs (`app` / `pages` / `routes`, …). */
   compositionRoots: string[];
@@ -117,16 +122,22 @@ const discoverModules = (
   return modules;
 };
 
-export const discover = (projectRoot: string): DiscoveredProject => {
+export const discover = (
+  projectRoot: string,
+  options?: DiscoverOptions
+): DiscoveredProject => {
   const absoluteRoot = resolve(projectRoot);
-  const srcRoot = join(absoluteRoot, "src");
+  const srcRootName = options?.srcRoot ?? "src";
+  const compositionDirnames =
+    options?.compositionRoots ?? DEFAULT_COMPOSITION_ROOT_DIRNAMES;
+  const srcRoot = join(absoluteRoot, srcRootName);
 
   if (!(existsSync(srcRoot) && statSync(srcRoot).isDirectory())) {
-    throw new DmaEnvironmentError("src/ not found");
+    throw new DmaEnvironmentError(`${srcRootName}/ not found`);
   }
 
   const compositionRoots: string[] = [];
-  for (const dirname of DEFAULT_COMPOSITION_ROOT_DIRNAMES) {
+  for (const dirname of compositionDirnames) {
     const rootPath = join(srcRoot, dirname);
     if (existsSync(rootPath) && statSync(rootPath).isDirectory()) {
       compositionRoots.push(rootPath);

@@ -1,16 +1,38 @@
+# https://lefthook.dev/configuration/
+# Ultracite: https://www.ultracite.ai/docs/git-hooks
+#
+# pre-commit — fast format/lint on staged files
+# pre-push   — typecheck + unit tests for packages (CI still runs the full matrix)
+
 pre-commit:
+  parallel: false
   jobs:
-    - run: bun x ultracite fix
+    - name: ultracite
+      run: bun x ultracite fix {staged_files}
       glob:
-        - "**/*.js"
-        - "**/*.jsx"
-        - "**/*.ts"
-        - "**/*.tsx"
-        - "**/*.json"
-        - "**/*.jsonc"
-        - "**/*.css"
+        - "**/*.{js,jsx,mjs,cjs}"
+        - "**/*.{ts,tsx,mts,cts}"
+        - "**/*.{json,jsonc}"
+        - "**/*.{css,scss}"
+        - "**/*.{md,mdx}"
       stage_fixed: true
 
 commit-msg:
   jobs:
-    - run: bun x commitlint --edit {1}
+    - name: commitlint
+      run: bun x commitlint --edit {1}
+
+pre-push:
+  parallel: true
+  jobs:
+    - name: check-types
+      run: bun x turbo run check-types --filter="./packages/*"
+      glob:
+        - "packages/**/*.{ts,tsx,mts,cts}"
+        - "packages/**/tsconfig*.json"
+    - name: test
+      run: bun x turbo run test --filter="./packages/*"
+      glob:
+        - "packages/**/*.{ts,tsx,mts,cts}"
+        - "packages/**/tests/**/*"
+        - "packages/**/package.json"

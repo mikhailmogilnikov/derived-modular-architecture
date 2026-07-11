@@ -38,6 +38,16 @@ npx @derived-modular/cli check --roots apps/web,apps/admin
 npx @derived-modular/cli check . --include-packages
 ```
 
+Или то же в `dma.config.ts` (см. [dma.config](/tooling/cli/config)):
+
+```ts
+import { defineConfig } from "@derived-modular/cli";
+
+export default defineConfig({
+  roots: ["apps/web", "apps/admin"],
+});
+```
+
 Каждый корень — **отдельный граф**. Workspace-импорты между пакетами **не** склеиваются — осознанно.
 
 Коды выхода агрегируются: `1`, если любой корень упал в `check`; `2`, если корней нет или у `--roots` нет `src/`.

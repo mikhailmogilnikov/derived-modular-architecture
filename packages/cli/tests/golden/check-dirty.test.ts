@@ -8,11 +8,11 @@ const fixtureFeatureToFeature = join(
 );
 
 describe("golden check-dirty", () => {
-  test("check feature-to-feature fixture exits 1", () => {
+  test("check feature-to-feature fixture exits 1", async () => {
     const original = process.stdout.write.bind(process.stdout);
     process.stdout.write = (() => true) as typeof process.stdout.write;
     try {
-      const code = runCli([
+      const code = await runCli([
         "check",
         fixtureFeatureToFeature,
         "--format",
