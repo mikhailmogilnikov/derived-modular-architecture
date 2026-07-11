@@ -219,7 +219,11 @@ describe("check --suggest/--fix", () => {
       const before = readFileSync(appPath, "utf8");
       const plan = buildFixPlan(dir, "check");
       expect(plan.actions.length).toBeGreaterThan(0);
-      plan.actions[0].oldSpecifier = "__mismatch__";
+      const [action] = plan.actions;
+      if (action?.kind !== "rewrite-specifier") {
+        throw new Error("expected rewrite-specifier action");
+      }
+      action.oldSpecifier = "__mismatch__";
       expect(() => applyFixPlan(plan)).toThrow(ROLLBACK_RE);
       expect(readFileSync(appPath, "utf8")).toBe(before);
     } finally {
