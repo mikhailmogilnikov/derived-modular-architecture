@@ -107,7 +107,7 @@ Human multi-root: banners per project. JSON: `projects` / single `project`. SARI
 
 **Page/type-based → DMA:** `app/` + `features/` + `shared/`; one module per flow; enable boundaries; `services/` on first cross-import.
 
-**FSD → DMA:** collapse pages/widgets/features/entities of one domain into one module (by inbound); `index.ts` → flat `public/`; direct public imports; ports for cycles.
+**Layer/slice-based → DMA:** collapse the slices of one domain into one module (by inbound); `index.ts` → flat `public/`; direct public imports; ports for cycles.
 
 **ED → DMA:** keep layer names; re-home by predicate; kill barrels.
 

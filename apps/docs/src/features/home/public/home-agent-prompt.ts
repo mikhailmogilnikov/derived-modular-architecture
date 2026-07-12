@@ -4,7 +4,7 @@ export const agentPromptEn = `Apply Derived Modular Architecture (DMA) to this w
    npx skills add mikhailmogilnikov/derived-modular-architecture --skill dma
    Follow its placement algorithm and onboarding checklist end-to-end — don't stop halfway.
 
-2. Inspect the actual tree and imports. Check for dma.config.* first (srcRoot, compositionRoots, monorepo roots). Do not assume FSD-style layers (widgets, entities, barrels).
+2. Inspect the actual tree and imports. Check for dma.config.* first (srcRoot, compositionRoots, monorepo roots). Do not assume or invent extra module layers or barrels.
 
 3. Onboard to completion — init only scaffolds, YOU finish the no-ops it leaves:
    npx @derived-modular/cli init .
@@ -30,7 +30,7 @@ export const agentPromptRu = `Примени Derived Modular Architecture (DMA) 
    npx skills add mikhailmogilnikov/derived-modular-architecture --skill dma
    Следуй его placement algorithm и onboarding-чеклисту до конца — не останавливайся на половине.
 
-2. Изучи реальное дерево и импорты. Сначала проверь dma.config.* (srcRoot, compositionRoots, monorepo roots). Не предполагай FSD-слои (widgets, entities, barrels).
+2. Изучи реальное дерево и импорты. Сначала проверь dma.config.* (srcRoot, compositionRoots, monorepo roots). Не предполагай и не выдумывай лишние слои модулей или barrels.
 
 3. Доведи onboarding до конца — init только создаёт каркас, остальное завершаешь ТЫ:
    npx @derived-modular/cli init .
@@ -56,7 +56,7 @@ export const agentPromptZh = `在这个 workspace 中应用 Derived Modular Arch
    npx skills add mikhailmogilnikov/derived-modular-architecture --skill dma
    完整走完它的 placement 算法与 onboarding 清单——不要中途停下。
 
-2. 检查真实的目录树和导入关系。先查看是否有 dma.config.*（srcRoot、compositionRoots、monorepo roots）。不要假设 FSD 风格的分层（widgets、entities、barrels）。
+2. 检查真实的目录树和导入关系。先查看是否有 dma.config.*（srcRoot、compositionRoots、monorepo roots）。不要假设或发明额外的模块层或 barrels。
 
 3. 把 onboarding 做完整——init 只搭骨架，剩下的空操作由你补齐：
    npx @derived-modular/cli init .

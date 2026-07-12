@@ -3,10 +3,10 @@ name: dma
 description: >-
   Applies Derived Modular Architecture (DMA) when placing or moving frontend
   files under src/{app,pages,routes,features,services,shared}, reviewing imports,
-  promoting modules, choosing public API paths, migrating from FSD/ED, configuring
+  promoting modules, choosing public API paths, migrating layered frontends, configuring
   dma.config.*, or running dma init / dma check / dma doctor / dma promote / @derived-modular/* linters
-  (including monorepo multi-root). Prefer this over inventing layers (widgets,
-  entities) or barrels.
+  (including monorepo multi-root). Prefer this over inventing extra module layers
+  or barrels.
 license: MIT
 metadata:
   author: mikhailmogilnikov
@@ -26,7 +26,7 @@ Rules come from the **filesystem + import graph**, enforced by tooling — not t
 Before creating/moving anything under the source root (default `src/`):
 
 1. Run the **placement algorithm** below.
-2. Do **not** invent FSD-style module layers (`widgets`, `entities`, or `pages`/`features` as taste ranks) or barrels (`index.ts` re-exports). `src/pages/` / `src/routes/` as **composition roots** are fine.
+2. Do **not** invent extra module layers (e.g. treating `pages`/`features` as taste ranks) or barrels (`index.ts` re-exports). `src/pages/` / `src/routes/` as **composition roots** are fine.
 3. Prefer direct paths to `*/public/*` (stage-0 file modules are entirely public).
 4. If the project uses `dma.config.*`, honor `srcRoot` / `compositionRoots` (and monorepo `roots`) — do not assume hardcoded `src/`.
 
@@ -73,7 +73,7 @@ outside module   → */public/* only (not ui/model/api internals)
 
 ## Agent workflow
 
-1. **Inspect** real `{srcRoot}/{app|pages|routes,features,services?,shared}` and imports — do not assume FSD layers. Check for `dma.config.*` first.
+1. **Inspect** real `{srcRoot}/{app|pages|routes,features,services?,shared}` and imports — do not assume extra layers. Check for `dma.config.*` first.
 2. **Onboard (first apply — run to completion, don't stop after `init`):**
    ```bash
    npx @derived-modular/cli init .   # missing dirs/config, scripts.dma, AGENTS.md block — never overwrites
